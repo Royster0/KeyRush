@@ -22,7 +22,16 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Toaster />
+          <Toaster
+            toastOptions={{
+              duration: 3500,
+              style: {
+                background: "hsl(var(--background))",
+                color: "hsl(var(--foreground))",
+                border: "1px solid hsl(var(--border))",
+              },
+            }}
+          />
           {children}
         </ThemeProvider>
       </body>
