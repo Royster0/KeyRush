@@ -12,6 +12,8 @@ import { useCalculateTypingStats } from "@/hooks/useCalculateTypingStats";
 import GameStats from "./GameStats";
 import { AnimatePresence, motion } from "motion/react";
 import Character from "./Character";
+import { saveTestResult } from "@/app/actions";
+import toast from "react-hot-toast";
 
 const Game = () => {
   const [text, setText] = useState("");
@@ -203,6 +205,33 @@ const Game = () => {
 
     return () => resizeObserver.disconnect();
   }, [text, measureText]);
+
+  // Save test result
+  const handleSaveTest = useCallback(async () => {
+    if (!isFinished) {
+      return;
+    }
+
+    try {
+      await saveTestResult({
+        wpm: wpm,
+        rawWpm: rawWpm,
+        accuracy: accuracy,
+        duration: selectedTime,
+      });
+      toast.success("Test Saved", {
+        duration: 1000,
+      });
+    } catch (error) {
+      console.log("Failed to save user test scores:", error);
+    }
+  }, [wpm, rawWpm, accuracy, selectedTime, isFinished]);
+
+  useEffect(() => {
+    if (isFinished) {
+      handleSaveTest();
+    }
+  }, [isFinished, handleSaveTest]);
 
   const renderText = () => {
     let typedSoFar = 0;

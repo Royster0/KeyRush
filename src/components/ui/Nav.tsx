@@ -7,7 +7,7 @@ import {
   Menu,
   Settings,
   Trophy,
-  User,
+  User2,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -15,17 +15,32 @@ import { useEffect, useState } from "react";
 import { LogoutButton } from "../ui/LogoutButton";
 import { Button } from "./button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "./sheet";
-import { signOut } from "@/app/actions";
+import { getUserAndUsername, signOut } from "@/app/actions";
 import { TITLE_GRADIENTS } from "@/lib/constants";
+import { User } from "@supabase/supabase-js";
+import { createClient } from "@/utils/supabase/client";
 
-export default function Nav() {
+export default async function Nav() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [user, setUser] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
   const [gradient, setGradient] = useState("");
   const [hoverColor, setHoverColor] = useState("");
 
+  const supabase = createClient();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    fetchUser();
+  }, []);
+
+  // Select Navbar theme
   useEffect(() => {
     const themes = Object.keys(TITLE_GRADIENTS);
     const randomThemeIndex = themes[Math.floor(Math.random() * themes.length)];
@@ -49,6 +64,7 @@ export default function Nav() {
     setHoverColor(hoverColorString);
   }, []);
 
+  // Handle scroll
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 0);
@@ -127,7 +143,8 @@ export default function Nav() {
                   href="/profile"
                   className="hover:text-muted transition-all"
                 >
-                  <User className="size-5" />
+                  <User2 className="size-5" />
+                  {user.email}
                 </Link>
                 <LogoutButton />
               </div>
@@ -168,7 +185,7 @@ export default function Nav() {
                               }`}
                           onClick={() => setIsOpen(false)}
                         >
-                          <User className="h-4 w-4" />
+                          <User2 className="h-4 w-4" />
                           Profile
                         </Link>
                         <form action={signOut}>
