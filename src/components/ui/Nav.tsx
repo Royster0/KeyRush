@@ -49,8 +49,6 @@ export default function Nav() {
     setHoverColor(hoverColorString);
   }, []);
 
-  const titleStyle = `bg-gradient-to-r ${gradient} text-2xl font-bold text-transparent bg-clip-text`;
-
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 0);
@@ -137,7 +135,7 @@ export default function Nav() {
               <>
                 <Link
                   href="/auth/login"
-                  className="hover:text-muted transition-all"
+                  className={`${hoverColor} transition-all`}
                 >
                   <LogIn className="size-5" />
                 </Link>
