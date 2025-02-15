@@ -256,3 +256,36 @@ export const WORD_POOL = [
 ];
 
 export const TIME_OPTIONS = [5, 15, 30, 60, 120] as const;
+
+interface Theme {
+  from: string;
+  via?: string;
+  via2?: string;
+  to: string;
+}
+
+export const TITLE_GRADIENTS: Record<string, Theme> = {
+  sunset: {
+    from: "#ff5f6d",
+    to: "#ffc371",
+  },
+  vivid: {
+    from: "#FC466B",
+    to: "#3F5EFB",
+  },
+  argon: {
+    from: "#282069",
+    via: "#7303c0",
+    via2: "#ec38bc",
+    to: "#eda8da",
+  },
+  moonlight: {
+    from: "#0F2027",
+    via: "#203A43",
+    to: "#2c5364",
+  },
+  clairvoyance: {
+    from: "#696eff",
+    to: "#f8acff",
+  },
+};

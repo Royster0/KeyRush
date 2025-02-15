@@ -7,10 +7,10 @@ const Caret = memo(() => (
   <motion.div
     initial={{ opacity: 1 }}
     animate={{ opacity: 0.6 }}
-    transition={{ duration: 0.1 }}
-    className="absolute w-0.5 bg-blue-400"
+    transition={{ duration: 0.07 }}
+    className="absolute w-0.5 bg-accent-foreground"
     layoutId="caret"
-    style={{ height: "1.4em" }}
+    style={{ height: "1.3em" }}
   />
 ));
 
