@@ -1,5 +1,7 @@
 "use client";
 
+import { signOut } from "@/app/actions";
+import { TITLE_GRADIENTS } from "@/lib/constants";
 import {
   Info,
   LogIn,
@@ -15,28 +17,23 @@ import { useEffect, useState } from "react";
 import { LogoutButton } from "../ui/LogoutButton";
 import { Button } from "./button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "./sheet";
-import { getUserAndUsername, signOut } from "@/app/actions";
-import { TITLE_GRADIENTS } from "@/lib/constants";
-import { User } from "@supabase/supabase-js";
-import { createClient } from "@/utils/supabase/client";
 
-export default async function Nav() {
+export default function Nav() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState(null);
   const [gradient, setGradient] = useState("");
   const [hoverColor, setHoverColor] = useState("");
 
-  const supabase = createClient();
-
+  // Get user
   useEffect(() => {
-    const fetchUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user);
-    };
+    async function fetchUser() {
+      const res = await fetch("/api/get-user");
+      const data = await res.json();
+      setUser(data.user);
+    }
+
     fetchUser();
   }, []);
 
@@ -144,7 +141,6 @@ export default async function Nav() {
                   className="hover:text-muted transition-all"
                 >
                   <User2 className="size-5" />
-                  {user.email}
                 </Link>
                 <LogoutButton />
               </div>

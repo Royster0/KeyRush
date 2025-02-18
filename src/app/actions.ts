@@ -45,35 +45,15 @@ export async function saveTestResult(result: Omit<TestResults, "user_id">) {
   return data;
 }
 
-export async function getUserAndUsername() {
+export async function getUser() {
   const supabase = await createClient();
-
   const {
     data: { user },
     error,
   } = await supabase.auth.getUser();
   if (error) {
-    toast.error("Error retrieving user");
+    redirect("/auth/login");
   }
 
-  if (user) {
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("username")
-      .eq("id", user?.id)
-      .single();
-
-    if (profileError) {
-      toast.error("Error retrieving user profile");
-    }
-
-    return {
-      ...user,
-      username: profile?.username,
-    };
-  }
-
-  return null;
+  return user;
 }
-
-export async function getUserTypingResults() {}
