@@ -22,7 +22,8 @@ export default function Nav() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [user, setUser] = useState(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [user, setUser] = useState<any>(null);
   const [gradient, setGradient] = useState("");
   const [hoverColor, setHoverColor] = useState("");
 
@@ -138,9 +139,10 @@ export default function Nav() {
               <div className="hidden md:flex items-center space-x-8">
                 <Link
                   href="/profile"
-                  className="hover:text-muted transition-all"
+                  className="hover:text-muted transition-all flex items-center gap-2"
                 >
                   <User2 className="size-5" />
+                  {user.profile?.username}
                 </Link>
                 <LogoutButton />
               </div>
@@ -182,7 +184,7 @@ export default function Nav() {
                           onClick={() => setIsOpen(false)}
                         >
                           <User2 className="h-4 w-4" />
-                          Profile
+                          {user.profile?.username || "Profile"}
                         </Link>
                         <form action={signOut}>
                           <Button

@@ -16,3 +16,20 @@ export function generateText(): string {
 
   return words.join(" ");
 }
+
+// Format date to readable string
+export function formatDate(date: Date): string {
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+}
+
+// Format time duration in seconds to string
+export function formatDuration(seconds: number): string {
+  if (seconds < 60) {
+    return `${seconds}s`;
+  }
+  return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+}
