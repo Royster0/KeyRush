@@ -145,7 +145,7 @@ export async function getUserLeaderboardRankings() {
     }
     
     // Group by user and get max wpm for each user
-    const userBestScores = allScores.reduce((acc, score) => {
+    const userBestScores = allScores.reduce<Record<string, number>>((acc, score) => {
       if (!acc[score.user_id] || acc[score.user_id] < score.wpm) {
         acc[score.user_id] = score.wpm;
       }

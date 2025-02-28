@@ -3,6 +3,7 @@
 import { motion } from "motion/react";
 import { memo } from "react";
 
+// eslint-disable-next-line react/display-name
 const Caret = memo(() => (
   <motion.div
     initial={{ opacity: 1 }}

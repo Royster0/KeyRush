@@ -1,10 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/utils/supabase/server";
-import { isAuthApiError } from "@supabase/supabase-js";
 
 export async function login(prevState: any, formData: FormData) {
   const supabase = await createClient();

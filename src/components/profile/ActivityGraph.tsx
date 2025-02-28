@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
@@ -34,12 +35,12 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
       globalChartInstance.destroy();
       globalChartInstance = null;
     }
-    
+
     if (chartInstance) {
       chartInstance.destroy();
       setChartInstance(null);
     }
-    
+
     // Also attempt to destroy any charts by ID in case they're orphaned
     const existingChart = Chart.getChart("activity-chart-canvas");
     if (existingChart) {
@@ -176,12 +177,12 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
         chartInstance.destroy();
         setChartInstance(null);
       }
-      
+
       if (globalChartInstance) {
         globalChartInstance.destroy();
         globalChartInstance = null;
       }
-      
+
       // Also clean up by canvas ID
       const existingChart = Chart.getChart("activity-chart-canvas");
       if (existingChart) {
@@ -197,12 +198,12 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
         chartInstance.destroy();
         setChartInstance(null);
       }
-      
+
       if (globalChartInstance) {
         globalChartInstance.destroy();
         globalChartInstance = null;
       }
-      
+
       // Also clean up by canvas ID
       const existingChart = Chart.getChart("activity-chart-canvas");
       if (existingChart) {
@@ -210,27 +211,27 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
       }
     };
   }, []);
-  
+
   // Extra safety: cleanup on page visibility change
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
+      if (document.visibilityState === "hidden") {
         if (chartInstance) {
           chartInstance.destroy();
           setChartInstance(null);
         }
-        
+
         if (globalChartInstance) {
           globalChartInstance.destroy();
           globalChartInstance = null;
         }
       }
     };
-    
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [chartInstance]);
 

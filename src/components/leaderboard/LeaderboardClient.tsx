@@ -2,7 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import { LeaderboardTimeframe } from "@/app/leaderboard/actions";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatDuration } from "@/lib/utils";
 import LeaderboardTable from "@/components/leaderboard/LeaderboardTable";
@@ -11,6 +18,7 @@ import { TIME_OPTIONS } from "@/lib/constants";
 export default function LeaderboardClient() {
   const [timeframe, setTimeframe] = useState<LeaderboardTimeframe>("all");
   const [isLoading, setIsLoading] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
 
   useEffect(() => {
@@ -30,7 +38,7 @@ export default function LeaderboardClient() {
         setIsLoading(false);
       }
     }
-    
+
     fetchData();
   }, [timeframe]);
 
@@ -38,13 +46,15 @@ export default function LeaderboardClient() {
     <div className="container mx-auto max-w-6xl p-4 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Leaderboards</h1>
-        
+
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <span className="text-sm font-medium">Time period:</span>
             <Select
               value={timeframe}
-              onValueChange={(value) => setTimeframe(value as LeaderboardTimeframe)}
+              onValueChange={(value) =>
+                setTimeframe(value as LeaderboardTimeframe)
+              }
             >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Select timeframe" />
@@ -60,28 +70,32 @@ export default function LeaderboardClient() {
           </div>
         </div>
       </div>
-      
+
       <Tabs defaultValue={TIME_OPTIONS[2].toString()} className="w-full">
         <TabsList className="grid grid-cols-5 w-full max-w-lg mx-auto mb-6">
-          {TIME_OPTIONS.map(duration => (
+          {TIME_OPTIONS.map((duration) => (
             <TabsTrigger key={duration} value={duration.toString()}>
               {formatDuration(duration)}
             </TabsTrigger>
           ))}
         </TabsList>
-        
+
         {isLoading ? (
           <div className="py-12 text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
-            <p className="mt-4 text-muted-foreground">Loading leaderboard data...</p>
+            <p className="mt-4 text-muted-foreground">
+              Loading leaderboard data...
+            </p>
           </div>
         ) : (
-          TIME_OPTIONS.map(duration => {
-            const durationData = leaderboardData.find(item => item.duration === duration);
+          TIME_OPTIONS.map((duration) => {
+            const durationData = leaderboardData.find(
+              (item) => item.duration === duration
+            );
             return (
               <TabsContent key={duration} value={duration.toString()}>
-                <LeaderboardTable 
-                  data={durationData?.data || []} 
+                <LeaderboardTable
+                  data={durationData?.data || []}
                   duration={duration}
                 />
               </TabsContent>

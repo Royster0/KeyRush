@@ -130,13 +130,19 @@ export default function Nav() {
             </Link>
 
             {/* Site Nav - fades during typing test */}
-            <div className="hidden md:flex items-center space-x-4 transition-opacity duration-300" id="navbar-links">
+            <div
+              className="hidden md:flex items-center space-x-4 transition-opacity duration-300"
+              id="navbar-links"
+            >
               <NavLinks />
             </div>
 
             {/* User - fades during typing test */}
             {user ? (
-              <div className="hidden md:flex items-center space-x-8 transition-opacity duration-300" id="navbar-user">
+              <div
+                className="hidden md:flex items-center space-x-8 transition-opacity duration-300"
+                id="navbar-user"
+              >
                 <Link
                   href="/profile"
                   className="hover:text-muted transition-all flex items-center gap-2"
@@ -150,7 +156,7 @@ export default function Nav() {
               <>
                 <Link
                   href="/auth/login"
-                  className={`${hoverColor} transition-all transition-opacity duration-300`}
+                  className={`${hoverColor} transition-all duration-300`}
                   id="navbar-login"
                 >
                   <LogIn className="size-5" />

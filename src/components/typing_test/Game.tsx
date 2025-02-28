@@ -58,13 +58,13 @@ const Game = () => {
     setIsFinished(false);
 
     // Restore UI elements on test restart
-    const navbarLinks = document.getElementById('navbar-links');
-    const navbarUser = document.getElementById('navbar-user');
-    const navbarLogin = document.getElementById('navbar-login');
-    
-    if (navbarLinks) navbarLinks.style.opacity = '1';
-    if (navbarUser) navbarUser.style.opacity = '1';
-    if (navbarLogin) navbarLogin.style.opacity = '1';
+    const navbarLinks = document.getElementById("navbar-links");
+    const navbarUser = document.getElementById("navbar-user");
+    const navbarLogin = document.getElementById("navbar-login");
+
+    if (navbarLinks) navbarLinks.style.opacity = "1";
+    if (navbarUser) navbarUser.style.opacity = "1";
+    if (navbarLogin) navbarLogin.style.opacity = "1";
 
     // Refocus on test
     setTimeout(() => {
@@ -72,6 +72,7 @@ const Game = () => {
         textRef.current.focus();
       }
     }, 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTime, measureText]);
 
   // Restart
@@ -165,15 +166,15 @@ const Game = () => {
     if (typed.length === 1) {
       setStartTime(Date.now());
       setIsActive(true);
-      
+
       // Fade out UI elements for better focus during test
-      const navbarLinks = document.getElementById('navbar-links');
-      const navbarUser = document.getElementById('navbar-user');
-      const navbarLogin = document.getElementById('navbar-login');
-      
-      if (navbarLinks) navbarLinks.style.opacity = '0';
-      if (navbarUser) navbarUser.style.opacity = '0';
-      if (navbarLogin) navbarLogin.style.opacity = '0';
+      const navbarLinks = document.getElementById("navbar-links");
+      const navbarUser = document.getElementById("navbar-user");
+      const navbarLogin = document.getElementById("navbar-login");
+
+      if (navbarLinks) navbarLinks.style.opacity = "0";
+      if (navbarUser) navbarUser.style.opacity = "0";
+      if (navbarLogin) navbarLogin.style.opacity = "0";
     }
   }, [typed]);
 
@@ -248,15 +249,15 @@ const Game = () => {
   useEffect(() => {
     if (isFinished) {
       handleSaveTest();
-      
+
       // Fade UI back in when test completes
-      const navbarLinks = document.getElementById('navbar-links');
-      const navbarUser = document.getElementById('navbar-user');
-      const navbarLogin = document.getElementById('navbar-login');
-      
-      if (navbarLinks) navbarLinks.style.opacity = '1';
-      if (navbarUser) navbarUser.style.opacity = '1';
-      if (navbarLogin) navbarLogin.style.opacity = '1';
+      const navbarLinks = document.getElementById("navbar-links");
+      const navbarUser = document.getElementById("navbar-user");
+      const navbarLogin = document.getElementById("navbar-login");
+
+      if (navbarLinks) navbarLinks.style.opacity = "1";
+      if (navbarUser) navbarUser.style.opacity = "1";
+      if (navbarLogin) navbarLogin.style.opacity = "1";
     }
   }, [isFinished, handleSaveTest]);
 

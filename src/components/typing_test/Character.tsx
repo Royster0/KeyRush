@@ -10,6 +10,7 @@ type CharacterProps = {
   isMistake: boolean;
 };
 
+// eslint-disable-next-line react/display-name
 const Character = memo(
   ({ char, isCurrent, isTyped, isCorrect, isMistake }: CharacterProps) => (
     <motion.span

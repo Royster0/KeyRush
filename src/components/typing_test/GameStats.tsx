@@ -7,6 +7,7 @@ type GameStatsProps = {
   accuracy: number;
 };
 
+// eslint-disable-next-line react/display-name
 const GameStats = memo(
   ({ timeLeft, wpm, rawWpm, accuracy }: GameStatsProps) => (
     <div className="flex items-center gap-4">

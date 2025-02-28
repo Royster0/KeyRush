@@ -11,9 +11,10 @@ type TimeSelectProps = {
 };
 
 // Time selector that fades out during test for distraction-free typing
+// eslint-disable-next-line react/display-name
 const TimeSelect = memo(
   ({ selectedTime, onTimeSelect, isActive, isVisible }: TimeSelectProps) => (
-    <motion.div 
+    <motion.div
       className="flex gap-2"
       animate={{ opacity: isVisible ? 1 : 0 }}
       transition={{ duration: 0.3 }}
