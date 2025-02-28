@@ -1,11 +1,12 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { getUser, getUserTestResults, getUserBestScores, getUserLeaderboardRankings } from "@/app/actions";
 import ProfileOverview from "@/components/profile/ProfileOverview";
 import BestScores from "@/components/profile/BestScores";
 import ActivityGraph from "@/components/profile/ActivityGraph";
+import LoadingProfile from "@/components/profile/LoadingProfile";
 import { formatDate } from "@/lib/utils";
 
-const ProfilePage = async () => {
+const ProfileContent = async () => {
   const user = await getUser();
   const testResults = await getUserTestResults();
   const bestScores = await getUserBestScores();
@@ -31,6 +32,14 @@ const ProfilePage = async () => {
         <ActivityGraph testResults={testResults} />
       </div>
     </div>
+  );
+};
+
+const ProfilePage = () => {
+  return (
+    <Suspense fallback={<LoadingProfile />}>
+      <ProfileContent />
+    </Suspense>
   );
 };
 
