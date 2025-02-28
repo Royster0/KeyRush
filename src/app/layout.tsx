@@ -34,7 +34,9 @@ export default function RootLayout({
             }}
           />
           <Nav />
-          {children}
+          <main className="pt-20">
+            {children}
+          </main>
         </ThemeProvider>
       </body>
     </html>

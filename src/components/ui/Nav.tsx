@@ -113,14 +113,14 @@ export default function Nav() {
   };
 
   return (
-    <div className="sticky top-4 z-50 mb-10">
+    <div className="fixed top-0 left-0 right-0 z-50 mb-10">
       <nav
-        className={`transition-shadow duration-200 ${
+        className={`transition-all duration-200 bg-background/95 backdrop-blur-sm ${
           scrolled ? "shadow-md" : ""
         }`}
       >
         <div className="container mx-auto px-4">
-          <div className="flex h-15 items-center justify-between">
+          <div className="flex h-16 items-center justify-between">
             {/* Title */}
             <Link
               href="/"
@@ -129,14 +129,14 @@ export default function Nav() {
               Key Rush
             </Link>
 
-            {/* Site Nav */}
-            <div className="hidden md:flex items-center space-x-4">
+            {/* Site Nav - fades during typing test */}
+            <div className="hidden md:flex items-center space-x-4 transition-opacity duration-300" id="navbar-links">
               <NavLinks />
             </div>
 
-            {/* User */}
+            {/* User - fades during typing test */}
             {user ? (
-              <div className="hidden md:flex items-center space-x-8">
+              <div className="hidden md:flex items-center space-x-8 transition-opacity duration-300" id="navbar-user">
                 <Link
                   href="/profile"
                   className="hover:text-muted transition-all flex items-center gap-2"
@@ -150,7 +150,8 @@ export default function Nav() {
               <>
                 <Link
                   href="/auth/login"
-                  className={`${hoverColor} transition-all`}
+                  className={`${hoverColor} transition-all transition-opacity duration-300`}
+                  id="navbar-login"
                 >
                   <LogIn className="size-5" />
                 </Link>
@@ -167,7 +168,7 @@ export default function Nav() {
                 </Button>
               </SheetTrigger>
               <SheetTitle aria-describedby="Navigation Menu" />
-              <SheetContent side="right" className="w-64">
+              <SheetContent side="right" className="w-64 z-[100]">
                 <div className="flex flex-col space-y-4 mt-8">
                   <NavLinks />
                   <div className="border-t pt-4">

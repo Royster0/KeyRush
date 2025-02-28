@@ -1,17 +1,23 @@
 import { TIME_OPTIONS } from "@/lib/constants";
 import { memo } from "react";
 import { Button } from "../ui/button";
+import { motion } from "framer-motion";
 
 type TimeSelectProps = {
   selectedTime: number;
   onTimeSelect: (time: number) => void;
   isActive: boolean;
+  isVisible: boolean;
 };
 
-// Select Time UI
+// Time selector that fades out during test for distraction-free typing
 const TimeSelect = memo(
-  ({ selectedTime, onTimeSelect, isActive }: TimeSelectProps) => (
-    <div className="flex gap-2">
+  ({ selectedTime, onTimeSelect, isActive, isVisible }: TimeSelectProps) => (
+    <motion.div 
+      className="flex gap-2"
+      animate={{ opacity: isVisible ? 1 : 0 }}
+      transition={{ duration: 0.3 }}
+    >
       {TIME_OPTIONS.map((time) => (
         <Button
           key={time}
@@ -23,7 +29,7 @@ const TimeSelect = memo(
           {time}s
         </Button>
       ))}
-    </div>
+    </motion.div>
   )
 );
 

@@ -10,7 +10,7 @@ import { RefreshCw } from "lucide-react";
 import { useTextMeasurement } from "@/hooks/useTextMeasurement";
 import { useCalculateTypingStats } from "@/hooks/useCalculateTypingStats";
 import GameStats from "./GameStats";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion } from "framer-motion";
 import Character from "./Character";
 import { saveTestResult } from "@/app/actions";
 import toast from "react-hot-toast";
@@ -56,6 +56,15 @@ const Game = () => {
     setMistakes(new Set());
     setIsActive(false);
     setIsFinished(false);
+
+    // Restore UI elements on test restart
+    const navbarLinks = document.getElementById('navbar-links');
+    const navbarUser = document.getElementById('navbar-user');
+    const navbarLogin = document.getElementById('navbar-login');
+    
+    if (navbarLinks) navbarLinks.style.opacity = '1';
+    if (navbarUser) navbarUser.style.opacity = '1';
+    if (navbarLogin) navbarLogin.style.opacity = '1';
 
     // Refocus on test
     setTimeout(() => {
@@ -156,6 +165,15 @@ const Game = () => {
     if (typed.length === 1) {
       setStartTime(Date.now());
       setIsActive(true);
+      
+      // Fade out UI elements for better focus during test
+      const navbarLinks = document.getElementById('navbar-links');
+      const navbarUser = document.getElementById('navbar-user');
+      const navbarLogin = document.getElementById('navbar-login');
+      
+      if (navbarLinks) navbarLinks.style.opacity = '0';
+      if (navbarUser) navbarUser.style.opacity = '0';
+      if (navbarLogin) navbarLogin.style.opacity = '0';
     }
   }, [typed]);
 
@@ -230,6 +248,15 @@ const Game = () => {
   useEffect(() => {
     if (isFinished) {
       handleSaveTest();
+      
+      // Fade UI back in when test completes
+      const navbarLinks = document.getElementById('navbar-links');
+      const navbarUser = document.getElementById('navbar-user');
+      const navbarLogin = document.getElementById('navbar-login');
+      
+      if (navbarLinks) navbarLinks.style.opacity = '1';
+      if (navbarUser) navbarUser.style.opacity = '1';
+      if (navbarLogin) navbarLogin.style.opacity = '1';
     }
   }, [isFinished, handleSaveTest]);
 
@@ -289,22 +316,32 @@ const Game = () => {
                   restartTest();
                 }}
                 isActive={isActive}
+                isVisible={!isActive}
               />
-              <Button
-                ref={restartRef}
-                variant="outline"
-                size="icon"
-                onClick={restartTest}
-                className="flex items-center"
+              {/* Keep restart visible but dimmed during test */}
+              <motion.div
+                animate={{ opacity: isActive ? 0.5 : 1 }}
+                transition={{ duration: 0.3 }}
               >
-                <RefreshCw className="size-4" />
-              </Button>
+                <Button
+                  ref={restartRef}
+                  variant="outline"
+                  size="icon"
+                  onClick={restartTest}
+                  className="flex items-center"
+                >
+                  <RefreshCw className="size-4" />
+                </Button>
+              </motion.div>
             </div>
 
             {/* Theme Toggle */}
-            <div>
+            <motion.div
+              animate={{ opacity: isActive ? 0 : 1 }}
+              transition={{ duration: 0.3 }}
+            >
               <ModeToggle />
-            </div>
+            </motion.div>
 
             {/* Test Stats */}
             <div>
