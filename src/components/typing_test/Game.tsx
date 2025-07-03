@@ -30,6 +30,8 @@ const Game = () => {
   const [lines, setLines] = useState<string[]>([]);
   const [isActive, setIsActive] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
+  const [lastTypedTime, setLastTypedTime] = useState<number | null>(null);
+  const [isAfk, setIsAfk] = useState(false);
 
   const textRef = useRef<HTMLDivElement>(null);
   const restartRef = useRef<HTMLButtonElement>(null);
@@ -56,6 +58,8 @@ const Game = () => {
     setMistakes(new Set());
     setIsActive(false);
     setIsFinished(false);
+    setLastTypedTime(null);
+    setIsAfk(false);
 
     // Restore UI elements on test restart
     const navbarLinks = document.getElementById("navbar-links");
@@ -102,6 +106,8 @@ const Game = () => {
       if (e.key === " " || e.key === "Backspace") {
         e.preventDefault();
       }
+
+      setLastTypedTime(Date.now());
 
       // Mistake handling
       if (e.key === "Backspace") {
@@ -165,6 +171,7 @@ const Game = () => {
   useEffect(() => {
     if (typed.length === 1) {
       setStartTime(Date.now());
+      setLastTypedTime(Date.now());
       setIsActive(true);
 
       // Fade out UI elements for better focus during test
@@ -177,6 +184,21 @@ const Game = () => {
       if (navbarLogin) navbarLogin.style.opacity = "0";
     }
   }, [typed]);
+
+  // AFK checker
+  useEffect(() => {
+    let afkTimer: NodeJS.Timeout;
+
+    if (isActive && !isFinished) {
+      afkTimer = setInterval(() => {
+        if (lastTypedTime && Date.now() - lastTypedTime > 6500) {
+          setIsAfk(true);
+        }
+      }, 1000);
+    }
+
+    return () => clearInterval(afkTimer);
+  }, [isActive, isFinished, lastTypedTime]);
 
   // Timer
   useEffect(() => {
@@ -227,6 +249,11 @@ const Game = () => {
 
   // Save test result
   const handleSaveTest = useCallback(async () => {
+    if (isAfk) {
+      toast.error("Test not saved due to inactivity");
+      return;
+    }
+
     if (!isFinished) {
       return;
     }
@@ -244,7 +271,7 @@ const Game = () => {
     } catch (error) {
       console.log("Failed to save user test scores:", error);
     }
-  }, [wpm, rawWpm, accuracy, selectedTime, isFinished]);
+  }, [wpm, rawWpm, accuracy, selectedTime, isFinished, isAfk]);
 
   useEffect(() => {
     if (isFinished) {
