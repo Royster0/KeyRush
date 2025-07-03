@@ -3,6 +3,7 @@ import { getUser, getUserTestResults, getUserBestScores, getUserLeaderboardRanki
 import ProfileOverview from "@/components/profile/ProfileOverview";
 import BestScores from "@/components/profile/BestScores";
 import ActivityGraph from "@/components/profile/ActivityGraph";
+import WpmChart from "@/components/profile/WpmChart";
 import LoadingProfile from "@/components/profile/LoadingProfile";
 import { formatDate } from "@/lib/utils";
 
@@ -31,6 +32,7 @@ const ProfileContent = async () => {
         <BestScores bestScores={bestScores} />
         <ActivityGraph testResults={testResults} />
       </div>
+      <WpmChart testResults={testResults} />
     </div>
   );
 };
