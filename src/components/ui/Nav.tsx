@@ -124,9 +124,14 @@ export default function Nav() {
             {/* Title */}
             <Link
               href="/"
-              className={`bg-gradient-to-r ${gradient} text-2xl font-bold text-transparent bg-clip-text`}
+              className="flex items-center gap-2 text-2xl font-bold text-foreground"
             >
-              Key Rush
+              <img
+                src="/KeyRush_Logo.svg"
+                alt="KeyRush Logo"
+                className="size-8"
+              />
+              KeyRush
             </Link>
 
             {/* Site Nav - fades during typing test */}

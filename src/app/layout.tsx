@@ -7,6 +7,9 @@ import Nav from "@/components/ui/Nav";
 export const metadata: Metadata = {
   title: "KeyRush",
   description: "Typing made fun",
+  icons: {
+    icon: "/KeyRush_Logo.svg",
+  },
 };
 
 export default function RootLayout({
