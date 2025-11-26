@@ -1,6 +1,6 @@
 import { TIME_OPTIONS } from "@/lib/constants";
+import { cn } from "@/lib/utils";
 import { memo } from "react";
-import { Button } from "../ui/button";
 import { motion } from "framer-motion";
 
 type TimeSelectProps = {
@@ -15,20 +15,24 @@ type TimeSelectProps = {
 const TimeSelect = memo(
   ({ selectedTime, onTimeSelect, isActive, isVisible }: TimeSelectProps) => (
     <motion.div
-      className="flex gap-2"
+      className="flex items-center gap-5"
       animate={{ opacity: isVisible ? 1 : 0 }}
       transition={{ duration: 0.3 }}
     >
       {TIME_OPTIONS.map((time) => (
-        <Button
+        <button
           key={time}
-          size={"sm"}
-          variant={time === selectedTime ? "default" : "outline"}
           onClick={() => onTimeSelect(time)}
           disabled={isActive}
+          className={cn(
+            "text-sm font-medium transition-colors duration-200",
+            selectedTime === time
+              ? "text-primary"
+              : "text-muted-foreground hover:text-foreground"
+          )}
         >
-          {time}s
-        </Button>
+          {time}
+        </button>
       ))}
     </motion.div>
   )

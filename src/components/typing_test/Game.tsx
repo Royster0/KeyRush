@@ -2,13 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "../ui/button";
-import { ModeToggle } from "../ui/ModeToggle";
-import { generateText } from "@/lib/utils";
+import { generateText, cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import TimeSelect from "./TimeSelect";
-import { RefreshCw, Timer, Gauge } from "lucide-react";
+import { Timer, Gauge, Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
 import { useTextMeasurement } from "@/hooks/useTextMeasurement";
 import { useCalculateTypingStats } from "@/hooks/useCalculateTypingStats";
+import { STORAGE_KEY_TIME_SELECTION, TIME_OPTIONS } from "@/lib/constants";
 import GameStats from "./GameStats";
 import { AnimatePresence, motion } from "framer-motion";
 import Character from "./Character";
@@ -34,9 +35,9 @@ const Game = () => {
   const [isAfk, setIsAfk] = useState(false);
   const [showTimer, setShowTimer] = useState(true);
   const [showWpm, setShowWpm] = useState(true);
+  const { theme, setTheme } = useTheme();
 
   const textRef = useRef<HTMLDivElement>(null);
-  const restartRef = useRef<HTMLButtonElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const measureText = useTextMeasurement(containerRef);
@@ -81,6 +82,18 @@ const Game = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTime, measureText]);
 
+  // Load saved time on mount
+  useEffect(() => {
+    const savedTime = localStorage.getItem(STORAGE_KEY_TIME_SELECTION);
+    if (savedTime) {
+      const time = parseInt(savedTime);
+      if (TIME_OPTIONS.includes(time as any)) {
+        setSelectedTime(time);
+        setTimeLeft(time);
+      }
+    }
+  }, []);
+
   // Restart
   useEffect(() => {
     restartTest();
@@ -92,11 +105,7 @@ const Game = () => {
       // Restart on Tab
       if (e.key === "Tab") {
         e.preventDefault();
-
-        if (restartRef.current) {
-          restartRef.current.click();
-        }
-
+        restartTest();
         return;
       }
 
@@ -337,69 +346,56 @@ const Game = () => {
       <Card className="w-full max-w-6xl shadow-none border-none">
         <CardHeader>
           <CardTitle className="flex justify-between items-center px-6 py">
-            {/* Time Selection/Restart */}
-            <div className="flex items-center gap-4">
-              <TimeSelect
-                selectedTime={selectedTime}
-                onTimeSelect={(time) => {
-                  setSelectedTime(time);
-                  restartTest();
-                }}
-                isActive={isActive}
-                isVisible={!isActive}
-              />
-              {/* Keep restart visible but dimmed during test */}
+            <div className="flex items-center justify-center w-full">
               <motion.div
-                animate={{ opacity: isActive ? 0.5 : 1 }}
+                animate={{ opacity: isActive ? 0 : 1 }}
                 transition={{ duration: 0.3 }}
+                className="flex items-center gap-4 bg-secondary/50 px-4 py-2 rounded-md"
               >
-                <Button
-                  ref={restartRef}
-                  variant="outline"
-                  size="icon"
-                  onClick={restartTest}
-                  className="flex items-center"
-                >
-                  <RefreshCw className="size-4" />
-                </Button>
+                {/* Time Selection */}
+                <TimeSelect
+                  selectedTime={selectedTime}
+                  onTimeSelect={(time) => {
+                    setSelectedTime(time);
+                    localStorage.setItem(STORAGE_KEY_TIME_SELECTION, time.toString());
+                    restartTest();
+                  }}
+                  isActive={isActive}
+                  isVisible={true}
+                />
+
+                <div className="w-px h-4 bg-border" />
+
+                {/* Toggles */}
+                <div className="flex items-center gap-5">
+                  <button
+                    onClick={() => setShowTimer((prev) => !prev)}
+                    title="Toggle Timer"
+                    className={cn(
+                      "text-sm font-medium transition-colors duration-200 flex items-center gap-2",
+                      showTimer
+                        ? "text-primary"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Timer className="size-5" />
+                  </button>
+                  
+                  <button
+                    onClick={() => setShowWpm((prev) => !prev)}
+                    title="Toggle WPM"
+                    className={cn(
+                      "text-sm font-medium transition-colors duration-200 flex items-center gap-2",
+                      showWpm
+                        ? "text-primary"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Gauge className="size-5" />
+                  </button>
+                </div>
+
               </motion.div>
-            </div>
-
-            {/* Theme Toggle and Stats Toggles */}
-            <motion.div
-              animate={{ opacity: isActive ? 0 : 1 }}
-              transition={{ duration: 0.3 }}
-              className="flex items-center gap-2"
-            >
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setShowTimer((prev) => !prev)}
-                title="Toggle Timer"
-              >
-                <Timer className={`size-4 ${showTimer ? "" : "opacity-30"}`} />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setShowWpm((prev) => !prev)}
-                title="Toggle WPM"
-              >
-                <Gauge className={`size-4 ${showWpm ? "" : "opacity-30"}`} />
-              </Button>
-              <ModeToggle />
-            </motion.div>
-
-            {/* Test Stats */}
-            <div>
-              <GameStats
-                timeLeft={timeLeft}
-                wpm={wpm}
-                rawWpm={rawWpm}
-                accuracy={accuracy}
-                showTimer={showTimer}
-                showWpm={showWpm}
-              />
             </div>
           </CardTitle>
         </CardHeader>
@@ -448,6 +444,28 @@ const Game = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Live Stats */}
+      <div className="fixed bottom-20 left-1/2 -translate-x-1/2 pointer-events-none">
+        <GameStats
+          timeLeft={timeLeft}
+          wpm={wpm}
+          rawWpm={rawWpm}
+          accuracy={accuracy}
+          showTimer={showTimer}
+          showWpm={showWpm}
+        />
+      </div>
+
+      {/* Floating Theme Toggle */}
+      <button
+        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+        className="fixed bottom-8 right-8 p-3 rounded-full bg-secondary/50 hover:bg-secondary text-muted-foreground hover:text-foreground transition-all duration-200 shadow-lg backdrop-blur-sm"
+      >
+        <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+        <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 top-3 left-3" />
+        <span className="sr-only">Toggle theme</span>
+      </button>
     </div>
   );
 };

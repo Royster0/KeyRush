@@ -289,3 +289,5 @@ export const TITLE_GRADIENTS: Record<string, Theme> = {
     to: "#f8acff",
   },
 };
+
+export const STORAGE_KEY_TIME_SELECTION = "typing-test-duration";
