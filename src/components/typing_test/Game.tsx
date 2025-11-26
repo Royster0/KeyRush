@@ -123,6 +123,27 @@ const Game = () => {
       // Mistake handling
       if (e.key === "Backspace") {
         if (typed.length > 0) {
+          // Smart backspace: prevent backspacing into a correct previous word
+          const charToDelete = typed[typed.length - 1];
+          const isSpaceMistake = mistakes.has(typed.length - 1);
+          
+          if (charToDelete === " " && !isSpaceMistake) {
+            const previousSpaceIndex = typed.lastIndexOf(" ", typed.length - 2);
+            const startOfWord = previousSpaceIndex + 1;
+            const endOfWord = typed.length - 1;
+
+            let hasMistakesInWord = false;
+            for (let i = startOfWord; i < endOfWord; i++) {
+              if (mistakes.has(i)) {
+                hasMistakesInWord = true;
+                break;
+              }
+            }
+
+            if (!hasMistakesInWord) {
+              return;
+            }
+          }
           const lastIndex = typed.length - 1;
           const wasCorrect = typed[lastIndex] === text[lastIndex];
           setTotalKeystrokes((prev) => Math.max(0, prev - 1));
