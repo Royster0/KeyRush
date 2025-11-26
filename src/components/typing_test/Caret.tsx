@@ -11,7 +11,7 @@ const Caret = memo(() => (
     transition={{ duration: 0.07 }}
     className="absolute w-0.5 bg-accent-foreground"
     layoutId="caret"
-    style={{ height: "1.3em" }}
+    style={{ height: "1.3em", left: "-2px" }}
   />
 ));
 

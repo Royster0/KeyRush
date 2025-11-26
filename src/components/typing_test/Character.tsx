@@ -16,10 +16,10 @@ const Character = memo(
     <motion.span
       className={`
         ${isTyped && !isCorrect ? "text-red-600" : ""}
-        ${isTyped && isCorrect ? "text-emerald-500" : ""} 
+        ${isTyped && isCorrect ? "text-emerald-500" : ""}
         ${isMistake ? "text-red-500" : ""}
         ${!isTyped ? "text-gray-700" : ""}
-        text-2xl relative inline-block
+        text-3xl relative inline-block
         `}
       layout
     >

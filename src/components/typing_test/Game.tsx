@@ -6,7 +6,7 @@ import { ModeToggle } from "../ui/ModeToggle";
 import { generateText } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import TimeSelect from "./TimeSelect";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Timer, Gauge } from "lucide-react";
 import { useTextMeasurement } from "@/hooks/useTextMeasurement";
 import { useCalculateTypingStats } from "@/hooks/useCalculateTypingStats";
 import GameStats from "./GameStats";
@@ -32,6 +32,8 @@ const Game = () => {
   const [isFinished, setIsFinished] = useState(false);
   const [lastTypedTime, setLastTypedTime] = useState<number | null>(null);
   const [isAfk, setIsAfk] = useState(false);
+  const [showTimer, setShowTimer] = useState(true);
+  const [showWpm, setShowWpm] = useState(true);
 
   const textRef = useRef<HTMLDivElement>(null);
   const restartRef = useRef<HTMLButtonElement>(null);
@@ -311,7 +313,7 @@ const Game = () => {
       const lineStart = text.indexOf(line);
 
       return (
-        <div key={lineIndex} className="h-[2.5em] whitespace-pre relative">
+        <div key={lineIndex} className="h-[3em] whitespace-pre relative">
           {chars.map((char, charIndex) => {
             const absoluteIndex = lineStart + charIndex;
             return (
@@ -332,7 +334,7 @@ const Game = () => {
 
   return (
     <div className="min-h-fill min-w-full flex items-center justify-center mt-[7em]">
-      <Card className="w-full max-w-4xl shadow-none border-none">
+      <Card className="w-full max-w-6xl shadow-none border-none">
         <CardHeader>
           <CardTitle className="flex justify-between items-center px-6 py">
             {/* Time Selection/Restart */}
@@ -363,11 +365,28 @@ const Game = () => {
               </motion.div>
             </div>
 
-            {/* Theme Toggle */}
+            {/* Theme Toggle and Stats Toggles */}
             <motion.div
               animate={{ opacity: isActive ? 0 : 1 }}
               transition={{ duration: 0.3 }}
+              className="flex items-center gap-2"
             >
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setShowTimer((prev) => !prev)}
+                title="Toggle Timer"
+              >
+                <Timer className={`size-4 ${showTimer ? "" : "opacity-30"}`} />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setShowWpm((prev) => !prev)}
+                title="Toggle WPM"
+              >
+                <Gauge className={`size-4 ${showWpm ? "" : "opacity-30"}`} />
+              </Button>
               <ModeToggle />
             </motion.div>
 
@@ -378,6 +397,8 @@ const Game = () => {
                 wpm={wpm}
                 rawWpm={rawWpm}
                 accuracy={accuracy}
+                showTimer={showTimer}
+                showWpm={showWpm}
               />
             </div>
           </CardTitle>
@@ -391,7 +412,7 @@ const Game = () => {
             <div
               ref={textRef}
               tabIndex={0}
-              className="h-[7.5em] focus:outline-none"
+              className="h-[9em] focus:outline-none"
             >
               <AnimatePresence mode="wait">
                 {isFinished ? (

@@ -15,7 +15,7 @@ export const useTextMeasurement = (
         visibility: "hidden",
         position: "absolute",
         whiteSpace: "pre",
-        fontSize: "1.5rem",
+        fontSize: "1.875rem",
         fontFamily: "monospace",
       });
 
