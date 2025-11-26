@@ -2,8 +2,8 @@ import Game from "@/components/typing_test/Game";
 
 export default function Home() {
   return (
-    <main className="container mx-auto py-8 flex justify-center">
+    <div className="min-h-[calc(100vh-5rem)] flex items-center justify-center p-4">
       <Game />
-    </main>
+    </div>
   );
 }

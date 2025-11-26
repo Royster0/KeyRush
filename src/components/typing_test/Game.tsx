@@ -360,8 +360,8 @@ const Game = () => {
   };
 
   return (
-    <div className="min-h-fill min-w-full flex items-center justify-center mt-[7em]">
-      <Card className="w-full max-w-6xl shadow-none border-none">
+    <div className="w-full flex items-center justify-center">
+      <Card className="w-full max-w-[85vw] shadow-none border-none">
         <CardHeader>
           <CardTitle className="flex justify-between items-center px-6 py">
             <div className="flex items-center justify-center w-full">
