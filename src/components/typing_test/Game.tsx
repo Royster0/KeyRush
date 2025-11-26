@@ -297,9 +297,6 @@ const Game = () => {
         accuracy: accuracy,
         duration: selectedTime,
       });
-      toast.success("Test Saved", {
-        duration: 1000,
-      });
     } catch (error) {
       console.log("Failed to save user test scores:", error);
     }
