@@ -7,12 +7,31 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// Generate random text
+// Generate random text with no duplicate words in recent buffer
 export function generateText(): string {
-  const words = Array.from(
-    { length: 400 },
-    () => WORD_POOL[Math.floor(Math.random() * WORD_POOL.length)]
-  );
+  const BUFFER_SIZE = 10; // Prevent duplicates within last 10 words
+  const words: string[] = [];
+  const recentWords: string[] = [];
+
+  for (let i = 0; i < 400; i++) {
+    let newWord: string;
+    let attempts = 0;
+    const maxAttempts = 50; // Prevent infinite loop in edge cases
+
+    // Keep trying to find a word not in the recent buffer
+    do {
+      newWord = WORD_POOL[Math.floor(Math.random() * WORD_POOL.length)];
+      attempts++;
+    } while (recentWords.includes(newWord) && attempts < maxAttempts);
+
+    words.push(newWord);
+
+    // Update recent words buffer
+    recentWords.push(newWord);
+    if (recentWords.length > BUFFER_SIZE) {
+      recentWords.shift(); // Remove oldest word from buffer
+    }
+  }
 
   return words.join(" ");
 }
