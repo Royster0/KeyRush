@@ -1,6 +1,7 @@
 "use client";
 
-import { signOut } from "@/app/actions";
+import { signOut, saveTestResult } from "@/app/actions";
+import toast from "react-hot-toast";
 import { createClient } from "@/utils/supabase/client";
 import { TITLE_GRADIENTS } from "@/lib/constants";
 import {
@@ -62,6 +63,31 @@ export default function Nav() {
   useEffect(() => {
     fetchUser();
   }, [pathname]);
+
+  // Check for pending results on login
+  useEffect(() => {
+    const checkPendingResults = async () => {
+      if (user) {
+        const pendingResult = localStorage.getItem("pendingResult");
+        if (pendingResult) {
+          // Remove immediately to prevent double-submission (e.g. strict mode double effect)
+          localStorage.removeItem("pendingResult");
+
+          try {
+            const result = JSON.parse(pendingResult);
+            await saveTestResult(result);
+            toast.success("Saved your recent test result!");
+          } catch (error) {
+            console.error("Error saving pending result:", error);
+            // If failed, put it back so we can try again later
+            localStorage.setItem("pendingResult", pendingResult);
+          }
+        }
+      }
+    };
+
+    checkPendingResults();
+  }, [user]);
 
   // Select Navbar theme
   useEffect(() => {
@@ -140,9 +166,8 @@ export default function Nav() {
   return (
     <div className="fixed top-0 left-0 right-0 z-50 mb-10">
       <nav
-        className={`transition-all duration-200 bg-background/95 backdrop-blur-sm ${
-          scrolled ? "shadow-md" : ""
-        }`}
+        className={`transition-all duration-200 bg-background/95 backdrop-blur-sm ${scrolled ? "shadow-md" : ""
+          }`}
       >
         <div className="container mx-auto px-4">
           <div className="flex h-16 items-center justify-between">
@@ -213,11 +238,10 @@ export default function Nav() {
                         <Link
                           href="/profile"
                           className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors
-                              ${
-                                isActive("/profile")
-                                  ? "bg-primary text-primary-foreground"
-                                  : "hover:bg-muted"
-                              }`}
+                              ${isActive("/profile")
+                              ? "bg-primary text-primary-foreground"
+                              : "hover:bg-muted"
+                            }`}
                           onClick={() => setIsOpen(false)}
                         >
                           <User2 className="h-4 w-4" />

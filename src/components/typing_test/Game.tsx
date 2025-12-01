@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "../ui/button";
 import { generateText, cn } from "@/lib/utils";
@@ -21,9 +23,11 @@ const ResultsChart = dynamic(() => import("./ResultsChart"), { ssr: false });
 
 interface GameProps {
   initialBestScores?: { duration: number; wpm: number }[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  user?: any;
 }
 
-const Game = ({ initialBestScores = [] }: GameProps) => {
+const Game = ({ initialBestScores = [], user }: GameProps) => {
   const [text, setText] = useState("");
   const [typed, setTyped] = useState("");
   const [selectedTime, setSelectedTime] = useState(30);
@@ -312,17 +316,24 @@ const Game = ({ initialBestScores = [] }: GameProps) => {
       return;
     }
 
+    const resultData = {
+      wpm: wpm,
+      rawWpm: rawWpm,
+      accuracy: accuracy,
+      duration: selectedTime,
+    };
+
+    if (!user) {
+      localStorage.setItem("pendingResult", JSON.stringify(resultData));
+      return;
+    }
+
     try {
-      await saveTestResult({
-        wpm: wpm,
-        rawWpm: rawWpm,
-        accuracy: accuracy,
-        duration: selectedTime,
-      });
+      await saveTestResult(resultData);
     } catch (error) {
       console.log("Failed to save user test scores:", error);
     }
-  }, [wpm, rawWpm, accuracy, selectedTime, isFinished, isAfk]);
+  }, [wpm, rawWpm, accuracy, selectedTime, isFinished, isAfk, user]);
 
   useEffect(() => {
     if (isFinished) {
@@ -481,6 +492,21 @@ const Game = ({ initialBestScores = [] }: GameProps) => {
                             ?.wpm
                         }
                       />
+                    )}
+
+                    {!user && (
+                      <div className="mt-6 p-4 bg-secondary/30 rounded-lg border border-border/50 max-w-md mx-auto">
+                        <p className="text-muted-foreground">
+                          <Link href="/auth/login" className="text-primary hover:underline font-medium">
+                            Login
+                          </Link>
+                          {" or "}
+                          <Link href="/auth/register" className="text-primary hover:underline font-medium">
+                            Sign Up
+                          </Link>
+                          {" to save your results"}
+                        </p>
+                      </div>
                     )}
                   </motion.div>
                 ) : (
