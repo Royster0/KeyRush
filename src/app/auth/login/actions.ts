@@ -90,7 +90,15 @@ export async function signInWithGoogle() {
   const supabase = await createClient();
   
   // Fallback to localhost for development if env var is missing
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  // Fallback to localhost for development if env var is missing
+  let siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  if (!siteUrl && process.env.NEXT_PUBLIC_VERCEL_URL) {
+    siteUrl = `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`;
+  }
+  if (!siteUrl) {
+    siteUrl = "http://localhost:3000";
+  }
+
   const redirectTo = `${siteUrl}/auth/callback`;
   
   const { data, error } = await supabase.auth.signInWithOAuth({
