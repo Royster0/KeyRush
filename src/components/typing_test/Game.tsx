@@ -501,7 +501,7 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
                             Login
                           </Link>
                           {" or "}
-                          <Link href="/auth/register" className="text-primary hover:underline font-medium">
+                          <Link href="/auth/login" className="text-primary hover:underline font-medium">
                             Sign Up
                           </Link>
                           {" to save your results"}
