@@ -1,6 +1,7 @@
 "use client";
 
 import { signOut } from "@/app/actions";
+import { createClient } from "@/utils/supabase/client";
 import { TITLE_GRADIENTS } from "@/lib/constants";
 import {
   Info,
@@ -27,16 +28,40 @@ export default function Nav() {
   const [gradient, setGradient] = useState("");
   const [hoverColor, setHoverColor] = useState("");
 
-  // Get user
-  useEffect(() => {
-    async function fetchUser() {
+  // Fetch user function
+  const fetchUser = async () => {
+    try {
       const res = await fetch("/api/get-user");
       const data = await res.json();
       setUser(data.user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
     }
+  };
 
-    fetchUser();
+  // Subscribe to auth changes
+  useEffect(() => {
+    const supabase = createClient();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        fetchUser();
+      } else if (event === "SIGNED_OUT") {
+        setUser(null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
+
+  // Fetch user on mount and pathname change (handles server action redirects)
+  useEffect(() => {
+    fetchUser();
+  }, [pathname]);
 
   // Select Navbar theme
   useEffect(() => {
