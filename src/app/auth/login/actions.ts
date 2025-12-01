@@ -89,12 +89,17 @@ export async function signup(prevState: any, formData: FormData) {
 export async function signInWithGoogle() {
   const supabase = await createClient();
   
-  // Fallback to localhost for development if env var is missing
-  // Fallback to localhost for development if env var is missing
+  // Determine the site URL
   let siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-  if (!siteUrl && process.env.NEXT_PUBLIC_VERCEL_URL) {
+
+  if (process.env.NODE_ENV === "development") {
+    siteUrl = "http://localhost:3000";
+  } else if (!siteUrl && process.env.NEXT_PUBLIC_VERCEL_URL) {
     siteUrl = `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`;
+  } else if (!siteUrl && process.env.VERCEL_URL) {
+    siteUrl = `https://${process.env.VERCEL_URL}`;
   }
+
   if (!siteUrl) {
     siteUrl = "http://localhost:3000";
   }
