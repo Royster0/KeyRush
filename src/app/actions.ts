@@ -3,7 +3,6 @@
 import { TestResults } from "@/types/game.types";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
-import toast from "react-hot-toast";
 
 export async function signOut() {
   const supabase = await createClient();
@@ -19,7 +18,8 @@ export async function saveTestResult(result: Omit<TestResults, "user_id">) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    toast.error("Error retrieving user from database");
+    // console.error("Error retrieving user from database");
+    return null;
   }
 
   const { data, error } = await supabase
@@ -97,6 +97,35 @@ export async function getUserBestScores() {
   
   if (!user) {
     redirect("/auth/login");
+  }
+  
+  // Get best WPM for each duration
+  const durations = [5, 15, 30, 60, 120];
+  const bestScores = [];
+  
+  for (const duration of durations) {
+    const { data, error } = await supabase
+      .from("test_results")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("duration", duration)
+      .order("wpm", { ascending: false })
+      .limit(1);
+      
+    if (!error && data.length > 0) {
+      bestScores.push(data[0]);
+    }
+  }
+  
+  return bestScores;
+}
+
+export async function getBestScoresSafe() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    return [];
   }
   
   // Get best WPM for each duration

@@ -15,8 +15,15 @@ import { AnimatePresence, motion } from "framer-motion";
 import Character from "./Character";
 import { saveTestResult } from "@/app/actions";
 import toast from "react-hot-toast";
+import dynamic from "next/dynamic";
 
-const Game = () => {
+const ResultsChart = dynamic(() => import("./ResultsChart"), { ssr: false });
+
+interface GameProps {
+  initialBestScores?: { duration: number; wpm: number }[];
+}
+
+const Game = ({ initialBestScores = [] }: GameProps) => {
   const [text, setText] = useState("");
   const [typed, setTyped] = useState("");
   const [selectedTime, setSelectedTime] = useState(30);
@@ -35,6 +42,7 @@ const Game = () => {
   const [isAfk, setIsAfk] = useState(false);
   const [showTimer, setShowTimer] = useState(true);
   const [showWpm, setShowWpm] = useState(true);
+  const [wpmHistory, setWpmHistory] = useState<{ time: number; wpm: number }[]>([]);
   const { theme, setTheme } = useTheme();
 
   const textRef = useRef<HTMLDivElement>(null);
@@ -48,6 +56,7 @@ const Game = () => {
   );
 
   const restartTest = useCallback(() => {
+    console.log("restartTest called");
     const newText = generateText();
     setText(newText);
     setTyped("");
@@ -63,6 +72,7 @@ const Game = () => {
     setIsFinished(false);
     setLastTypedTime(null);
     setIsAfk(false);
+    setWpmHistory([]);
 
     // Restore UI elements on test restart
     const navbarLinks = document.getElementById("navbar-links");
@@ -126,7 +136,7 @@ const Game = () => {
           // Smart backspace: prevent backspacing into a correct previous word
           const charToDelete = typed[typed.length - 1];
           const isSpaceMistake = mistakes.has(typed.length - 1);
-          
+
           if (charToDelete === " " && !isSpaceMistake) {
             const previousSpaceIndex = typed.lastIndexOf(" ", typed.length - 2);
             const startOfWord = previousSpaceIndex + 1;
@@ -260,6 +270,18 @@ const Game = () => {
         setWpm(stats.wpm);
         setRawWpm(stats.rawWpm);
         setAccuracy(stats.accuracy);
+
+        // Update WPM history
+        if (startTime) {
+          const elapsed = Math.round((Date.now() - startTime) / 1000);
+          setWpmHistory((prev) => {
+            // Avoid duplicate entries for the same second
+            if (prev.length > 0 && prev[prev.length - 1].time === elapsed) {
+              return prev;
+            }
+            return [...prev, { time: elapsed, wpm: stats.wpm }];
+          });
+        }
       }, 100);
 
       return () => clearInterval(interval);
@@ -398,7 +420,7 @@ const Game = () => {
                   >
                     <Timer className="size-5" />
                   </button>
-                  
+
                   <button
                     onClick={() => setShowWpm((prev) => !prev)}
                     title="Toggle WPM"
@@ -426,7 +448,10 @@ const Game = () => {
             <div
               ref={textRef}
               tabIndex={0}
-              className="h-[9em] focus:outline-none"
+              className={cn(
+                "focus:outline-none transition-all duration-300",
+                isFinished ? "h-auto" : "h-[9em]"
+              )}
             >
               <AnimatePresence mode="wait">
                 {isFinished ? (
@@ -446,6 +471,17 @@ const Game = () => {
                     <p className="text-lg mt-2">
                       Press Tab or Click Restart to try again
                     </p>
+
+                    {wpmHistory.length > 0 && (
+                      <ResultsChart
+                        data={wpmHistory}
+                        duration={selectedTime}
+                        personalBest={
+                          initialBestScores.find((s) => s.duration === selectedTime)
+                            ?.wpm
+                        }
+                      />
+                    )}
                   </motion.div>
                 ) : (
                   <motion.div
