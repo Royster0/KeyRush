@@ -52,7 +52,7 @@ export async function getUser() {
     error,
   } = await supabase.auth.getUser();
   if (error) {
-    redirect("/auth/login");
+    return null;
   }
   
   // Get user profile with username

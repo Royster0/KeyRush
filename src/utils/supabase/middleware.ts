@@ -38,6 +38,8 @@ export const updateSession = async (request: NextRequest) => {
     !request.nextUrl.pathname.startsWith("/leaderboards") &&
     !request.nextUrl.pathname.startsWith("/about") &&
     !request.nextUrl.pathname.startsWith("/settings") &&
+    !request.nextUrl.pathname.startsWith("/api/leaderboard") &&
+    !request.nextUrl.pathname.startsWith("/api/get-user") &&
     request.nextUrl.pathname !== "/"
   ) {
     // no user, potentially respond by redirecting the user to the login page

@@ -59,6 +59,27 @@ export default function About() {
       </section>
 
       <section className="space-y-6">
+        <h2 className="text-2xl font-bold">How is it calculated?</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <CalculationCard
+            title="WPM"
+            formula="(Correct / 5) / Time"
+            description="Words Per Minute is calculated by taking the number of correct keystrokes, dividing by 5 (average word length), and dividing by the elapsed time in minutes."
+          />
+          <CalculationCard
+            title="Raw WPM"
+            formula="(Total / 5) / Time"
+            description="Raw WPM is calculated similarly but includes both correct and incorrect keystrokes. It represents your pure typing speed regardless of accuracy."
+          />
+          <CalculationCard
+            title="Accuracy"
+            formula="(Correct / Total) * 100"
+            description="Accuracy is the percentage of correct keystrokes out of the total keystrokes typed."
+          />
+        </div>
+      </section>
+
+      <section className="space-y-6">
         <h2 className="text-2xl font-bold">Tech Stack</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <TechItem
@@ -138,5 +159,27 @@ function TechItem({
       <span className="font-medium">{name}</span>
       <span className="text-sm text-muted-foreground">{description}</span>
     </div>
+  );
+}
+
+function CalculationCard({
+  title,
+  formula,
+  description,
+}: {
+  title: string;
+  formula: string;
+  description: string;
+}) {
+  return (
+    <Card>
+      <CardContent className="p-6 space-y-3">
+        <h3 className="text-xl font-medium">{title}</h3>
+        <code className="block bg-muted p-2 rounded text-sm font-mono text-center">
+          {formula}
+        </code>
+        <p className="text-muted-foreground text-sm">{description}</p>
+      </CardContent>
+    </Card>
   );
 }
