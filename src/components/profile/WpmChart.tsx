@@ -1,5 +1,3 @@
-
-/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
@@ -27,7 +25,7 @@ import { useThemeColors } from "@/hooks/useCustomTheme";
 
 const WpmChart: React.FC<WpmChartProps> = ({ testResults }) => {
   const chartRef = useRef<HTMLCanvasElement | null>(null);
-  const [chartInstance, setChartInstance] = useState<Chart | null>(null);
+  const chartInstanceRef = useRef<Chart | null>(null);
   const [timeCategory, setTimeCategory] = useState<string>("all");
   const [timePeriod, setTimePeriod] = useState<string>("all-time");
   const colors = useThemeColors();
@@ -38,8 +36,9 @@ const WpmChart: React.FC<WpmChartProps> = ({ testResults }) => {
       globalWpmChartInstance = null;
     }
 
-    if (chartInstance) {
-      chartInstance.destroy();
+    if (chartInstanceRef.current) {
+      chartInstanceRef.current.destroy();
+      chartInstanceRef.current = null;
     }
 
     const existingChart = Chart.getChart("wpm-chart-canvas");
@@ -141,16 +140,18 @@ const WpmChart: React.FC<WpmChartProps> = ({ testResults }) => {
           }
         },
       });
-      setChartInstance(newChartInstance);
+      chartInstanceRef.current = newChartInstance;
       globalWpmChartInstance = newChartInstance;
     }
 
     return () => {
-      if (chartInstance) {
-        chartInstance.destroy();
+      if (chartInstanceRef.current) {
+        chartInstanceRef.current.destroy();
+        chartInstanceRef.current = null;
       }
       if (globalWpmChartInstance) {
         globalWpmChartInstance.destroy();
+        globalWpmChartInstance = null;
       }
     };
   }, [testResults, timeCategory, timePeriod, colors]);

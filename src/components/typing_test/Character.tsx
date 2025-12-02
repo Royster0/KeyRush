@@ -10,23 +10,24 @@ type CharacterProps = {
   isMistake: boolean;
 };
 
-// eslint-disable-next-line react/display-name
 const Character = memo(
-  ({ char, isCurrent, isTyped, isCorrect, isMistake }: CharacterProps) => (
-    <motion.span
-      className={`
+  function Character({ char, isCurrent, isTyped, isCorrect, isMistake }: CharacterProps) {
+    return (
+      <motion.span
+        className={`
         ${isTyped && !isCorrect ? "text-destructive" : ""}
         ${isTyped && isCorrect ? "text-primary" : ""}
         ${isMistake ? "text-destructive" : ""}
         ${!isTyped ? "text-muted-foreground" : ""}
         text-3xl relative inline-block
         `}
-      layout
-    >
-      {isCurrent && <Caret />}
-      {char}
-    </motion.span>
-  )
+        layout
+      >
+        {isCurrent && <Caret />}
+        {char}
+      </motion.span>
+    );
+  }
 );
 
 export default Character;

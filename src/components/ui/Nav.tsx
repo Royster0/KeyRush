@@ -3,6 +3,7 @@
 import { signOut, saveTestResult } from "@/app/actions";
 import toast from "react-hot-toast";
 import { createClient } from "@/utils/supabase/client";
+import { UserWithProfile } from "@/types/auth.types";
 import {
   Info,
   LogIn,
@@ -25,8 +26,7 @@ export default function Nav() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<UserWithProfile | null>(null);
 
   // Fetch user function
   const fetchUser = async () => {

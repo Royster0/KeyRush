@@ -1,7 +1,6 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Chart, registerables } from "chart.js";
 import { formatDate } from "@/lib/utils";
@@ -26,7 +25,7 @@ interface ActivityGraphProps {
 
 const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
   const chartRef = useRef<HTMLCanvasElement | null>(null);
-  const [chartInstance, setChartInstance] = useState<Chart | null>(null);
+  const chartInstanceRef = useRef<Chart | null>(null);
 
   // Process data for the activity chart
   useEffect(() => {
@@ -36,9 +35,9 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
       globalChartInstance = null;
     }
 
-    if (chartInstance) {
-      chartInstance.destroy();
-      setChartInstance(null);
+    if (chartInstanceRef.current) {
+      chartInstanceRef.current.destroy();
+      chartInstanceRef.current = null;
     }
 
     // Also attempt to destroy any charts by ID in case they're orphaned
@@ -167,15 +166,15 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
       });
 
       // Store chart instance in both state and global variable
-      setChartInstance(newChartInstance);
+      chartInstanceRef.current = newChartInstance;
       globalChartInstance = newChartInstance;
     }
 
     // Return cleanup function
     return () => {
-      if (chartInstance) {
-        chartInstance.destroy();
-        setChartInstance(null);
+      if (chartInstanceRef.current) {
+        chartInstanceRef.current.destroy();
+        chartInstanceRef.current = null;
       }
 
       if (globalChartInstance) {
@@ -194,9 +193,9 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
   // Cleanup on component unmount
   useEffect(() => {
     return () => {
-      if (chartInstance) {
-        chartInstance.destroy();
-        setChartInstance(null);
+      if (chartInstanceRef.current) {
+        chartInstanceRef.current.destroy();
+        chartInstanceRef.current = null;
       }
 
       if (globalChartInstance) {
@@ -216,9 +215,9 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "hidden") {
-        if (chartInstance) {
-          chartInstance.destroy();
-          setChartInstance(null);
+        if (chartInstanceRef.current) {
+          chartInstanceRef.current.destroy();
+          chartInstanceRef.current = null;
         }
 
         if (globalChartInstance) {
@@ -233,7 +232,7 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [chartInstance]);
+  }, []);
 
   return (
     <Card className="h-full">

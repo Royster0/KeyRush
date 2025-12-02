@@ -21,10 +21,11 @@ import dynamic from "next/dynamic";
 
 const ResultsChart = dynamic(() => import("./ResultsChart"), { ssr: false });
 
+import { UserWithProfile } from "@/types/auth.types";
+
 interface GameProps {
   initialBestScores?: { duration: number; wpm: number }[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  user?: any;
+  user?: UserWithProfile | null;
 }
 
 const Game = ({ initialBestScores = [], user }: GameProps) => {
@@ -93,8 +94,7 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
         textRef.current.focus();
       }
     }, 0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTime, measureText]);
+  }, [selectedTime]);
 
   // Load saved time on mount
   useEffect(() => {
