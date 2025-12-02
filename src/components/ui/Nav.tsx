@@ -153,6 +153,8 @@ export default function Nav() {
               key={item.href}
               href={item.href}
               className={`${hoverColor} transition-all`}
+              aria-label={item.name}
+              title={item.name}
             >
               <Icon className="size-5 mx-5" />
               <p className="lg:hidden">{item.name}</p>
@@ -201,6 +203,7 @@ export default function Nav() {
                 <Link
                   href="/profile"
                   className="hover:text-muted transition-all flex items-center gap-2"
+                  title="Profile"
                 >
                   <User2 className="size-5" />
                   {user.profile?.username}
@@ -213,6 +216,8 @@ export default function Nav() {
                   href="/auth/login"
                   className={`${hoverColor} transition-all duration-300`}
                   id="navbar-login"
+                  aria-label="Login"
+                  title="Login"
                 >
                   <LogIn className="size-5" />
                 </Link>
@@ -224,7 +229,7 @@ export default function Nav() {
           <div className="md:hidden">
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" aria-label="Open menu">
                   <Menu className="size-6" />
                 </Button>
               </SheetTrigger>

@@ -422,6 +422,7 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
                   <button
                     onClick={() => setShowTimer((prev) => !prev)}
                     title="Toggle Timer"
+                    aria-label="Toggle Timer"
                     className={cn(
                       "text-sm font-medium transition-colors duration-200 flex items-center gap-2",
                       showTimer
@@ -435,6 +436,7 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
                   <button
                     onClick={() => setShowWpm((prev) => !prev)}
                     title="Toggle WPM"
+                    aria-label="Toggle WPM"
                     className={cn(
                       "text-sm font-medium transition-colors duration-200 flex items-center gap-2",
                       showWpm
