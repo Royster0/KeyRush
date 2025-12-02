@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
+import { hexToHsl } from "@/lib/colors";
 
 export type ThemeColors = {
   background: string;
@@ -53,6 +54,59 @@ const DEFAULT_THEME_COLORS: ThemeColors = {
   ring: "240 10% 3.9%",
 };
 
+export const PRESET_THEMES: CustomTheme[] = [
+  {
+    id: "bliss",
+    name: "Bliss",
+    colors: {
+      background: hexToHsl("#262727"),
+      foreground: hexToHsl("#ffffff"),
+      card: hexToHsl("#262727"),
+      cardForeground: hexToHsl("#ffffff"),
+      popover: hexToHsl("#262727"),
+      popoverForeground: hexToHsl("#ffffff"),
+      primary: hexToHsl("#f0d3c9"),
+      primaryForeground: hexToHsl("#262727"),
+      secondary: hexToHsl("#343231"),
+      secondaryForeground: hexToHsl("#f0d3c9"),
+      muted: hexToHsl("#343231"),
+      mutedForeground: hexToHsl("#665957"),
+      accent: hexToHsl("#343231"),
+      accentForeground: hexToHsl("#f0d3c9"),
+      destructive: hexToHsl("#bd4141"),
+      destructiveForeground: hexToHsl("#ffffff"),
+      border: hexToHsl("#343231"),
+      input: hexToHsl("#343231"),
+      ring: hexToHsl("#f0d3c9"),
+    },
+  },
+  {
+    id: "catppuccin",
+    name: "Catppuccin",
+    colors: {
+      background: hexToHsl("#1e1e2e"),
+      foreground: hexToHsl("#cdd6f4"),
+      card: hexToHsl("#1e1e2e"),
+      cardForeground: hexToHsl("#cdd6f4"),
+      popover: hexToHsl("#1e1e2e"),
+      popoverForeground: hexToHsl("#cdd6f4"),
+      primary: hexToHsl("#cba6f7"),
+      primaryForeground: hexToHsl("#1e1e2e"),
+      secondary: hexToHsl("#181825"),
+      secondaryForeground: hexToHsl("#cba6f7"),
+      muted: hexToHsl("#181825"),
+      mutedForeground: hexToHsl("#7f849c"),
+      accent: hexToHsl("#181825"),
+      accentForeground: hexToHsl("#cba6f7"),
+      destructive: hexToHsl("#f38ba8"),
+      destructiveForeground: hexToHsl("#1e1e2e"),
+      border: hexToHsl("#181825"),
+      input: hexToHsl("#181825"),
+      ring: hexToHsl("#cba6f7"),
+    },
+  },
+];
+
 export function useCustomTheme() {
   const { theme, setTheme } = useTheme();
   const [customThemes, setCustomThemes] = useState<CustomTheme[]>([]);
@@ -86,7 +140,10 @@ export function useCustomTheme() {
   };
 
   const applyTheme = (themeId: string) => {
-    const selectedTheme = customThemes.find((t) => t.id === themeId);
+    const selectedTheme =
+      customThemes.find((t) => t.id === themeId) ||
+      PRESET_THEMES.find((t) => t.id === themeId);
+
     if (selectedTheme) {
       const root = document.documentElement;
       Object.entries(selectedTheme.colors).forEach(([key, value]) => {
@@ -109,39 +166,80 @@ export function useCustomTheme() {
   // Listen for theme changes to apply custom styles if needed
   useEffect(() => {
     if (!mounted) return;
-    
+
     // Check if current theme is a custom one
-    const customTheme = customThemes.find(t => t.id === theme);
+    const customTheme =
+      customThemes.find((t) => t.id === theme) ||
+      PRESET_THEMES.find((t) => t.id === theme);
+
     if (customTheme) {
-       const root = document.documentElement;
+      const root = document.documentElement;
       Object.entries(customTheme.colors).forEach(([key, value]) => {
         const cssVar = `--${key.replace(/([A-Z])/g, "-$1").toLowerCase()}`;
         root.style.setProperty(cssVar, value);
       });
     } else {
-       // Clean up styles if not custom
-       const root = document.documentElement;
-       // We only need to clean up if we previously applied a custom theme.
-       // However, next-themes handles class switching.
-       // We just need to ensure inline styles don't override class styles if we switch to 'dark' or 'light'.
-       // But wait, if we set inline styles on :root, they might persist.
-       // So we DO need to clear them when switching to a non-custom theme.
-       
-       // Optimization: Only clear if we suspect we might have set them.
-       // For safety, let's clear them.
-       Object.keys(DEFAULT_THEME_COLORS).forEach((key) => {
+      // Clean up styles if not custom
+      const root = document.documentElement;
+      Object.keys(DEFAULT_THEME_COLORS).forEach((key) => {
         const cssVar = `--${key.replace(/([A-Z])/g, "-$1").toLowerCase()}`;
         root.style.removeProperty(cssVar);
       });
     }
   }, [theme, customThemes, mounted]);
 
-
   return {
     customThemes,
+    presets: PRESET_THEMES,
     saveTheme,
     deleteTheme,
     applyTheme,
     mounted,
   };
+}
+
+export function useThemeColors() {
+  const { theme } = useTheme();
+  const [colors, setColors] = useState<ThemeColors>(DEFAULT_THEME_COLORS);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const storedThemes = localStorage.getItem("custom-themes");
+    let customThemes: CustomTheme[] = [];
+    if (storedThemes) {
+      try {
+        customThemes = JSON.parse(storedThemes);
+      } catch (e) {
+        console.error("Failed to parse custom themes", e);
+      }
+    }
+
+    const activeTheme =
+      customThemes.find((t) => t.id === theme) ||
+      PRESET_THEMES.find((t) => t.id === theme);
+
+    if (activeTheme) {
+      setColors(activeTheme.colors);
+    } else {
+      // Fallback or default themes (light/dark)
+      // For built-in themes, we might want to return specific colors or just defaults
+      // Since we don't have the exact colors for light/dark in JS (they are in CSS),
+      // we can try to approximate or just return defaults.
+      // However, for charts, we really want the primary color.
+      // Let's try to read from computed styles if possible, or just map 'light'/'dark' to known values.
+      if (theme === 'dark') {
+         setColors({
+             ...DEFAULT_THEME_COLORS,
+             primary: hexToHsl("#fafafa"), // dark mode primary is usually white-ish
+             background: hexToHsl("#0a0a0a"),
+         })
+      } else {
+          setColors(DEFAULT_THEME_COLORS);
+      }
+    }
+  }, [theme]);
+
+  if (!mounted) return DEFAULT_THEME_COLORS;
+  return colors;
 }

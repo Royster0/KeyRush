@@ -10,6 +10,9 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
+    SelectGroup,
+    SelectLabel,
+    SelectSeparator,
 } from "@/components/ui/select";
 import {
     Dialog,
@@ -49,7 +52,7 @@ const DEFAULT_COLORS: ThemeColors = {
 
 export function ThemeManager() {
     const { theme, setTheme } = useTheme();
-    const { customThemes, saveTheme, deleteTheme, applyTheme, mounted } = useCustomTheme();
+    const { customThemes, presets, saveTheme, deleteTheme, applyTheme, mounted } = useCustomTheme();
     const [isCreateOpen, setIsCreateOpen] = React.useState(false);
     const [newThemeName, setNewThemeName] = React.useState("");
     const [newThemeColors, setNewThemeColors] = React.useState<ThemeColors>(DEFAULT_COLORS);
@@ -118,7 +121,7 @@ export function ThemeManager() {
     };
 
     const handleExportTheme = (themeId: string) => {
-        const themeToExport = customThemes.find((t) => t.id === themeId);
+        const themeToExport = customThemes.find((t) => t.id === themeId) || presets.find((t) => t.id === themeId);
         if (!themeToExport) return;
 
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
@@ -146,14 +149,40 @@ export function ThemeManager() {
                             <SelectValue placeholder="Select theme" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="light">Light</SelectItem>
-                            <SelectItem value="dark">Dark</SelectItem>
-                            <SelectItem value="system">System</SelectItem>
-                            {customThemes.map((t) => (
-                                <SelectItem key={t.id} value={t.id}>
-                                    {t.name}
-                                </SelectItem>
-                            ))}
+                            <SelectGroup>
+                                <SelectLabel>Default</SelectLabel>
+                                <SelectItem value="light">Light</SelectItem>
+                                <SelectItem value="dark">Dark</SelectItem>
+                                <SelectItem value="system">System</SelectItem>
+                            </SelectGroup>
+
+                            {presets.length > 0 && (
+                                <>
+                                    <SelectSeparator />
+                                    <SelectGroup>
+                                        <SelectLabel>Presets</SelectLabel>
+                                        {presets.map((t) => (
+                                            <SelectItem key={t.id} value={t.id}>
+                                                {t.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectGroup>
+                                </>
+                            )}
+
+                            {customThemes.length > 0 && (
+                                <>
+                                    <SelectSeparator />
+                                    <SelectGroup>
+                                        <SelectLabel>My Themes</SelectLabel>
+                                        {customThemes.map((t) => (
+                                            <SelectItem key={t.id} value={t.id}>
+                                                {t.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectGroup>
+                                </>
+                            )}
                         </SelectContent>
                     </Select>
 

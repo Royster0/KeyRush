@@ -20,6 +20,7 @@ import { LogoutButton } from "../ui/LogoutButton";
 import { Button } from "./button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "./sheet";
 import { AnnouncementBar } from "./AnnouncementBar";
+import { KeyRushLogo } from "./KeyRushLogo";
 
 export default function Nav() {
   const pathname = usePathname();
@@ -27,8 +28,6 @@ export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [user, setUser] = useState<any>(null);
-  const [gradient, setGradient] = useState("");
-  const [hoverColor, setHoverColor] = useState("");
 
   // Fetch user function
   const fetchUser = async () => {
@@ -90,30 +89,6 @@ export default function Nav() {
     checkPendingResults();
   }, [user]);
 
-  // Select Navbar theme
-  useEffect(() => {
-    const themes = Object.keys(TITLE_GRADIENTS);
-    const randomThemeIndex = themes[Math.floor(Math.random() * themes.length)];
-    const theme = TITLE_GRADIENTS[randomThemeIndex];
-    let gradientString: string;
-    let hoverColorString: string;
-
-    if (theme.via && theme.via2) {
-      gradientString = `from-[${theme.from}] via-[${theme.via}] via-[${theme.via2}] to-[${theme.to}]`;
-      hoverColorString = `hover:text-[${theme.via2}]`;
-    } else if (theme.via) {
-      gradientString = `from-[${theme.from}] via-[${theme.via}] to-[${theme.to}]`;
-      hoverColorString = `hover:text-[${theme.via}]`;
-    } else {
-      gradientString = `from-[${theme.from}] to-[${theme.to}]`;
-      hoverColorString = `hover:text-[${theme.to}]`;
-    }
-
-    console.log(theme);
-    setGradient(gradientString);
-    setHoverColor(hoverColorString);
-  }, []);
-
   // Handle scroll
   useEffect(() => {
     const handleScroll = () => {
@@ -153,7 +128,7 @@ export default function Nav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`${hoverColor} transition-all`}
+              className={`hover:text-primary transition-all`}
               aria-label={item.name}
               title={item.name}
             >
@@ -181,13 +156,11 @@ export default function Nav() {
             {/* Title */}
             <Link
               href="/"
-              className="flex items-center gap-2 text-2xl font-bold text-foreground"
+              className="flex items-center gap-2 text-2xl font-bold text-foreground group"
             >
-              <img
-                src="/KeyRush_Logo.svg"
-                alt="KeyRush Logo"
-                className="size-8"
-              />
+              <div className="size-8 text-primary transition-colors group-hover:text-primary/80">
+                <KeyRushLogo />
+              </div>
               KeyRush
             </Link>
 
@@ -219,7 +192,7 @@ export default function Nav() {
               <>
                 <Link
                   href="/auth/login"
-                  className={`${hoverColor} transition-all duration-300`}
+                  className={`hover:text-primary transition-all duration-300`}
                   id="navbar-login"
                   aria-label="Login"
                   title="Login"

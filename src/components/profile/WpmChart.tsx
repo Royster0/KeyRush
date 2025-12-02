@@ -23,11 +23,14 @@ interface WpmChartProps {
   testResults: TestResults[];
 }
 
+import { useThemeColors } from "@/hooks/useCustomTheme";
+
 const WpmChart: React.FC<WpmChartProps> = ({ testResults }) => {
   const chartRef = useRef<HTMLCanvasElement | null>(null);
   const [chartInstance, setChartInstance] = useState<Chart | null>(null);
   const [timeCategory, setTimeCategory] = useState<string>("all");
   const [timePeriod, setTimePeriod] = useState<string>("all-time");
+  const colors = useThemeColors();
 
   useEffect(() => {
     if (globalWpmChartInstance) {
@@ -85,6 +88,11 @@ const WpmChart: React.FC<WpmChartProps> = ({ testResults }) => {
 
     const ctx = chartRef.current.getContext("2d");
     if (ctx) {
+      const primaryColor = `hsl(${colors.primary})`;
+      // Create a semi-transparent version for background
+      // Since we have HSL string "h s% l%", we can just wrap it in hsl()
+      // For opacity, we need hsla or just use the same color for line and fill
+
       const newChartInstance = new Chart(ctx, {
         type: "line",
         data: {
@@ -93,9 +101,10 @@ const WpmChart: React.FC<WpmChartProps> = ({ testResults }) => {
             {
               label: "WPM",
               data,
-              backgroundColor: "rgba(99, 102, 241, 0.5)",
-              borderColor: "rgba(99, 102, 241, 1)",
-              borderWidth: 1,
+              backgroundColor: primaryColor,
+              borderColor: primaryColor,
+              borderWidth: 2,
+              pointBackgroundColor: primaryColor,
             },
           ],
         },
@@ -107,12 +116,29 @@ const WpmChart: React.FC<WpmChartProps> = ({ testResults }) => {
               ticks: {
                 autoSkip: true,
                 maxTicksLimit: 10,
+                color: `hsl(${colors.mutedForeground})`,
               },
+              grid: {
+                color: `hsl(${colors.border})`,
+              }
             },
             y: {
               beginAtZero: true,
+              ticks: {
+                color: `hsl(${colors.mutedForeground})`,
+              },
+              grid: {
+                color: `hsl(${colors.border})`,
+              }
             },
           },
+          plugins: {
+            legend: {
+              labels: {
+                color: `hsl(${colors.foreground})`
+              }
+            }
+          }
         },
       });
       setChartInstance(newChartInstance);
@@ -127,7 +153,7 @@ const WpmChart: React.FC<WpmChartProps> = ({ testResults }) => {
         globalWpmChartInstance.destroy();
       }
     };
-  }, [testResults, timeCategory, timePeriod]);
+  }, [testResults, timeCategory, timePeriod, colors]);
 
   return (
     <Card className="h-full">

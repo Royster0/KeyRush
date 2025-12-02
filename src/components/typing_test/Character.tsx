@@ -15,10 +15,10 @@ const Character = memo(
   ({ char, isCurrent, isTyped, isCorrect, isMistake }: CharacterProps) => (
     <motion.span
       className={`
-        ${isTyped && !isCorrect ? "text-red-600" : ""}
-        ${isTyped && isCorrect ? "text-emerald-500" : ""}
-        ${isMistake ? "text-red-500" : ""}
-        ${!isTyped ? "text-gray-700" : ""}
+        ${isTyped && !isCorrect ? "text-destructive" : ""}
+        ${isTyped && isCorrect ? "text-primary" : ""}
+        ${isMistake ? "text-destructive" : ""}
+        ${!isTyped ? "text-muted-foreground" : ""}
         text-3xl relative inline-block
         `}
       layout
