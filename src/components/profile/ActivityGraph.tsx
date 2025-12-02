@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Chart, registerables } from "chart.js";
 import { formatDate } from "@/lib/utils";
+import { useThemeColors } from "@/hooks/useCustomTheme";
 
 // Register all Chart.js components
 Chart.register(...registerables);
@@ -26,6 +27,7 @@ interface ActivityGraphProps {
 const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
   const chartRef = useRef<HTMLCanvasElement | null>(null);
   const chartInstanceRef = useRef<Chart | null>(null);
+  const colors = useThemeColors();
 
   // Process data for the activity chart
   useEffect(() => {
@@ -108,6 +110,8 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
     // Create the chart with a unique ID
     const ctx = chartRef.current.getContext("2d");
     if (ctx) {
+      const primaryColor = `hsl(${colors.primary})`;
+
       // Create a new chart instance with a proper ID
       const newChartInstance = new Chart(ctx, {
         type: "bar",
@@ -117,9 +121,10 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
             {
               label: "Tests Completed",
               data: dataPoints,
-              backgroundColor: "rgba(99, 102, 241, 0.5)",
-              borderColor: "rgba(99, 102, 241, 1)",
-              borderWidth: 1,
+              backgroundColor: primaryColor,
+              borderColor: primaryColor,
+              borderWidth: 0,
+              borderRadius: 4,
             },
           ],
         },
@@ -130,8 +135,15 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
             legend: {
               display: true,
               position: "top",
+              labels: {
+                usePointStyle: true,
+                boxWidth: 8,
+              }
             },
             tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              padding: 12,
+              cornerRadius: 8,
               callbacks: {
                 title: (context) => {
                   const index = context[0].dataIndex;
@@ -160,6 +172,13 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
                 stepSize: 1,
                 precision: 0,
               },
+              border: {
+                display: false,
+                dash: [4, 4],
+              },
+              grid: {
+                color: 'rgba(0, 0, 0, 0.05)',
+              }
             },
           },
         },
@@ -188,7 +207,7 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
         existingChart.destroy();
       }
     };
-  }, [testResults]);
+  }, [testResults, colors]);
 
   // Cleanup on component unmount
   useEffect(() => {
@@ -235,9 +254,9 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
   }, []);
 
   return (
-    <Card className="h-full">
+    <Card className="h-full border-none bg-muted/40 shadow-none">
       <CardHeader>
-        <CardTitle className="text-xl">Your Activity</CardTitle>
+        <CardTitle className="text-xl font-bold">Activity</CardTitle>
       </CardHeader>
       <CardContent className="h-[380px]">
         {testResults.length === 0 ? (
