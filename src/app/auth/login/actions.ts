@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import { revalidatePath } from "next/cache";
@@ -6,7 +5,11 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@/utils/supabase/server";
 
-export async function login(prevState: any, formData: FormData) {
+type FormState = {
+  error?: string;
+} | null;
+
+export async function login(prevState: FormState, formData: FormData) {
   const supabase = await createClient();
 
   const data = {
@@ -26,7 +29,7 @@ export async function login(prevState: any, formData: FormData) {
   redirect("/");
 }
 
-export async function signup(prevState: any, formData: FormData) {
+export async function signup(prevState: FormState, formData: FormData) {
   const supabase = await createClient();
 
   const data = {

@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { FiGithub } from "react-icons/fi";
+
 
 export default function About() {
   return (
@@ -110,8 +112,8 @@ export default function About() {
         </p>
         <div className="flex justify-center">
           <Button variant="outline" className="gap-2">
-            <Github className="w-4 h-4" />
-            View on GitHub
+            <FiGithub className="w-4 h-4" />
+            <a href="https://github.com/Royster0/KeyRush" target="_blank" rel="noopener noreferrer">View on GitHub</a>
           </Button>
         </div>
       </section>

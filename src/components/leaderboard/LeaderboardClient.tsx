@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { LeaderboardTimeframe } from "@/app/leaderboard/actions";
+import { LeaderboardTimeframe, LeaderboardEntry } from "@/app/leaderboard/actions";
 import {
   Select,
   SelectContent,
@@ -19,8 +19,12 @@ import { motion, AnimatePresence } from "framer-motion";
 export default function LeaderboardClient() {
   const [timeframe, setTimeframe] = useState<LeaderboardTimeframe>("all");
   const [isLoading, setIsLoading] = useState(true);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
+  interface LeaderboardData {
+    duration: number;
+    data: LeaderboardEntry[];
+  }
+
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardData[]>([]);
   const [selectedTab, setSelectedTab] = useState(TIME_OPTIONS[2].toString());
 
   useEffect(() => {

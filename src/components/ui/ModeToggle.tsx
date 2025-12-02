@@ -11,10 +11,8 @@ export function ModeToggle() {
   const { setTheme } = useTheme();
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    isDark ? setTheme("dark") : setTheme("light");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDark]);
+    setTheme(isDark ? "dark" : "light");
+  }, [isDark, setTheme]);
 
   return (
     <Button
