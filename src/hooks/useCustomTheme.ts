@@ -56,6 +56,36 @@ const DEFAULT_THEME_COLORS: ThemeColors = {
 
 export const PRESET_THEMES: CustomTheme[] = [
   {
+    id: "light",
+    name: "Light",
+    colors: DEFAULT_THEME_COLORS,
+  },
+  {
+    id: "dark",
+    name: "Dark",
+    colors: {
+      background: hexToHsl("#0a0a0a"),
+      foreground: hexToHsl("#fafafa"),
+      card: hexToHsl("#0a0a0a"),
+      cardForeground: hexToHsl("#fafafa"),
+      popover: hexToHsl("#0a0a0a"),
+      popoverForeground: hexToHsl("#fafafa"),
+      primary: hexToHsl("#fafafa"),
+      primaryForeground: hexToHsl("#18181b"),
+      secondary: hexToHsl("#27272a"),
+      secondaryForeground: hexToHsl("#fafafa"),
+      muted: hexToHsl("#27272a"),
+      mutedForeground: hexToHsl("#a1a1aa"),
+      accent: hexToHsl("#27272a"),
+      accentForeground: hexToHsl("#fafafa"),
+      destructive: hexToHsl("#ef4444"),
+      destructiveForeground: hexToHsl("#fafafa"),
+      border: hexToHsl("#27272a"),
+      input: hexToHsl("#27272a"),
+      ring: hexToHsl("#d4d4d8"),
+    },
+  },
+  {
     id: "bliss",
     name: "Bliss",
     colors: {
