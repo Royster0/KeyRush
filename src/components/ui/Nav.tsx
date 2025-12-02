@@ -156,6 +156,8 @@ export default function Nav() {
             <Link
               href="/"
               className="flex items-center gap-2 text-2xl font-bold text-foreground group"
+              aria-label="Home"
+              title="Home"
             >
               <div className="size-8 text-primary transition-colors group-hover:text-primary/80">
                 <KeyRushLogo />
@@ -179,7 +181,7 @@ export default function Nav() {
               >
                 <Link
                   href="/profile"
-                  className="hover:text-muted transition-all flex items-center gap-2"
+                  className="hover:text-primary transition-all flex items-center gap-2"
                   title="Profile"
                 >
                   <User2 className="size-5" />
@@ -191,7 +193,7 @@ export default function Nav() {
               <>
                 <Link
                   href="/auth/login"
-                  className={`hover:text-primary transition-all duration-300`}
+                  className={`hover:text-primary transition-all`}
                   id="navbar-login"
                   aria-label="Login"
                   title="Login"
