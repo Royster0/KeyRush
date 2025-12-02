@@ -38,14 +38,15 @@ const BestScores: React.FC<BestScoreProps> = ({ bestScores }) => {
               return (
                 <div
                   key={score.duration}
-                  className="flex items-center justify-between py-2 border-b border-border/50 last:border-0"
+                  className="group flex items-center justify-between py-2 border-b border-border/50 last:border-0"
                 >
                   <div className="flex items-baseline gap-4">
                     <h3 className="text-2xl font-bold text-primary w-16">
                       {score.duration}s
                     </h3>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-bold">{Math.round(score.wpm)}</span>
+                      <span className="text-3xl font-bold group-hover:hidden">{Math.round(score.wpm)}</span>
+                      <span className="text-3xl font-bold hidden group-hover:inline">{score.wpm.toFixed(2)}</span>
                       <span className="text-sm text-muted-foreground font-medium">WPM</span>
                     </div>
                   </div>
@@ -57,7 +58,8 @@ const BestScores: React.FC<BestScoreProps> = ({ bestScores }) => {
                     </div>
                     <div className="hidden sm:block">
                       <p className="text-sm font-medium text-muted-foreground">Raw</p>
-                      <p className="text-lg font-semibold">{Math.round(rawWpm)}</p>
+                      <p className="text-lg font-semibold group-hover:hidden">{Math.round(rawWpm)}</p>
+                      <p className="text-lg font-semibold hidden group-hover:inline">{rawWpm.toFixed(2)}</p>
                     </div>
                     <div className="text-xs text-muted-foreground text-right min-w-[80px]">
                       {score.created_at
