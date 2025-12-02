@@ -13,7 +13,7 @@ export default function SettingsPage() {
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
                     <p className="text-muted-foreground">
-                        Manage your account settings and set e-mail preferences.
+                        Manage your settings and themes.
                     </p>
                 </div>
                 <div className="my-6 border-t" />

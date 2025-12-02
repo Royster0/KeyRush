@@ -7,7 +7,7 @@ import { Button } from "../ui/button";
 import { generateText, cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import TimeSelect from "./TimeSelect";
-import { Timer, Gauge, Moon, Sun } from "lucide-react";
+import { Timer, Gauge } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useTextMeasurement } from "@/hooks/useTextMeasurement";
 import { useCalculateTypingStats } from "@/hooks/useCalculateTypingStats";
@@ -18,6 +18,7 @@ import Character from "./Character";
 import { saveTestResult } from "@/app/actions";
 import toast from "react-hot-toast";
 import dynamic from "next/dynamic";
+import { ThemeModal } from "../ThemeModal";
 
 const ResultsChart = dynamic(() => import("./ResultsChart"), { ssr: false });
 
@@ -48,7 +49,6 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
   const [showTimer, setShowTimer] = useState(true);
   const [showWpm, setShowWpm] = useState(true);
   const [wpmHistory, setWpmHistory] = useState<{ time: number; wpm: number }[]>([]);
-  const { theme, setTheme } = useTheme();
 
   const textRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -540,14 +540,7 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
       </div>
 
       {/* Floating Theme Toggle */}
-      <button
-        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-        className="fixed bottom-8 right-8 p-3 rounded-full bg-secondary/50 hover:bg-secondary text-muted-foreground hover:text-foreground transition-all duration-200 shadow-lg backdrop-blur-sm"
-      >
-        <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-        <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 top-3 left-3" />
-        <span className="sr-only">Toggle theme</span>
-      </button>
+      <ThemeModal />
     </div>
   );
 };
