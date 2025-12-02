@@ -3,7 +3,6 @@
 import { signOut, saveTestResult } from "@/app/actions";
 import toast from "react-hot-toast";
 import { createClient } from "@/utils/supabase/client";
-import { TITLE_GRADIENTS } from "@/lib/constants";
 import {
   Info,
   LogIn,
