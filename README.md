@@ -11,7 +11,17 @@ KeyRush is a dynamic, competitive typing test application designed to help users
 - **User Profiles**: Create an account to save your test history and track your progress over time.
 - **Global Leaderboards**: Compete with other users for the top spot on daily, weekly, and all-time leaderboards.
 - **Detailed Stats**: View detailed charts and graphs of your performance history.
+- **Theming & Customization**: Fully customizable UI with preset themes and a powerful theme creator.
 - **Responsive Design**: Fully responsive interface that works seamlessly on desktop and mobile devices.
+
+## Theming & Customization
+
+KeyRush offers a robust theming system that allows you to personalize your typing experience:
+
+- **Preset Themes**: Choose from built-in themes like "Bliss" and "Catppuccin".
+- **Custom Themes**: Create your own themes using the built-in color picker. Customize every aspect of the UI, including background, foreground, primary colors, and more.
+- **Import/Export**: Share your themes with others by exporting them to JSON, or import themes created by the community.
+- **Deep Integration**: Themes automatically apply to the entire application
 
 ## Tech Stack
 
@@ -20,7 +30,7 @@ KeyRush is a dynamic, competitive typing test application designed to help users
 - **Database & Auth**: [Supabase](https://supabase.com/)
 - **Charts**: [Chart.js](https://www.chartjs.org/) via `react-chartjs-2`
 
-## Getting Started
+## Build Instructions
 
 ### Prerequisites
 
