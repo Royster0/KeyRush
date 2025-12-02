@@ -168,10 +168,10 @@ export default function Nav() {
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 mb-10">
-      <AnnouncementBar
+      {/* <AnnouncementBar
         message="Services are currently offline pending database upgrade"
         storageKey="announcement-db-upgrade-2025-12-01"
-      />
+      /> */}
       <nav
         className={`transition-all duration-200 bg-background/95 backdrop-blur-sm ${scrolled ? "shadow-md" : ""
           }`}
