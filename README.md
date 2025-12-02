@@ -2,7 +2,7 @@
 
 KeyRush is a dynamic, competitive typing test application designed to help users improve their typing skills while competing on global leaderboards.
 
-![KeyRush Logo](/public/KeyRush_Logo.svg)
+<img src="/public/KeyRush_Logo.svg" alt="KeyRush Logo" width="200" />
 
 ## Features
 
