@@ -83,38 +83,16 @@ export default function LeaderboardClient() {
         onValueChange={setSelectedTab}
       >
         <div className="w-full max-w-lg mx-auto mb-6">
-          <TabsList className="grid grid-cols-5 w-full gap-2 bg-transparent p-0">
-            {TIME_OPTIONS.map((duration) => {
-              const isActive = selectedTab === duration.toString();
-              return (
-                <div
-                  key={duration}
-                  className="relative p-[2px] rounded-md overflow-hidden"
-                >
-                  <div
-                    className={
-                      isActive
-                        ? "absolute inset-0 rounded-md animate-rainbow-border"
-                        : "absolute inset-0 rounded-md animate-gray-border"
-                    }
-                    style={{
-                      backgroundImage: isActive
-                        ? "linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3, #ff0000)"
-                        : "linear-gradient(90deg, #404040, #808080, #a0a0a0, #808080, #404040)",
-                      backgroundSize: "200% 200%",
-                    }}
-                  />
-                  <div className="relative bg-background rounded-sm">
-                    <TabsTrigger
-                      value={duration.toString()}
-                      className="w-full transition-all duration-300 ease-in-out data-[state=active]:scale-105 data-[state=active]:shadow-lg bg-transparent"
-                    >
-                      {formatDuration(duration)}
-                    </TabsTrigger>
-                  </div>
-                </div>
-              );
-            })}
+          <TabsList className="grid grid-cols-5 w-full max-w-lg mx-auto">
+            {TIME_OPTIONS.map((duration) => (
+              <TabsTrigger
+                key={duration}
+                value={duration.toString()}
+                className="transition-all duration-200"
+              >
+                {formatDuration(duration)}
+              </TabsTrigger>
+            ))}
           </TabsList>
         </div>
 
