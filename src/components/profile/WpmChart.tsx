@@ -88,9 +88,6 @@ const WpmChart: React.FC<WpmChartProps> = ({ testResults }) => {
     const ctx = chartRef.current.getContext("2d");
     if (ctx) {
       const primaryColor = `hsl(${colors.primary})`;
-      // Create a semi-transparent version for background
-      // Since we have HSL string "h s% l%", we can just wrap it in hsl()
-      // For opacity, we need hsla or just use the same color for line and fill
 
       const newChartInstance = new Chart(ctx, {
         type: "line",
@@ -104,6 +101,9 @@ const WpmChart: React.FC<WpmChartProps> = ({ testResults }) => {
               borderColor: primaryColor,
               borderWidth: 2,
               pointBackgroundColor: primaryColor,
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              tension: 0.3, // Add some curve to the line
             },
           ],
         },
@@ -118,13 +118,17 @@ const WpmChart: React.FC<WpmChartProps> = ({ testResults }) => {
                 color: `hsl(${colors.mutedForeground})`,
               },
               grid: {
-                color: `hsl(${colors.border})`,
+                display: false,
               }
             },
             y: {
               beginAtZero: true,
               ticks: {
                 color: `hsl(${colors.mutedForeground})`,
+              },
+              border: {
+                display: false,
+                dash: [4, 4],
               },
               grid: {
                 color: `hsl(${colors.border})`,
@@ -133,9 +137,20 @@ const WpmChart: React.FC<WpmChartProps> = ({ testResults }) => {
           },
           plugins: {
             legend: {
-              labels: {
-                color: `hsl(${colors.foreground})`
-              }
+              display: false, // Hide legend for cleaner look
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              padding: 12,
+              cornerRadius: 8,
+              titleFont: {
+                size: 13,
+              },
+              bodyFont: {
+                size: 14,
+                weight: 'bold',
+              },
+              displayColors: false,
             }
           }
         },
@@ -157,33 +172,33 @@ const WpmChart: React.FC<WpmChartProps> = ({ testResults }) => {
   }, [testResults, timeCategory, timePeriod, colors]);
 
   return (
-    <Card className="h-full">
-      <CardHeader>
-        <CardTitle className="text-xl">WPM Over Time</CardTitle>
-        <div className="flex gap-4">
+    <Card className="h-full border-none bg-muted/40 shadow-none">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-xl font-bold">WPM History</CardTitle>
+        <div className="flex gap-2">
           <Select onValueChange={setTimeCategory} defaultValue="all">
-            <SelectTrigger>
-              <SelectValue placeholder="Time Category" />
+            <SelectTrigger className="w-[140px] bg-background border-none shadow-sm h-8 text-xs">
+              <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Time Categories</SelectItem>
-              <SelectItem value="5">5 seconds</SelectItem>
-              <SelectItem value="15">15 seconds</SelectItem>
-              <SelectItem value="30">30 seconds</SelectItem>
-              <SelectItem value="60">60 seconds</SelectItem>
-              <SelectItem value="120">120 seconds</SelectItem>
+              <SelectItem value="all">All Modes</SelectItem>
+              <SelectItem value="5">5s</SelectItem>
+              <SelectItem value="15">15s</SelectItem>
+              <SelectItem value="30">30s</SelectItem>
+              <SelectItem value="60">60s</SelectItem>
+              <SelectItem value="120">120s</SelectItem>
             </SelectContent>
           </Select>
           <Select onValueChange={setTimePeriod} defaultValue="all-time">
-            <SelectTrigger>
-              <SelectValue placeholder="Time Period" />
+            <SelectTrigger className="w-[140px] bg-background border-none shadow-sm h-8 text-xs">
+              <SelectValue placeholder="Period" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all-time">All Time</SelectItem>
               <SelectItem value="last-week">Last Week</SelectItem>
               <SelectItem value="last-month">Last Month</SelectItem>
               <SelectItem value="last-three-months">
-                Last Three Months
+                3 Months
               </SelectItem>
               <SelectItem value="last-year">Last Year</SelectItem>
             </SelectContent>

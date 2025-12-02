@@ -1,14 +1,14 @@
 "use client";
 
 import React from "react";
-import { 
-  Table, 
-  TableBody, 
-  TableCaption, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from "@/components/ui/table";
 import { formatDate } from "@/lib/utils";
 import { LeaderboardEntry } from "@/app/leaderboard/actions";
@@ -23,11 +23,6 @@ export default function LeaderboardTable({ data, duration }: LeaderboardTablePro
   return (
     <div className="rounded-lg border">
       <Table>
-        <TableCaption>
-          {data.length > 0 
-            ? `Top ${data.length} players for ${duration}s test` 
-            : `No scores recorded for ${duration}s test yet`}
-        </TableCaption>
         <TableHeader>
           <TableRow>
             <TableHead className="w-12">Rank</TableHead>
@@ -63,7 +58,7 @@ export default function LeaderboardTable({ data, duration }: LeaderboardTablePro
           ) : (
             <TableRow>
               <TableCell colSpan={5} className="text-center text-muted-foreground">
-                No scores available
+                No recorded scores for {duration}s tests
               </TableCell>
             </TableRow>
           )}
