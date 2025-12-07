@@ -4,6 +4,7 @@ import * as React from "react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 
 import { useCustomTheme } from "@/hooks/useCustomTheme";
+import DynamicFavicon from "@/components/ui/DynamicFavicon";
 
 function CustomThemeHandler() {
   useCustomTheme();
@@ -18,6 +19,7 @@ export function ThemeProvider({
   return (
     <NextThemesProvider {...props}>
       <CustomThemeHandler />
+      <DynamicFavicon />
       {children}
     </NextThemesProvider>
   );
