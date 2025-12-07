@@ -1,18 +1,13 @@
-import Game from "@/components/typing_test/Game";
-import { getBestScoresSafe, getUser } from "./actions";
+import { Suspense } from "react";
+import GameWrapper from "@/components/typing_test/GameWrapper";
+import { GameSkeleton } from "@/components/skeletons/GameSkeleton";
 
-export default async function Home() {
-  const bestScores = await getBestScoresSafe();
-  const user = await getUser();
-
-  const formattedScores = bestScores.map((score) => ({
-    duration: score.duration,
-    wpm: score.wpm,
-  }));
-
+export default function Home() {
   return (
     <div className="min-h-[calc(100vh-5rem)] flex items-center justify-center p-4">
-      <Game initialBestScores={formattedScores} user={user} />
+      <Suspense fallback={<GameSkeleton />}>
+        <GameWrapper />
+      </Suspense>
     </div>
   );
 }
