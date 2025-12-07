@@ -1,5 +1,7 @@
 import { Metadata } from "next";
 import { ThemeManager } from "@/components/settings/ThemeManager";
+import { CaretSettings } from "@/components/settings/CaretSettings";
+
 
 export const metadata: Metadata = {
     title: "Settings | KeyRush",
@@ -17,6 +19,7 @@ export default function SettingsPage() {
                     </p>
                 </div>
                 <div className="my-6 border-t" />
+                <CaretSettings />
                 <ThemeManager />
             </div>
         </div>

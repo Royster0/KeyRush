@@ -1,6 +1,7 @@
 import { motion } from "motion/react";
 import { memo } from "react";
 import Caret from "./Caret";
+import { CaretSpeed } from "@/lib/constants";
 
 type CharacterProps = {
   char: string;
@@ -8,10 +9,11 @@ type CharacterProps = {
   isTyped: boolean;
   isCorrect: boolean;
   isMistake: boolean;
+  caretSpeed?: CaretSpeed;
 };
 
 const Character = memo(
-  function Character({ char, isCurrent, isTyped, isCorrect, isMistake }: CharacterProps) {
+  function Character({ char, isCurrent, isTyped, isCorrect, isMistake, caretSpeed }: CharacterProps) {
     return (
       <motion.span
         className={`
@@ -23,7 +25,7 @@ const Character = memo(
         `}
         layout
       >
-        {isCurrent && <Caret />}
+        {isCurrent && <Caret speed={caretSpeed} />}
         {char}
       </motion.span>
     );
