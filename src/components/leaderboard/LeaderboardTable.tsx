@@ -48,7 +48,7 @@ export default function LeaderboardTable({ data, duration }: LeaderboardTablePro
                   )}
                 </TableCell>
                 <TableCell>{entry.username}</TableCell>
-                <TableCell className="text-right font-semibold">{entry.wpm}</TableCell>
+                <TableCell className="text-right font-semibold">{Number(entry.wpm).toFixed(2)}</TableCell>
                 <TableCell className="text-right">{typeof entry.accuracy === 'number' ? entry.accuracy.toFixed(1) : '0.0'}%</TableCell>
                 <TableCell className="text-right text-sm text-muted-foreground">
                   {formatDate(new Date(entry.created_at))}

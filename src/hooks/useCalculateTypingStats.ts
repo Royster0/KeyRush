@@ -19,7 +19,8 @@ export const useCalculateTypingStats = (
 
     // Calculate raw wpm
     const rawTyped = totalKeystrokes / 5;
-    const calculatedRaw = Math.round(rawTyped / elapsedTime);
+    const calculatedRaw =
+      elapsedTime > 0 ? parseFloat((rawTyped / elapsedTime).toFixed(2)) : 0;
 
     // Calculate accuracy
     const calculatedAccuracy =
@@ -28,7 +29,10 @@ export const useCalculateTypingStats = (
         : 100;
 
     // Calculate wpm
-    const calculatedWpm = Math.round(correctKeystrokes / (5 * elapsedTime));
+    const calculatedWpm =
+      elapsedTime > 0
+        ? parseFloat((correctKeystrokes / (5 * elapsedTime)).toFixed(2))
+        : 0;
 
     return {
       wpm: calculatedWpm,

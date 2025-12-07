@@ -475,12 +475,12 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
                     exit={{ opacity: 0 }}
                   >
                     <p className="text-2xl">
-                      Speed: <span className="font-bold">{wpm} wpm</span>
+                      Speed: <span className="font-bold">{wpm.toFixed(2)} wpm</span>
                     </p>
                     <p className="text-2xl">
                       Accuracy: <span className="font-bold">{accuracy}%</span>
                     </p>
-                    <p className="text-xl">Raw: {rawWpm} wpm</p>
+                    <p className="text-xl">Raw: {rawWpm.toFixed(2)} wpm</p>
                     <p className="text-lg mt-2">
                       Press Tab or Click Restart to try again
                     </p>
