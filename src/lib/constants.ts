@@ -291,3 +291,13 @@ export const TITLE_GRADIENTS: Record<string, Theme> = {
 };
 
 export const STORAGE_KEY_TIME_SELECTION = "typing-test-duration";
+export const STORAGE_KEY_CARET_SPEED = "caret-speed";
+
+export const CARET_SPEEDS = {
+  FAST: "fast",
+  MEDIUM: "medium",
+  SLOW: "slow",
+} as const;
+
+export type CaretSpeed = (typeof CARET_SPEEDS)[keyof typeof CARET_SPEEDS];
+

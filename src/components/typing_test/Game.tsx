@@ -12,6 +12,7 @@ import { useTheme } from "next-themes";
 import { useTextMeasurement } from "@/hooks/useTextMeasurement";
 import { useCalculateTypingStats } from "@/hooks/useCalculateTypingStats";
 import { STORAGE_KEY_TIME_SELECTION, TIME_OPTIONS } from "@/lib/constants";
+import { useSettings } from "@/hooks/useSettings";
 import GameStats from "./GameStats";
 import { AnimatePresence, motion } from "framer-motion";
 import Character from "./Character";
@@ -49,6 +50,7 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
   const [showTimer, setShowTimer] = useState(true);
   const [showWpm, setShowWpm] = useState(true);
   const [wpmHistory, setWpmHistory] = useState<{ time: number; wpm: number }[]>([]);
+  const { caretSpeed } = useSettings();
 
   const textRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -384,6 +386,7 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
                 isTyped={absoluteIndex < typed.length}
                 isCorrect={typed[absoluteIndex] === char}
                 isMistake={mistakes.has(absoluteIndex)}
+                caretSpeed={caretSpeed}
               />
             );
           })}
