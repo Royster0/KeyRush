@@ -6,6 +6,9 @@ import {
   LineChart,
   Trophy,
   Heart,
+  Users,
+  Swords,
+  TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,11 +29,11 @@ export default function About() {
       <section className="space-y-6">
         <h2 className="text-2xl font-bold">Introduction</h2>
         <p className="text-muted-foreground">
-          KeyRush is a typing test website with a focus on simplicity. It
-          features multiple test modes, user accounts to save your typing
-          history, and detailed statistics. Test your typing speed and accuracy
-          in a sleek, customizable environment, track your progress, and compete
-          on the leaderboards.
+          KeyRush is a typing test website with a focus on simplicity and competition. It
+          features multiple test modes, real-time multiplayer matches, ranked gameplay with an Elo system,
+          user accounts to save your typing history, and detailed statistics. Test your typing speed and accuracy
+          in a sleek, customizable environment, track your progress, compete on the leaderboards,
+          and challenge opponents in head-to-head typing battles.
         </p>
       </section>
 
@@ -48,6 +51,16 @@ export default function About() {
             description="Focus on how many words you can type accurately within a set time limit, helping you build speed and consistency."
           />
           <FeatureCard
+            icon={<Users className="w-6 h-6" />}
+            title="Real-Time Multiplayer"
+            description="Challenge opponents in live 1v1 typing matches. See your opponent's progress in real-time as you both type the same text simultaneously."
+          />
+          <FeatureCard
+            icon={<Swords className="w-6 h-6" />}
+            title="Ranked Matches & Elo System"
+            description="Compete in ranked matches to climb the ladder. Your Elo rating adjusts based on wins, losses, and opponent strength. Complete placement matches to get your initial rank."
+          />
+          <FeatureCard
             icon={<LineChart className="w-6 h-6" />}
             title="Detailed Statistics"
             description="Track your WPM, accuracy, and progress over time with intuitive graphs and comprehensive analytics."
@@ -56,6 +69,36 @@ export default function About() {
             icon={<Trophy className="w-6 h-6" />}
             title="Leaderboards"
             description="Compete with typists worldwide on daily, weekly, and all-time leaderboards for each test mode."
+          />
+        </div>
+      </section>
+
+      <section className="space-y-6">
+        <h2 className="text-2xl font-bold">Multiplayer & Ranked System</h2>
+        <p className="text-muted-foreground">
+          KeyRush features a comprehensive multiplayer system that lets you compete against other typists in real-time.
+          Challenge yourself in ranked matches to climb the Elo ladder, or practice in unranked matches with friends.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FeatureCard
+            icon={<Users className="w-6 h-6" />}
+            title="Real-Time Matches"
+            description="Queue for 1v1 matches with automatic matchmaking. Both players type the same text simultaneously, and you can see your opponent's progress in real-time."
+          />
+          <FeatureCard
+            icon={<Swords className="w-6 h-6" />}
+            title="Ranked System"
+            description="Compete in ranked matches to earn Elo rating. Complete 5 placement matches to get your initial rank, then climb through tiers from Bronze to Mach."
+          />
+          <FeatureCard
+            icon={<Trophy className="w-6 h-6" />}
+            title="Rank Tiers"
+            description="Progress through 7 rank tiers: Placement, Bronze, Silver, Gold, Platinum, Diamond, Sonic, and Mach. Your rank is determined by your Elo rating."
+          />
+          <FeatureCard
+            icon={<TrendingUp className="w-6 h-6" />}
+            title="Elo Rating"
+            description="Your Elo rating adjusts after each ranked match based on whether you win, lose, or draw, and the strength of your opponent. Higher Elo means higher rank."
           />
         </div>
       </section>
@@ -101,7 +144,15 @@ export default function About() {
             name="Supabase"
             description="Open source Firebase alternative"
           />
-          <TechItem name="GraphJS" description="Beautiful & simple charts" />
+          <TechItem name="Chart.js" description="Beautiful & simple charts" />
+          <TechItem
+            name="PartyKit"
+            description="Real-time multiplayer infrastructure"
+          />
+          <TechItem
+            name="Framer Motion"
+            description="Animation library for React"
+          />
         </div>
       </section>
 
