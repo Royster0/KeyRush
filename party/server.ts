@@ -31,6 +31,7 @@ type MatchState = {
   text: string;
   phase: "lobby" | "countdown" | "active" | "finished";
   startAt: number | null;
+  expiresAt: number | null;
   players: Record<string, MatchPlayer>;
 };
 
@@ -58,12 +59,28 @@ function generateText() {
   return words.join(" ");
 }
 
+function parseMatchId(matchId: string) {
+  const parts = matchId.split("-");
+  if (parts.length < 4 || parts[0] !== "match") {
+    return null;
+  }
+  const mode = parts[1] === "unranked" ? "unranked" : "ranked";
+  const duration = Number(parts[2]) === 60 ? 60 : 30;
+  const expiresAt = parts.length >= 5 ? Number(parts[3]) : null;
+  return {
+    mode,
+    duration,
+    expiresAt: Number.isFinite(expiresAt) ? expiresAt : null,
+  };
+}
+
 export default class Server implements PartyKit.Server {
   private waitingQueue: QueuePlayer[] = [];
   private matchState: MatchState | null = null;
   private connectionMap = new Map<string, string>();
   private startTimer: number | null = null;
   private finishTimer: number | null = null;
+  private inviteExpireTimer: number | null = null;
 
   constructor(readonly party: PartyKit.Party) {}
 
@@ -77,18 +94,52 @@ export default class Server implements PartyKit.Server {
       const url = new URL(ctx.request.url);
       const durationParam = url.searchParams.get("duration");
       const idParts = this.party.id.split("-");
+      const parsed = parseMatchId(this.party.id);
       const durationFromId = idParts.length > 3 ? Number(idParts[2]) : null;
       const modeFromId = idParts.length > 3 ? idParts[1] : "ranked";
       const duration = durationFromId === 60 || Number(durationParam) === 60 ? 60 : 30;
+      if (parsed?.expiresAt && Date.now() > parsed.expiresAt) {
+        connection.send(
+          JSON.stringify({ type: "match-error", message: "Invite link expired." })
+        );
+        connection.close();
+        return;
+      }
+      const resolvedMode: "ranked" | "unranked" =
+        parsed?.mode === "unranked" || modeFromId === "unranked"
+          ? "unranked"
+          : "ranked";
+
       this.matchState = {
         matchId: this.party.id,
-        mode: modeFromId === "unranked" ? "unranked" : "ranked",
+        mode: resolvedMode,
         duration,
         text: generateText(),
         phase: "lobby",
         startAt: null,
+        expiresAt: parsed?.expiresAt ?? null,
         players: {},
       };
+
+      const expiresAt = this.matchState.expiresAt;
+      if (expiresAt) {
+        const ms = expiresAt - Date.now();
+        if (ms > 0) {
+          this.inviteExpireTimer = setTimeout(() => {
+            if (this.matchState && this.matchState.phase === "lobby") {
+              this.party.broadcast(
+                JSON.stringify({
+                  type: "match-error",
+                  message: "Invite link expired.",
+                })
+              );
+              for (const conn of this.party.getConnections()) {
+                conn.close();
+              }
+            }
+          }, ms) as unknown as number;
+        }
+      }
     }
   }
 
@@ -187,6 +238,13 @@ export default class Server implements PartyKit.Server {
     }
 
     if (payload?.type === "match-join") {
+      if (this.matchState.expiresAt && Date.now() > this.matchState.expiresAt) {
+        sender.send(
+          JSON.stringify({ type: "match-error", message: "Invite link expired." })
+        );
+        sender.close();
+        return;
+      }
       const playerId = payload.userId ?? sender.id;
       this.connectionMap.set(sender.id, playerId);
       this.matchState.players[playerId] = {
@@ -326,6 +384,10 @@ export default class Server implements PartyKit.Server {
     if (this.finishTimer) {
       clearTimeout(this.finishTimer);
       this.finishTimer = null;
+    }
+    if (this.inviteExpireTimer) {
+      clearTimeout(this.inviteExpireTimer);
+      this.inviteExpireTimer = null;
     }
   }
 }

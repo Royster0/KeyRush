@@ -3,6 +3,7 @@
 import PartySocket from "partysocket";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,6 +32,18 @@ type QueueSize = 2;
 
 const PARTYKIT_HOST =
   process.env.NEXT_PUBLIC_PARTYKIT_HOST || "localhost:1999";
+const INVITE_TTL_MS = 10 * 60 * 1000;
+
+const parseMatchId = (matchId: string) => {
+  const parts = matchId.split("-");
+  if (parts.length < 4 || parts[0] !== "match") {
+    return null;
+  }
+  const mode = parts[1] === "unranked" ? "unranked" : "ranked";
+  const duration = Number(parts[2]) === 60 ? 60 : 30;
+  const expiresAt = parts.length >= 5 ? Number(parts[3]) : null;
+  return { mode, duration, expiresAt: Number.isFinite(expiresAt) ? expiresAt : null };
+};
 
 const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
   const [duration, setDuration] = useState<30 | 60>(30);
@@ -50,6 +63,8 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
   const [opponentHistory, setOpponentHistory] = useState<{ time: number; wpm: number }[]>([]);
   const [animatedElo, setAnimatedElo] = useState<number | null>(null);
   const [animatedDelta, setAnimatedDelta] = useState<number | null>(null);
+  const [inviteLink, setInviteLink] = useState<string | null>(null);
+  const [inviteExpiresAt, setInviteExpiresAt] = useState<number | null>(null);
 
   const queueSocketRef = useRef<PartySocket | null>(null);
   const matchSocketRef = useRef<PartySocket | null>(null);
@@ -58,6 +73,8 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
   const hasUpdatedEloRef = useRef(false);
   const lastPlayerSecondRef = useRef<number | null>(null);
   const lastOpponentSecondRef = useRef<number | null>(null);
+  const inviteHandledRef = useRef(false);
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (user?.profile?.elo != null) {
@@ -119,6 +136,8 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
     setOpponentHistory([]);
     setAnimatedElo(null);
     setAnimatedDelta(null);
+    setInviteLink(null);
+    setInviteExpiresAt(null);
     hasUpdatedEloRef.current = false;
     lastPlayerSecondRef.current = null;
     lastOpponentSecondRef.current = null;
@@ -143,7 +162,7 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
       if (data.type === "match-found") {
         socket.close();
         setQueuePhase("idle");
-        connectToMatch(data.matchId, data.duration);
+        connectToMatch(data.matchId, data.duration, queueMode);
       }
     });
 
@@ -171,7 +190,11 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
   }, [duration, eloRecord.elo, rankLabel, resetMatch, queueMode, user]);
 
   const connectToMatch = useCallback(
-    (matchId: string, matchDuration: number) => {
+    (matchId: string, matchDuration: number, modeOverride?: QueueMode) => {
+      const parsed = parseMatchId(matchId);
+      const resolvedMode = modeOverride ?? parsed?.mode ?? queueMode;
+      const resolvedDuration = parsed?.duration ?? matchDuration;
+      setQueueMode(resolvedMode);
       const socket = new PartySocket({
         host: PARTYKIT_HOST,
         room: matchId,
@@ -209,8 +232,8 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
       setMatchState((prev) =>
         prev ?? {
           matchId,
-          mode: queueMode,
-          duration: matchDuration,
+          mode: resolvedMode,
+          duration: resolvedDuration,
           text: "",
           phase: "lobby",
           startAt: null,
@@ -218,8 +241,63 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
         }
       );
     },
-    [eloRecord.elo, rankLabel]
+    [eloRecord.elo, rankLabel, queueMode]
   );
+
+  const handleCreateInvite = useCallback(async () => {
+    if (queueMode !== "unranked") {
+      toast.error("Invite links are only for unranked matches.");
+      return;
+    }
+    resetMatch();
+    const expiresAt = Date.now() + INVITE_TTL_MS;
+    const matchId = `match-unranked-${duration}-${expiresAt}-${crypto.randomUUID()}`;
+    const origin = window.location.origin;
+    const link = `${origin}/multiplayer?invite=${matchId}`;
+    setInviteLink(link);
+    setInviteExpiresAt(expiresAt);
+    connectToMatch(matchId, duration, "unranked");
+    try {
+      await navigator.clipboard.writeText(link);
+      toast.success("Invite link copied");
+    } catch {
+      toast.error("Could not copy invite link");
+    }
+  }, [queueMode, resetMatch, duration, connectToMatch]);
+
+  const handleCopyInvite = useCallback(async () => {
+    if (!inviteLink) {
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(inviteLink);
+      toast.success("Invite link copied");
+    } catch {
+      toast.error("Could not copy invite link");
+    }
+  }, [inviteLink]);
+
+  useEffect(() => {
+    const invite = searchParams.get("invite");
+    if (!invite || inviteHandledRef.current) {
+      return;
+    }
+    inviteHandledRef.current = true;
+    const parsed = parseMatchId(invite);
+    if (!parsed || parsed.mode !== "unranked") {
+      toast.error("Invalid invite link");
+      return;
+    }
+    if (parsed.expiresAt && Date.now() > parsed.expiresAt) {
+      toast.error("Invite link expired");
+      return;
+    }
+    setQueueMode("unranked");
+    setDuration(parsed.duration);
+    setInviteLink(`${window.location.origin}/multiplayer?invite=${invite}`);
+    setInviteExpiresAt(parsed.expiresAt ?? null);
+    connectToMatch(invite, parsed.duration, "unranked");
+  }, [searchParams, connectToMatch]);
 
   const handleLeave = useCallback(() => {
     matchSocketRef.current?.send(
@@ -512,6 +590,32 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
                 </button>
               </div>
 
+              {queueMode === "unranked" && (
+                <div className="rounded-lg border border-border/50 p-4">
+                  <p className="text-sm font-medium mb-2">Invite a friend</p>
+                  <p className="text-xs text-muted-foreground">
+                    Create a magic link for an unranked lobby.
+                  </p>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <Button
+                      variant="secondary"
+                      onClick={handleCreateInvite}
+                      disabled={queuePhase === "queue"}
+                    >
+                      Create invite link
+                    </Button>
+                    {inviteLink && (
+                      <Button variant="ghost" onClick={handleCopyInvite}>
+                        Copy link
+                      </Button>
+                    )}
+                  </div>
+                  {inviteLink && (
+                    <InviteLinkDetails link={inviteLink} expiresAt={inviteExpiresAt} />
+                  )}
+                </div>
+              )}
+
               <div className="rounded-lg border border-border/50 p-4">
                 <p className="text-sm font-medium mb-3">Match format</p>
                 <div className="flex flex-wrap items-center gap-3">
@@ -601,6 +705,18 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
                   Leave Lobby
                 </Button>
               </div>
+
+              {matchState?.mode === "unranked" && inviteLink && (
+                <div className="rounded-md border border-border/50 p-3">
+                  <p className="text-xs text-muted-foreground">Invite link</p>
+                  <InviteLinkDetails link={inviteLink} expiresAt={inviteExpiresAt} />
+                  <div className="mt-2">
+                    <Button variant="ghost" onClick={handleCopyInvite}>
+                      Copy link
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
@@ -747,5 +863,35 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
     </div>
   );
 };
+
+const InviteLinkDetails = ({ link, expiresAt }: { link: string; expiresAt: number | null }) => {
+  const [minutesLeft, setMinutesLeft] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!expiresAt) {
+      setMinutesLeft(null);
+      return;
+    }
+
+    const update = () => {
+      const remaining = Math.max(0, Math.ceil((expiresAt - Date.now()) / 60000));
+      setMinutesLeft(remaining);
+    };
+
+    update();
+    const timer = setInterval(update, 30000);
+    return () => clearInterval(timer);
+  }, [expiresAt]);
+
+  return (
+    <div className="mt-2 space-y-1">
+      <p className="text-xs text-muted-foreground break-all">{link}</p>
+      {minutesLeft !== null && (
+        <p className="text-[11px] text-muted-foreground">Expires in {minutesLeft}m</p>
+      )}
+    </div>
+  );
+};
+
 
 export default MultiplayerClient;
