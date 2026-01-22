@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { LeaderboardTimeframe, LeaderboardEntry } from "@/app/leaderboard/actions";
+import { useState } from "react";
+import { useLeaderboard } from "@/hooks/useLeaderboard";
+import { LeaderboardTimeframe } from "@/app/leaderboard/actions";
 import {
   Select,
   SelectContent,
@@ -18,35 +19,9 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function LeaderboardClient() {
   const [timeframe, setTimeframe] = useState<LeaderboardTimeframe>("all");
-  const [isLoading, setIsLoading] = useState(true);
-  interface LeaderboardData {
-    duration: number;
-    data: LeaderboardEntry[];
-  }
-
-  const [leaderboardData, setLeaderboardData] = useState<LeaderboardData[]>([]);
   const [selectedTab, setSelectedTab] = useState(TIME_OPTIONS[2].toString());
 
-  useEffect(() => {
-    async function fetchData() {
-      setIsLoading(true);
-      try {
-        const response = await fetch(`/api/leaderboard?timeframe=${timeframe}`);
-        if (!response.ok) {
-          throw new Error(`Error fetching leaderboard: ${response.statusText}`);
-        }
-        const data = await response.json();
-        setLeaderboardData(data);
-      } catch (error) {
-        console.error("Failed to fetch leaderboard data:", error);
-        setLeaderboardData([]);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchData();
-  }, [timeframe]);
+  const { data: leaderboardData = [], isLoading } = useLeaderboard(timeframe);
 
   return (
     <div className="container mx-auto max-w-6xl p-4 space-y-6">
