@@ -1,4 +1,5 @@
 import type * as PartyKit from "partykit/server";
+import { WORD_POOL } from "../src/lib/constants";
 
 type QueuePlayer = {
   connectionId: string;
@@ -32,64 +33,6 @@ type MatchState = {
   startAt: number | null;
   players: Record<string, MatchPlayer>;
 };
-
-const WORD_POOL = [
-  "action",
-  "awake",
-  "blaze",
-  "brisk",
-  "cable",
-  "chill",
-  "cloud",
-  "crisp",
-  "drift",
-  "dusk",
-  "ember",
-  "faith",
-  "flash",
-  "glide",
-  "glory",
-  "grace",
-  "grit",
-  "hatch",
-  "honey",
-  "hover",
-  "ignite",
-  "jolt",
-  "kayak",
-  "knack",
-  "lumen",
-  "magic",
-  "mango",
-  "mirth",
-  "noble",
-  "oasis",
-  "orbit",
-  "plume",
-  "pulse",
-  "quartz",
-  "quest",
-  "river",
-  "rivet",
-  "rhythm",
-  "shadow",
-  "shift",
-  "smile",
-  "spark",
-  "storm",
-  "swift",
-  "tempo",
-  "tiger",
-  "torque",
-  "trace",
-  "union",
-  "valor",
-  "vivid",
-  "whisper",
-  "widen",
-  "wisdom",
-  "zenith",
-];
 
 function generateText() {
   const BUFFER_SIZE = 10;
