@@ -34,13 +34,15 @@ const PARTYKIT_HOST =
   process.env.NEXT_PUBLIC_PARTYKIT_HOST || "localhost:1999";
 const INVITE_TTL_MS = 10 * 60 * 1000;
 
-const parseMatchId = (matchId: string) => {
+const parseMatchId = (
+  matchId: string
+): { mode: QueueMode; duration: 30 | 60; expiresAt: number | null } | null => {
   const parts = matchId.split("-");
   if (parts.length < 4 || parts[0] !== "match") {
     return null;
   }
-  const mode = parts[1] === "unranked" ? "unranked" : "ranked";
-  const duration = Number(parts[2]) === 60 ? 60 : 30;
+  const mode: QueueMode = parts[1] === "unranked" ? "unranked" : "ranked";
+  const duration: 30 | 60 = Number(parts[2]) === 60 ? 60 : 30;
   const expiresAt = parts.length >= 5 ? Number(parts[3]) : null;
   return { mode, duration, expiresAt: Number.isFinite(expiresAt) ? expiresAt : null };
 };
