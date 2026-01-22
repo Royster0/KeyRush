@@ -12,6 +12,7 @@ The application follows a **Next.js App Router** architecture, leveraging server
 * **UI Library**: [Shadcn UI](https://ui.shadcn.com/) (Radix UI primitives).
 * **State Management**: React Hooks (`useState`, `useCallback`, `useReducer`) and Context API.
 * **Backend & Auth**: [Supabase](https://supabase.com/) (PostgreSQL) for user authentication and data persistence.
+* **Realtime Multiplayer**: [PartyKit](https://www.partykit.io/) for queueing, lobbies, and match state sync.
 * **Animations**: Framer Motion (`framer-motion`) for UI transitions.
 * **Visualization**: Chart.js (`react-chartjs-2`) for performance graphs.
 
@@ -43,6 +44,15 @@ Handles interactions with the Supabase backend.
 * **Data Mapping**: Converts database snake_case fields (e.g., `raw_wpm`) to application camelCase models (`rawWpm`).
 * **Security**: Uses Supabase Row Level Security (RLS) policies (implied by the user-centric queries) to ensure users only access their own data.
 
+### E. Multiplayer System (`src/components/multiplayer/MultiplayerClient.tsx`, `party/server.ts`)
+KeyRush supports ranked and unranked multiplayer, powered by PartyKit.
+* **Queue + Lobby**: Clients connect to queue rooms (`queue-ranked-*` / `queue-unranked-*`) and are matched into a lobby once a pair is found.
+* **Shared Text**: The PartyKit server generates match text using the same `WORD_POOL` from `src/lib/constants.ts`, ensuring identical text for both players.
+* **Match Phases**: Lobby -> countdown -> active -> finished, with per-player progress updates and opponent caret rendering.
+* **Ranked vs Unranked**: Ranked updates Elo; unranked never changes Elo. Guests are restricted to unranked.
+* **Magic Invite Links**: Unranked only. Hosts can create an invite link that creates a lobby immediately and auto-expires after a short TTL.
+* **Persistence**: Match summaries and per-player results are stored in Supabase (`matches`, `match_results`) via `src/app/api/multiplayer/complete/route.ts`.
+
 ## 3. Project Structure
 
 The project follows a standard Next.js App Router layout:
@@ -50,8 +60,10 @@ The project follows a standard Next.js App Router layout:
 * **`src/app`**: Routes and pages.
     * `page.tsx`: Landing page, wraps the game in a Suspense boundary.
     * `auth/`: Authentication routes (Login, Signup).
+    * `multiplayer/`: Multiplayer page (queue, lobby, match, results).
 * **`src/components`**: React components.
     * `typing_test/`: Components specific to the game (Game, Character, Stats).
+    * `multiplayer/`: Multiplayer UI and match flow.
     * `ui/`: Reusable Shadcn UI components (Card, Button, Input).
 * **`src/hooks`**: Custom React hooks.
     * `useCalculateTypingStats`: Math logic for scoring.
@@ -80,8 +92,16 @@ The project follows a standard Next.js App Router layout:
     * If user is logged in -> `saveTestResult` sends data to Supabase.
     * If anonymous -> Prompt to login.
 
+4.  **Multiplayer Matchmaking**:
+    * User selects mode/duration -> queues in PartyKit room.
+    * Match found -> lobby created -> both players ready -> countdown -> active.
+    * Progress updates sync opponent caret; results screen shows per-player stats.
+    * Ranked matches update Elo and persist results to Supabase.
+
 ## 5. Developer Context / Hints
 
 * **Word Generation**: The `generateText` function in `utils.ts` has a buffer mechanism to prevent the same word from appearing too close to itself.
 * **Strict Mode**: The app uses `use client` directives extensively for interactive components. Be mindful of server/client boundaries when refactoring.
-* **Environment**: Requires `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` to function fully.
+* **Environment**: Requires `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `NEXT_PUBLIC_PARTYKIT_HOST` for multiplayer.
+* **PartyKit Entry**: The server lives at `party/server.ts` and is configured by `partykit.json`.
+* **Supabase Tables**: Multiplayer uses `matches` and `match_results` with RLS policies for participant access.

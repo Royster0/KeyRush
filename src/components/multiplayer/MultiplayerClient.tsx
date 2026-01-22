@@ -5,8 +5,28 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Trophy,
+  Swords,
+  Clock,
+  Users,
+  Crown,
+  Link2,
+  Copy,
+  ChevronRight,
+  Zap,
+  Target,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Sparkles,
+  Timer,
+  Shield,
+  Gamepad2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import MultiplayerMatch from "./MultiplayerMatch";
 import { MatchPhase, MatchState, ServerMessage } from "@/types/multiplayer.types";
 import {
@@ -528,339 +548,942 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
     opponentIdRef.current = opponent?.id ?? null;
   }, [matchState, opponent]);
 
+  // Get rank color based on rank label
+  const getRankColor = (rank: string) => {
+    const colors: Record<string, string> = {
+      Placement: "text-muted-foreground",
+      Bronze: "text-amber-600",
+      Silver: "text-slate-400",
+      Gold: "text-yellow-500",
+      Platinum: "text-cyan-400",
+      Diamond: "text-blue-400",
+      Sonic: "text-purple-500",
+      Mach: "text-red-500",
+    };
+    return colors[rank] || "text-muted-foreground";
+  };
+
+  const getResultIcon = () => {
+    if (resultLabel?.includes("Victory")) return <Crown className="h-8 w-8" />;
+    if (resultLabel?.includes("Defeat")) return <TrendingDown className="h-8 w-8" />;
+    return <Minus className="h-8 w-8" />;
+  };
+
+  const getResultColor = () => {
+    if (resultLabel?.includes("Victory")) return "text-emerald-500";
+    if (resultLabel?.includes("Defeat")) return "text-red-500";
+    return "text-yellow-500";
+  };
+
+  // Determine which screen to show
+  const currentScreen = !matchState
+    ? "queue"
+    : matchState.phase === "lobby"
+    ? "lobby"
+    : matchState.phase === "finished"
+    ? "results"
+    : matchState.text
+    ? "match"
+    : "queue";
+
   return (
-    <div className="w-full flex flex-col items-center gap-6 pt-24 pb-16">
+    <div className="w-full flex flex-col items-center gap-6 pt-10 pb-16 px-4">
       <div className="w-full max-w-5xl space-y-6">
-        {!matchState && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Multiplayer</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={() => setQueueMode("ranked")}
-                  disabled={queuePhase === "queue" || !user}
-                  className={`rounded-lg border p-4 text-left transition-all ${
-                    queueMode === "ranked"
-                      ? "border-primary bg-primary/5"
-                      : "border-border/60 hover:border-primary/60"
-                  } ${!user ? "opacity-60 cursor-not-allowed" : ""}`}
+          {/* Queue Selection Screen */}
+          {currentScreen === "queue" && (
+            <div className="space-y-6">
+              {/* Header Section */}
+              <div className="text-center space-y-2">
+                <motion.div
+                  initial={{ scale: 0.9 }}
+                  animate={{ scale: 1 }}
+                  className="inline-flex items-center gap-3 mb-2"
                 >
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold">Ranked</h3>
-                    {queueMode === "ranked" && (
-                      <span className="text-xs text-primary">Selected</span>
-                    )}
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Compete for Elo and placement matches.
-                  </p>
-                  <div className="mt-3 text-xs text-muted-foreground">
-                    Rank: <span className="text-foreground font-medium">{rankLabel}</span>{" "}
-                    · Elo: <span className="text-foreground font-medium">{eloRecord.elo}</span>{" "}
-                    · Placement remaining:{" "}
-                    <span className="text-foreground font-medium">{placementRemaining}</span>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setQueueMode("unranked")}
-                  disabled={queuePhase === "queue"}
-                  className={`rounded-lg border p-4 text-left transition-all ${
-                    queueMode === "unranked"
-                      ? "border-primary bg-primary/5"
-                      : "border-border/60 hover:border-primary/60"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold">Unranked</h3>
-                    {queueMode === "unranked" && (
-                      <span className="text-xs text-primary">Selected</span>
-                    )}
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Warm up and play casually without Elo changes.
-                  </p>
-                  {!user && (
-                    <p className="mt-3 text-xs text-muted-foreground">
-                      Guests can only queue for unranked matches.
-                    </p>
-                  )}
-                </button>
-              </div>
-
-              {queueMode === "unranked" && (
-                <div className="rounded-lg border border-border/50 p-4">
-                  <p className="text-sm font-medium mb-2">Invite a friend</p>
-                  <p className="text-xs text-muted-foreground">
-                    Create a magic link for an unranked lobby.
-                  </p>
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
-                    <Button
-                      variant="secondary"
-                      onClick={handleCreateInvite}
-                      disabled={queuePhase === "queue"}
-                    >
-                      Create invite link
-                    </Button>
-                    {inviteLink && (
-                      <Button variant="ghost" onClick={handleCopyInvite}>
-                        Copy link
-                      </Button>
-                    )}
-                  </div>
-                  {inviteLink && (
-                    <InviteLinkDetails link={inviteLink} expiresAt={inviteExpiresAt} />
-                  )}
-                </div>
-              )}
-
-              <div className="rounded-lg border border-border/50 p-4">
-                <p className="text-sm font-medium mb-3">Match format</p>
-                <div className="flex flex-wrap items-center gap-3">
-                  <Button variant={queueSize === 2 ? "default" : "secondary"} disabled>
-                    1v1
-                  </Button>
-                  <Button variant="secondary" disabled title="Coming soon">
-                    Three Way
-                  </Button>
-                  <Button variant="secondary" disabled title="Coming soon">
-                    Four Way
-                  </Button>
-                </div>
-                <p className="mt-3 text-xs text-muted-foreground">
-                  More match sizes coming soon.
+                  <Swords className="h-8 w-8 text-primary" />
+                  <h1 className="text-4xl font-bold tracking-tight">Multiplayer</h1>
+                </motion.div>
+                <p className="text-muted-foreground">
+                  Challenge opponents in real-time typing battles
                 </p>
               </div>
 
-              <div className="rounded-lg border border-border/50 p-4">
-                <p className="text-sm font-medium mb-3">Time</p>
-                <div className="flex flex-wrap items-center gap-3">
-                  <Button
-                    variant={duration === 30 ? "default" : "secondary"}
-                    onClick={() => setDuration(30)}
-                    disabled={queuePhase === "queue"}
-                  >
-                    30s
-                  </Button>
-                  <Button
-                    variant={duration === 60 ? "default" : "secondary"}
-                    onClick={() => setDuration(60)}
-                    disabled={queuePhase === "queue"}
-                  >
-                    60s
-                  </Button>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3 justify-end">
-                {queuePhase === "queue" && (
-                  <Button variant="ghost" onClick={resetMatch}>
-                    Cancel
-                  </Button>
-                )}
-                <Button onClick={handleQueue} disabled={queuePhase === "queue"}>
-                  Queue
-                </Button>
-              </div>
-              {queuePhase === "queue" && (
-                <p className="text-sm text-primary">Searching for an opponent...</p>
+              {/* Rank Display Card (for logged-in users) */}
+              {user && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  <Card className="border-none bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 overflow-hidden">
+                    <CardContent className="p-6">
+                      <div className="flex flex-wrap items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                          <div className="relative">
+                            <div className="h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center">
+                              <Trophy className={`h-8 w-8 ${getRankColor(rankLabel)}`} />
+                            </div>
+                            {placementRemaining > 0 && (
+                              <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground text-xs font-bold px-1.5 py-0.5 rounded-full">
+                                {placementRemaining}
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Your Rank</p>
+                            <p className={`text-2xl font-bold ${getRankColor(rankLabel)}`}>
+                              {rankLabel}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-8">
+                          <div className="text-center">
+                            <p className="text-sm text-muted-foreground">Elo Rating</p>
+                            <p className="text-3xl font-bold font-mono">{eloRecord.elo}</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-sm text-muted-foreground">Matches</p>
+                            <p className="text-3xl font-bold font-mono">{eloRecord.matchesPlayed}</p>
+                          </div>
+                          {placementRemaining > 0 && (
+                            <div className="text-center">
+                              <p className="text-sm text-muted-foreground">Placements Left</p>
+                              <p className="text-3xl font-bold font-mono text-primary">{placementRemaining}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               )}
-              {errorMessage && <p className="text-sm text-destructive">{errorMessage}</p>}
-            </CardContent>
-          </Card>
-        )}
 
-        {matchState && matchState.phase === "lobby" && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Lobby</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-3 md:grid-cols-2">
-                <div className="rounded-md border border-border/50 p-3">
-                  <p className="text-sm text-muted-foreground">You</p>
-                  <p className="font-semibold">{player?.name ?? "You"}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {player?.ready ? "Ready" : "Not ready"}
-                  </p>
+              {/* Mode Selection */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+                className="space-y-3"
+              >
+                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                  <Gamepad2 className="h-4 w-4" />
+                  <span>Select Mode</span>
                 </div>
-                <div className="rounded-md border border-border/50 p-3">
-                  <p className="text-sm text-muted-foreground">Opponent</p>
-                  <p className="font-semibold">{opponent?.name ?? "Joining..."}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {opponent?.ready ? "Ready" : "Not ready"}
-                  </p>
+                <div className="grid gap-4 md:grid-cols-2">
+                  {/* Ranked Mode Card */}
+                  <motion.button
+                    type="button"
+                    onClick={() => setQueueMode("ranked")}
+                    disabled={queuePhase === "queue" || !user}
+                    whileHover={{ scale: user ? 1.02 : 1 }}
+                    whileTap={{ scale: user ? 0.98 : 1 }}
+                    className={`relative rounded-xl border-2 p-5 text-left transition-all overflow-hidden ${
+                      queueMode === "ranked"
+                        ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
+                        : "border-border/60 hover:border-primary/40"
+                    } ${!user ? "opacity-50 cursor-not-allowed" : ""}`}
+                  >
+                    {queueMode === "ranked" && (
+                      <motion.div
+                        layoutId="mode-indicator"
+                        className="absolute top-3 right-3"
+                      >
+                        <span className="flex h-3 w-3">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-primary" />
+                        </span>
+                      </motion.div>
+                    )}
+                    <div className="flex items-start gap-4">
+                      <div className={`p-3 rounded-lg ${queueMode === "ranked" ? "bg-primary/20" : "bg-muted"}`}>
+                        <Trophy className={`h-6 w-6 ${queueMode === "ranked" ? "text-primary" : "text-muted-foreground"}`} />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold">Ranked</h3>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Compete for Elo rating and climb the ranks
+                        </p>
+                        {user && (
+                          <div className="mt-4 flex flex-wrap items-center gap-3 text-xs">
+                            <span className={`px-2 py-1 rounded-full bg-muted font-medium ${getRankColor(rankLabel)}`}>
+                              {rankLabel}
+                            </span>
+                            <span className="text-muted-foreground">
+                              {eloRecord.elo} Elo
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {!user && (
+                      <p className="mt-4 text-xs text-muted-foreground flex items-center gap-1">
+                        <Shield className="h-3 w-3" />
+                        Sign in to play ranked matches
+                      </p>
+                    )}
+                  </motion.button>
+
+                  {/* Unranked Mode Card */}
+                  <motion.button
+                    type="button"
+                    onClick={() => setQueueMode("unranked")}
+                    disabled={queuePhase === "queue"}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`relative rounded-xl border-2 p-5 text-left transition-all overflow-hidden ${
+                      queueMode === "unranked"
+                        ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
+                        : "border-border/60 hover:border-primary/40"
+                    }`}
+                  >
+                    {queueMode === "unranked" && (
+                      <motion.div
+                        layoutId="mode-indicator"
+                        className="absolute top-3 right-3"
+                      >
+                        <span className="flex h-3 w-3">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-primary" />
+                        </span>
+                      </motion.div>
+                    )}
+                    <div className="flex items-start gap-4">
+                      <div className={`p-3 rounded-lg ${queueMode === "unranked" ? "bg-primary/20" : "bg-muted"}`}>
+                        <Sparkles className={`h-6 w-6 ${queueMode === "unranked" ? "text-primary" : "text-muted-foreground"}`} />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold">Unranked</h3>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Practice and play casually without Elo changes
+                        </p>
+                        <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
+                          <Zap className="h-3 w-3" />
+                          <span>Perfect for warming up</span>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.button>
                 </div>
+              </motion.div>
+
+              {/* Invite Section (Unranked only) */}
+              <AnimatePresence>
+                {queueMode === "unranked" && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <Card className="border-dashed border-2 border-primary/30 bg-primary/5">
+                      <CardContent className="p-5">
+                        <div className="flex flex-wrap items-center justify-between gap-4">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-primary/20">
+                              <Link2 className="h-5 w-5 text-primary" />
+                            </div>
+                            <div>
+                              <p className="font-medium">Challenge a Friend</p>
+                              <p className="text-sm text-muted-foreground">
+                                Create a private match link
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="secondary"
+                              onClick={handleCreateInvite}
+                              disabled={queuePhase === "queue"}
+                              className="gap-2"
+                            >
+                              <Link2 className="h-4 w-4" />
+                              Create Invite
+                            </Button>
+                            {inviteLink && (
+                              <Button variant="ghost" size="icon" onClick={handleCopyInvite}>
+                                <Copy className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                        {inviteLink && (
+                          <InviteLinkDetails link={inviteLink} expiresAt={inviteExpiresAt} />
+                        )}
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Match Settings */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="grid gap-4 md:grid-cols-2"
+              >
+                {/* Match Format */}
+                <Card className="border-none bg-muted/40">
+                  <CardContent className="p-5">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                      <p className="text-sm font-medium">Match Format</p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button
+                        variant={queueSize === 2 ? "default" : "secondary"}
+                        disabled
+                        className="gap-2"
+                      >
+                        <Swords className="h-4 w-4" />
+                        1v1
+                      </Button>
+                      <Button variant="secondary" disabled className="opacity-50">
+                        3-Way
+                      </Button>
+                      <Button variant="secondary" disabled className="opacity-50">
+                        4-Way
+                      </Button>
+                    </div>
+                    <p className="mt-3 text-xs text-muted-foreground">
+                      More formats coming soon
+                    </p>
+                  </CardContent>
+                </Card>
+
+                {/* Duration */}
+                <Card className="border-none bg-muted/40">
+                  <CardContent className="p-5">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Timer className="h-4 w-4 text-muted-foreground" />
+                      <p className="text-sm font-medium">Duration</p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button
+                        variant={duration === 30 ? "default" : "secondary"}
+                        onClick={() => setDuration(30)}
+                        disabled={queuePhase === "queue"}
+                        className="gap-2"
+                      >
+                        <Clock className="h-4 w-4" />
+                        30s
+                      </Button>
+                      <Button
+                        variant={duration === 60 ? "default" : "secondary"}
+                        onClick={() => setDuration(60)}
+                        disabled={queuePhase === "queue"}
+                        className="gap-2"
+                      >
+                        <Clock className="h-4 w-4" />
+                        60s
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Queue Button Section */}
+              <div className="pt-4">
+                {queuePhase === "queue" ? (
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="relative">
+                      <div className="h-20 w-20 rounded-full border-4 border-primary/30 flex items-center justify-center">
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                          className="h-16 w-16 rounded-full border-4 border-transparent border-t-primary"
+                        />
+                      </div>
+                      <Swords className="h-6 w-6 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-lg font-medium">Searching for opponent...</p>
+                      <p className="text-sm text-muted-foreground">
+                        {queueMode === "ranked" ? "Ranked" : "Unranked"} · {duration}s
+                      </p>
+                    </div>
+                    <Button variant="ghost" onClick={resetMatch}>
+                      Cancel Queue
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex justify-center">
+                    <Button
+                      onClick={handleQueue}
+                      size="lg"
+                      className="gap-3 px-8 py-6 text-lg font-semibold"
+                    >
+                      <Swords className="h-5 w-5" />
+                      Find Match
+                      <ChevronRight className="h-5 w-5" />
+                    </Button>
+                  </div>
+                )}
+                {errorMessage && (
+                  <p className="text-sm text-destructive text-center mt-4">
+                    {errorMessage}
+                  </p>
+                )}
               </div>
-              <div className="flex flex-wrap gap-3">
+            </div>
+          )}
+
+          {/* Lobby Screen */}
+          {currentScreen === "lobby" && matchState && (
+            <div className="space-y-6">
+              {/* Lobby Header */}
+              <div className="text-center space-y-2">
+                <motion.div
+                  initial={{ scale: 0.9 }}
+                  animate={{ scale: 1 }}
+                  className="inline-flex items-center gap-3"
+                >
+                  <Users className="h-6 w-6 text-primary" />
+                  <h2 className="text-2xl font-bold">Match Lobby</h2>
+                </motion.div>
+                <p className="text-muted-foreground">
+                  {matchState.mode === "ranked" ? "Ranked" : "Unranked"} · {matchState.duration}s
+                </p>
+              </div>
+
+              {/* VS Layout */}
+              <div className="grid gap-4 md:grid-cols-[1fr,auto,1fr] items-center">
+                {/* Player Card */}
+                <motion.div
+                  initial={{ x: -50, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  <Card className={`border-2 transition-all ${player?.ready ? "border-emerald-500 bg-emerald-500/5" : "border-border"}`}>
+                    <CardContent className="p-6 text-center">
+                      <div className="h-16 w-16 mx-auto rounded-full bg-primary/20 flex items-center justify-center mb-4">
+                        <span className="text-2xl font-bold">{(player?.name ?? "You").charAt(0).toUpperCase()}</span>
+                      </div>
+                      <p className="font-bold text-lg">{player?.name ?? "You"}</p>
+                      {matchState.mode === "ranked" && (
+                        <p className={`text-sm ${getRankColor(player?.rank ?? rankLabel)}`}>
+                          {player?.rank ?? rankLabel}
+                        </p>
+                      )}
+                      <div className="mt-4">
+                        {player?.ready ? (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-500 text-sm font-medium">
+                            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                            Ready
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-muted-foreground text-sm">
+                            Not Ready
+                          </span>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+
+                {/* VS Divider */}
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: "spring" }}
+                  className="flex flex-col items-center gap-2 py-4"
+                >
+                  <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center">
+                    <Swords className="h-6 w-6 text-primary" />
+                  </div>
+                  <span className="text-2xl font-bold text-muted-foreground">VS</span>
+                </motion.div>
+
+                {/* Opponent Card */}
+                <motion.div
+                  initial={{ x: 50, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  <Card className={`border-2 transition-all ${opponent?.ready ? "border-emerald-500 bg-emerald-500/5" : "border-border"}`}>
+                    <CardContent className="p-6 text-center">
+                      {opponent ? (
+                        <>
+                          <div className="h-16 w-16 mx-auto rounded-full bg-sky-500/20 flex items-center justify-center mb-4">
+                            <span className="text-2xl font-bold text-sky-500">{opponent.name.charAt(0).toUpperCase()}</span>
+                          </div>
+                          <p className="font-bold text-lg">{opponent.name}</p>
+                          {matchState.mode === "ranked" && (
+                            <p className={`text-sm ${getRankColor(opponent.rank ?? "Placement")}`}>
+                              {opponent.rank ?? "Placement"}
+                            </p>
+                          )}
+                          <div className="mt-4">
+                            {opponent.ready ? (
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-500 text-sm font-medium">
+                                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                                Ready
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-muted-foreground text-sm">
+                                Not Ready
+                              </span>
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="h-16 w-16 mx-auto rounded-full bg-muted flex items-center justify-center mb-4">
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                              className="h-8 w-8 rounded-full border-2 border-transparent border-t-muted-foreground"
+                            />
+                          </div>
+                          <p className="font-medium text-muted-foreground">Waiting for opponent...</p>
+                        </>
+                      )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </div>
+
+              {/* Action Buttons */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="flex flex-wrap justify-center gap-3"
+              >
                 <Button
                   onClick={() => handleReady(!player?.ready)}
                   disabled={!opponent}
+                  size="lg"
+                  className={`gap-2 ${player?.ready ? "bg-amber-500 hover:bg-amber-600" : ""}`}
                 >
-                  {player?.ready ? "Unready" : "Ready"}
+                  {player?.ready ? (
+                    <>Cancel Ready</>
+                  ) : (
+                    <>
+                      <Zap className="h-4 w-4" />
+                      Ready Up
+                    </>
+                  )}
                 </Button>
                 <Button variant="ghost" onClick={handleLeave}>
                   Leave Lobby
                 </Button>
-              </div>
+              </motion.div>
 
+              {/* Invite Link (for unranked) */}
               {matchState?.mode === "unranked" && inviteLink && (
-                <div className="rounded-md border border-border/50 p-3">
-                  <p className="text-xs text-muted-foreground">Invite link</p>
-                  <InviteLinkDetails link={inviteLink} expiresAt={inviteExpiresAt} />
-                  <div className="mt-2">
-                    <Button variant="ghost" onClick={handleCopyInvite}>
-                      Copy link
-                    </Button>
-                  </div>
-                </div>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  <Card className="border-dashed border-2 border-primary/30 bg-primary/5">
+                    <CardContent className="p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex items-center gap-2">
+                          <Link2 className="h-4 w-4 text-primary" />
+                          <span className="text-sm font-medium">Invite Link</span>
+                        </div>
+                        <Button variant="ghost" size="sm" onClick={handleCopyInvite} className="gap-2">
+                          <Copy className="h-4 w-4" />
+                          Copy
+                        </Button>
+                      </div>
+                      <InviteLinkDetails link={inviteLink} expiresAt={inviteExpiresAt} />
+                    </CardContent>
+                  </Card>
+                </motion.div>
               )}
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          )}
 
-        {matchState && matchState.text && matchState.phase !== "finished" && matchState.phase !== "lobby" && (
-          <MultiplayerMatch
-            text={matchState.text}
-            duration={matchState.duration}
-            phase={matchState.phase as MatchPhase}
-            startAt={matchState.startAt}
-            opponentProgress={opponent?.progress ?? 0}
-            onProgress={handleProgress}
-            onFinish={handleFinish}
-          />
-        )}
+          {/* Active Match Screen */}
+          {currentScreen === "match" && matchState && (
+            <div>
+              <MultiplayerMatch
+                text={matchState.text}
+                duration={matchState.duration}
+                phase={matchState.phase as MatchPhase}
+                startAt={matchState.startAt}
+                opponentProgress={opponent?.progress ?? 0}
+                onProgress={handleProgress}
+                onFinish={handleFinish}
+              />
+            </div>
+          )}
 
-        {matchState && matchState.phase === "finished" && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Match Results</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="rounded-lg border border-border/50 bg-muted/30 p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                      Result
-                    </p>
-                    <p className="text-2xl font-semibold">
-                      {resultLabel ?? "Match finished"}
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                    <span className="rounded-full bg-secondary px-3 py-1">
-                      {matchState.mode === "ranked" ? "Ranked" : "Unranked"}
-                    </span>
-                    <span className="rounded-full bg-secondary px-3 py-1">
-                      {matchState.duration}s
-                    </span>
-                  </div>
-                </div>
-              </div>
+          {/* Results Screen */}
+          {currentScreen === "results" && matchState && (
+            <div className="space-y-6">
+              {/* Result Banner */}
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", duration: 0.5 }}
+                className={`relative overflow-hidden rounded-2xl p-8 text-center ${
+                  resultLabel?.includes("Victory")
+                    ? "bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent border-2 border-emerald-500/30"
+                    : resultLabel?.includes("Defeat")
+                    ? "bg-gradient-to-br from-red-500/20 via-red-500/10 to-transparent border-2 border-red-500/30"
+                    : "bg-gradient-to-br from-yellow-500/20 via-yellow-500/10 to-transparent border-2 border-yellow-500/30"
+                }`}
+              >
+                {/* Decorative Elements */}
+                {resultLabel?.includes("Victory") && (
+                  <>
+                    <motion.div
+                      initial={{ y: -100, opacity: 0 }}
+                      animate={{ y: 0, opacity: 0.1 }}
+                      className="absolute top-4 left-8"
+                    >
+                      <Sparkles className="h-16 w-16 text-emerald-500" />
+                    </motion.div>
+                    <motion.div
+                      initial={{ y: -100, opacity: 0 }}
+                      animate={{ y: 0, opacity: 0.1 }}
+                      transition={{ delay: 0.1 }}
+                      className="absolute top-8 right-12"
+                    >
+                      <Trophy className="h-12 w-12 text-emerald-500" />
+                    </motion.div>
+                  </>
+                )}
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-lg border border-border/50 bg-card/60 p-4">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">You</p>
-                  <p className="text-lg font-semibold">{player?.name ?? "You"}</p>
-                  <div className="mt-3 grid gap-2 text-sm text-muted-foreground">
-                    <div className="flex items-center justify-between">
-                      <span>WPM</span>
-                      <span className="text-foreground font-medium">
-                        {player?.wpm.toFixed(1) ?? "0"}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Accuracy</span>
-                      <span className="text-foreground font-medium">
-                        {player?.accuracy ?? 100}%
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Rank</span>
-                      <span className="text-foreground font-medium">
-                        {player?.rank ?? rankLabel}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rounded-lg border border-border/50 bg-card/60 p-4">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                    Opponent
-                  </p>
-                  <p className="text-lg font-semibold">{opponent?.name ?? "Opponent"}</p>
-                  <div className="mt-3 grid gap-2 text-sm text-muted-foreground">
-                    <div className="flex items-center justify-between">
-                      <span>WPM</span>
-                      <span className="text-foreground font-medium">
-                        {opponent?.wpm.toFixed(1) ?? "0"}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Accuracy</span>
-                      <span className="text-foreground font-medium">
-                        {opponent?.accuracy ?? 100}%
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Rank</span>
-                      <span className="text-foreground font-medium">
-                        {opponent?.rank ?? "Placement"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {matchState.mode === "ranked" ? (
-                <div className="rounded-lg border border-border/50 bg-primary/5 p-4 text-sm text-muted-foreground">
-                  Elo update:{" "}
-                  <span className="text-foreground font-semibold">
-                    {animatedElo ?? eloRecord.elo}
-                  </span>{" "}
-                  ({(animatedDelta ?? eloDelta) >= 0 ? "+" : ""}
-                  {animatedDelta ?? eloDelta}) · Rank:{" "}
-                  <span className="text-foreground font-semibold">
-                    {getRankLabel(eloRecord.elo, eloRecord.matchesPlayed)}
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: "spring" }}
+                  className={`inline-flex items-center justify-center h-20 w-20 rounded-full mb-4 ${
+                    resultLabel?.includes("Victory")
+                      ? "bg-emerald-500/20"
+                      : resultLabel?.includes("Defeat")
+                      ? "bg-red-500/20"
+                      : "bg-yellow-500/20"
+                  }`}
+                >
+                  <span className={getResultColor()}>
+                    {getResultIcon()}
                   </span>
-                </div>
+                </motion.div>
+
+                <motion.h2
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className={`text-4xl font-bold ${getResultColor()}`}
+                >
+                  {resultLabel ?? "Match Complete"}
+                </motion.h2>
+
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                  className="flex items-center justify-center gap-3 mt-3"
+                >
+                  <span className="px-3 py-1 rounded-full bg-background/50 text-sm text-muted-foreground">
+                    {matchState.mode === "ranked" ? "Ranked" : "Unranked"}
+                  </span>
+                  <span className="px-3 py-1 rounded-full bg-background/50 text-sm text-muted-foreground">
+                    {matchState.duration}s
+                  </span>
+                </motion.div>
+              </motion.div>
+
+              {/* Stats Comparison */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <Card className="border-none bg-muted/40 overflow-hidden">
+                  <CardContent className="p-0">
+                    {/* Header Row */}
+                    <div className="grid grid-cols-[1fr,auto,1fr] items-center gap-4 p-4 border-b border-border/50">
+                      <div className="text-center">
+                        <div className="h-12 w-12 mx-auto rounded-full bg-primary/20 flex items-center justify-center mb-2">
+                          <span className="text-lg font-bold">{(player?.name ?? "You").charAt(0).toUpperCase()}</span>
+                        </div>
+                        <p className="font-semibold">{player?.name ?? "You"}</p>
+                        {matchState.mode === "ranked" && (
+                          <p className={`text-xs ${getRankColor(player?.rank ?? rankLabel)}`}>
+                            {player?.rank ?? rankLabel}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-center">
+                        <Swords className="h-6 w-6 text-muted-foreground mx-auto" />
+                      </div>
+                      <div className="text-center">
+                        <div className="h-12 w-12 mx-auto rounded-full bg-sky-500/20 flex items-center justify-center mb-2">
+                          <span className="text-lg font-bold text-sky-500">{(opponent?.name ?? "?").charAt(0).toUpperCase()}</span>
+                        </div>
+                        <p className="font-semibold">{opponent?.name ?? "Opponent"}</p>
+                        {matchState.mode === "ranked" && (
+                          <p className={`text-xs ${getRankColor(opponent?.rank ?? "Placement")}`}>
+                            {opponent?.rank ?? "Placement"}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* WPM Comparison */}
+                    <div className="p-4 border-b border-border/50">
+                      <div className="grid grid-cols-[1fr,auto,1fr] items-center gap-4">
+                        <motion.div
+                          initial={{ x: -20, opacity: 0 }}
+                          animate={{ x: 0, opacity: 1 }}
+                          transition={{ delay: 0.3 }}
+                          className="text-right"
+                        >
+                          <p className={`text-3xl font-bold font-mono ${
+                            (player?.wpm ?? 0) > (opponent?.wpm ?? 0) ? "text-emerald-500" : ""
+                          }`}>
+                            {player?.wpm.toFixed(1) ?? "0"}
+                          </p>
+                        </motion.div>
+                        <div className="text-center">
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Zap className="h-4 w-4" />
+                            <span className="text-xs font-medium">WPM</span>
+                          </div>
+                        </div>
+                        <motion.div
+                          initial={{ x: 20, opacity: 0 }}
+                          animate={{ x: 0, opacity: 1 }}
+                          transition={{ delay: 0.3 }}
+                          className="text-left"
+                        >
+                          <p className={`text-3xl font-bold font-mono ${
+                            (opponent?.wpm ?? 0) > (player?.wpm ?? 0) ? "text-sky-500" : ""
+                          }`}>
+                            {opponent?.wpm.toFixed(1) ?? "0"}
+                          </p>
+                        </motion.div>
+                      </div>
+                      {/* WPM Bar Comparison */}
+                      <div className="mt-3 flex items-center gap-2">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min(100, ((player?.wpm ?? 0) / Math.max(player?.wpm ?? 1, opponent?.wpm ?? 1)) * 100)}%` }}
+                          transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }}
+                          className="h-2 bg-primary rounded-full ml-auto"
+                        />
+                        <div className="w-1" />
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min(100, ((opponent?.wpm ?? 0) / Math.max(player?.wpm ?? 1, opponent?.wpm ?? 1)) * 100)}%` }}
+                          transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }}
+                          className="h-2 bg-sky-500 rounded-full"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Accuracy Comparison */}
+                    <div className="p-4 border-b border-border/50">
+                      <div className="grid grid-cols-[1fr,auto,1fr] items-center gap-4">
+                        <motion.div
+                          initial={{ x: -20, opacity: 0 }}
+                          animate={{ x: 0, opacity: 1 }}
+                          transition={{ delay: 0.4 }}
+                          className="text-right"
+                        >
+                          <p className={`text-2xl font-bold font-mono ${
+                            (player?.accuracy ?? 0) > (opponent?.accuracy ?? 0) ? "text-emerald-500" : ""
+                          }`}>
+                            {player?.accuracy ?? 100}%
+                          </p>
+                        </motion.div>
+                        <div className="text-center">
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Target className="h-4 w-4" />
+                            <span className="text-xs font-medium">Accuracy</span>
+                          </div>
+                        </div>
+                        <motion.div
+                          initial={{ x: 20, opacity: 0 }}
+                          animate={{ x: 0, opacity: 1 }}
+                          transition={{ delay: 0.4 }}
+                          className="text-left"
+                        >
+                          <p className={`text-2xl font-bold font-mono ${
+                            (opponent?.accuracy ?? 0) > (player?.accuracy ?? 0) ? "text-sky-500" : ""
+                          }`}>
+                            {opponent?.accuracy ?? 100}%
+                          </p>
+                        </motion.div>
+                      </div>
+                    </div>
+
+                    {/* Raw WPM Comparison */}
+                    <div className="p-4">
+                      <div className="grid grid-cols-[1fr,auto,1fr] items-center gap-4">
+                        <motion.div
+                          initial={{ x: -20, opacity: 0 }}
+                          animate={{ x: 0, opacity: 1 }}
+                          transition={{ delay: 0.5 }}
+                          className="text-right"
+                        >
+                          <p className="text-xl font-medium font-mono text-muted-foreground">
+                            {player?.rawWpm?.toFixed(1) ?? "0"}
+                          </p>
+                        </motion.div>
+                        <div className="text-center">
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <TrendingUp className="h-4 w-4" />
+                            <span className="text-xs font-medium">Raw WPM</span>
+                          </div>
+                        </div>
+                        <motion.div
+                          initial={{ x: 20, opacity: 0 }}
+                          animate={{ x: 0, opacity: 1 }}
+                          transition={{ delay: 0.5 }}
+                          className="text-left"
+                        >
+                          <p className="text-xl font-medium font-mono text-muted-foreground">
+                            {opponent?.rawWpm?.toFixed(1) ?? "0"}
+                          </p>
+                        </motion.div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Elo Update Section (Ranked only) */}
+              {matchState.mode === "ranked" ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <Card className={`border-2 overflow-hidden ${
+                    (animatedDelta ?? eloDelta) > 0
+                      ? "border-emerald-500/30 bg-emerald-500/5"
+                      : (animatedDelta ?? eloDelta) < 0
+                      ? "border-red-500/30 bg-red-500/5"
+                      : "border-border"
+                  }`}>
+                    <CardContent className="p-6">
+                      <div className="flex flex-wrap items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                          <div className={`h-14 w-14 rounded-full flex items-center justify-center ${
+                            (animatedDelta ?? eloDelta) > 0
+                              ? "bg-emerald-500/20"
+                              : (animatedDelta ?? eloDelta) < 0
+                              ? "bg-red-500/20"
+                              : "bg-muted"
+                          }`}>
+                            {(animatedDelta ?? eloDelta) > 0 ? (
+                              <TrendingUp className="h-6 w-6 text-emerald-500" />
+                            ) : (animatedDelta ?? eloDelta) < 0 ? (
+                              <TrendingDown className="h-6 w-6 text-red-500" />
+                            ) : (
+                              <Minus className="h-6 w-6 text-muted-foreground" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Elo Rating</p>
+                            <div className="flex items-baseline gap-2">
+                              <motion.span
+                                key={animatedElo}
+                                initial={{ scale: 1.2 }}
+                                animate={{ scale: 1 }}
+                                className="text-3xl font-bold font-mono"
+                              >
+                                {animatedElo ?? eloRecord.elo}
+                              </motion.span>
+                              <span className={`text-lg font-semibold ${
+                                (animatedDelta ?? eloDelta) > 0
+                                  ? "text-emerald-500"
+                                  : (animatedDelta ?? eloDelta) < 0
+                                  ? "text-red-500"
+                                  : "text-muted-foreground"
+                              }`}>
+                                {(animatedDelta ?? eloDelta) >= 0 ? "+" : ""}{animatedDelta ?? eloDelta}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm text-muted-foreground">Current Rank</p>
+                          <p className={`text-2xl font-bold ${getRankColor(getRankLabel(eloRecord.elo, eloRecord.matchesPlayed))}`}>
+                            {getRankLabel(eloRecord.elo, eloRecord.matchesPlayed)}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               ) : (
-                <div className="rounded-lg border border-border/50 bg-muted/30 p-4 text-sm text-muted-foreground">
-                  Unranked match — no Elo changes.
-                </div>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  className="text-center py-4 rounded-lg bg-muted/30 text-muted-foreground"
+                >
+                  <Sparkles className="h-5 w-5 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">Unranked match — no Elo changes</p>
+                </motion.div>
               )}
 
-              <div className="grid gap-6 md:grid-cols-2">
-                <div className="rounded-lg border border-border/50 bg-card/60 p-4">
-                  <p className="text-sm font-medium">{player?.name ?? "You"} WPM</p>
-                  {playerHistory.length > 1 ? (
-                    <ResultsChart data={playerHistory} duration={matchState.duration} />
-                  ) : (
-                    <p className="text-sm text-muted-foreground mt-2">No chart data.</p>
-                  )}
-                </div>
-                <div className="rounded-lg border border-border/50 bg-card/60 p-4">
-                  <p className="text-sm font-medium">
-                    {opponent?.name ?? "Opponent"} WPM
-                  </p>
-                  {opponentHistory.length > 1 ? (
-                    <ResultsChart data={opponentHistory} duration={matchState.duration} />
-                  ) : (
-                    <p className="text-sm text-muted-foreground mt-2">No chart data.</p>
-                  )}
-                </div>
-              </div>
+              {/* WPM Charts */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="grid gap-4 md:grid-cols-2"
+              >
+                <Card className="border-none bg-muted/40">
+                  <CardContent className="p-5">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="h-3 w-3 rounded-full bg-primary" />
+                      <p className="text-sm font-medium">{player?.name ?? "You"}</p>
+                    </div>
+                    {playerHistory.length > 1 ? (
+                      <ResultsChart data={playerHistory} duration={matchState.duration} />
+                    ) : (
+                      <div className="h-64 flex items-center justify-center text-muted-foreground">
+                        <p className="text-sm">No chart data available</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+                <Card className="border-none bg-muted/40">
+                  <CardContent className="p-5">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="h-3 w-3 rounded-full bg-sky-500" />
+                      <p className="text-sm font-medium">{opponent?.name ?? "Opponent"}</p>
+                    </div>
+                    {opponentHistory.length > 1 ? (
+                      <ResultsChart data={opponentHistory} duration={matchState.duration} />
+                    ) : (
+                      <div className="h-64 flex items-center justify-center text-muted-foreground">
+                        <p className="text-sm">No chart data available</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
 
-              <div className="flex justify-end">
-                <Button onClick={resetMatch}>Queue Another Match</Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+              {/* Play Again Button */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="flex justify-center pt-4"
+              >
+                <Button
+                  onClick={resetMatch}
+                  size="lg"
+                  className="gap-3 px-8 py-6 text-lg font-semibold"
+                >
+                  <Swords className="h-5 w-5" />
+                  Play Again
+                  <ChevronRight className="h-5 w-5" />
+                </Button>
+              </motion.div>
+            </div>
+          )}
       </div>
     </div>
   );
@@ -886,12 +1509,22 @@ const InviteLinkDetails = ({ link, expiresAt }: { link: string; expiresAt: numbe
   }, [expiresAt]);
 
   return (
-    <div className="mt-2 space-y-1">
-      <p className="text-xs text-muted-foreground break-all">{link}</p>
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: "auto" }}
+      className="mt-3 space-y-2"
+    >
+      <div className="flex items-center gap-2 p-2 rounded-md bg-background/50 border border-border/50">
+        <Link2 className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+        <p className="text-xs text-muted-foreground break-all font-mono truncate">{link}</p>
+      </div>
       {minutesLeft !== null && (
-        <p className="text-[11px] text-muted-foreground">Expires in {minutesLeft}m</p>
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Clock className="h-3 w-3" />
+          <span>Expires in {minutesLeft} minute{minutesLeft !== 1 ? "s" : ""}</span>
+        </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

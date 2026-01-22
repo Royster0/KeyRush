@@ -2,12 +2,13 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { Timer, Zap, Target, Users } from "lucide-react";
 import Character from "@/components/typing_test/Character";
 import { useCalculateTypingStats } from "@/hooks/useCalculateTypingStats";
 import { useTextMeasurement } from "@/hooks/useTextMeasurement";
 import { useSettings } from "@/hooks/useSettings";
-import GameStats from "@/components/typing_test/GameStats";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import GameStats from "@/components/typing_test/GameStats";
 import { cn } from "@/lib/utils";
 import { MatchPhase } from "@/types/multiplayer.types";
 
