@@ -292,6 +292,8 @@ export const TITLE_GRADIENTS: Record<string, Theme> = {
 
 export const STORAGE_KEY_TIME_SELECTION = "typing-test-duration";
 export const STORAGE_KEY_CARET_SPEED = "caret-speed";
+export const STORAGE_KEY_SINGLEPLAYER_WIDTH = "singleplayer-test-width";
+export const STORAGE_KEY_MULTIPLAYER_WIDTH = "multiplayer-test-width";
 
 export const CARET_SPEEDS = {
   FAST: "fast",
@@ -300,4 +302,10 @@ export const CARET_SPEEDS = {
 } as const;
 
 export type CaretSpeed = (typeof CARET_SPEEDS)[keyof typeof CARET_SPEEDS];
+
+// Width options in viewport width percentage
+export const TEST_WIDTH_OPTIONS = [60, 70, 80, 85, 90, 95] as const;
+export type TestWidth = (typeof TEST_WIDTH_OPTIONS)[number];
+export const DEFAULT_SINGLEPLAYER_WIDTH: TestWidth = 85;
+export const DEFAULT_MULTIPLAYER_WIDTH: TestWidth = 80;
 

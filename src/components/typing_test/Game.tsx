@@ -50,7 +50,7 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
   const [showTimer, setShowTimer] = useState(true);
   const [showWpm, setShowWpm] = useState(true);
   const [wpmHistory, setWpmHistory] = useState<{ time: number; wpm: number }[]>([]);
-  const { caretSpeed } = useSettings();
+  const { caretSpeed, singleplayerWidth } = useSettings();
 
   const textRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -397,7 +397,7 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
 
   return (
     <div className="w-full flex items-center justify-center">
-      <Card className="w-full max-w-[85vw] shadow-none border-none">
+      <Card className="w-full shadow-none border-none" style={{ maxWidth: `${singleplayerWidth}vw` }}>
         <CardHeader>
           <CardTitle className="flex justify-between items-center px-6 py">
             <div className="flex items-center justify-center w-full">

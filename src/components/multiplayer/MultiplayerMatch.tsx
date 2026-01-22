@@ -48,7 +48,7 @@ const MultiplayerMatch = ({
 
   const textRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { caretSpeed } = useSettings();
+  const { caretSpeed, multiplayerWidth } = useSettings();
 
   const measureText = useTextMeasurement(containerRef);
   const calculatedStats = useCalculateTypingStats(
@@ -293,7 +293,7 @@ const MultiplayerMatch = ({
 
   return (
     <div className="w-full flex flex-col items-center gap-6">
-      <Card className="w-full shadow-none border-none">
+      <Card className="w-full shadow-none border-none mx-auto" style={{ maxWidth: `${multiplayerWidth}vw` }}>
         <CardHeader>
           <CardTitle className="flex flex-wrap items-center justify-between px-6 py">
             <p className="text-sm text-muted-foreground">{statusLabel}</p>

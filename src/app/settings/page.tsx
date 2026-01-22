@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { ThemeManager } from "@/components/settings/ThemeManager";
 import { CaretSettings } from "@/components/settings/CaretSettings";
+import { WidthSettings } from "@/components/settings/WidthSettings";
 
 
 export const metadata: Metadata = {
@@ -20,6 +21,7 @@ export default function SettingsPage() {
                 </div>
                 <div className="my-6 border-t" />
                 <CaretSettings />
+                <WidthSettings />
                 <ThemeManager />
             </div>
         </div>

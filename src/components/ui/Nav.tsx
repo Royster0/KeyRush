@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { createClient } from "@/utils/supabase/client";
 import { UserWithProfile } from "@/types/auth.types";
 import {
+  Home,
   Info,
   LogIn,
   LogOut,
@@ -102,6 +103,11 @@ export default function Nav() {
   const isActive = (path: string) => pathname === path;
 
   const navItems = [
+    {
+      name: "Home",
+      href: "/",
+      icon: Home,
+    },
     {
       name: "Multiplayer",
       href: "/multiplayer",

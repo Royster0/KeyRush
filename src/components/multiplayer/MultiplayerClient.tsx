@@ -588,7 +588,22 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
 
   return (
     <div className="w-full flex flex-col items-center gap-6 pt-10 pb-16 px-4">
-      <div className="w-full max-w-5xl space-y-6">
+      {/* Active Match Screen - Full width, outside max-w container */}
+      {currentScreen === "match" && matchState && (
+        <div className="w-full">
+          <MultiplayerMatch
+            text={matchState.text}
+            duration={matchState.duration}
+            phase={matchState.phase as MatchPhase}
+            startAt={matchState.startAt}
+            opponentProgress={opponent?.progress ?? 0}
+            onProgress={handleProgress}
+            onFinish={handleFinish}
+          />
+        </div>
+      )}
+
+      <div className={`w-full max-w-5xl space-y-6 ${currentScreen === "match" ? "hidden" : ""}`}>
           {/* Queue Selection Screen */}
           {currentScreen === "queue" && (
             <div className="space-y-6">
@@ -1097,20 +1112,6 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
           )}
 
           {/* Active Match Screen */}
-          {currentScreen === "match" && matchState && (
-            <div>
-              <MultiplayerMatch
-                text={matchState.text}
-                duration={matchState.duration}
-                phase={matchState.phase as MatchPhase}
-                startAt={matchState.startAt}
-                opponentProgress={opponent?.progress ?? 0}
-                onProgress={handleProgress}
-                onFinish={handleFinish}
-              />
-            </div>
-          )}
-
           {/* Results Screen */}
           {currentScreen === "results" && matchState && (
             <div className="space-y-6">
