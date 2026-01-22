@@ -1,12 +1,14 @@
 import { motion } from "motion/react";
 import { memo } from "react";
 import { CARET_SPEEDS, CaretSpeed } from "@/lib/constants";
+import { cn } from "@/lib/utils";
 
 type CaretProps = {
   speed?: CaretSpeed;
+  className?: string;
 };
 
-const Caret = memo(function Caret({ speed = CARET_SPEEDS.MEDIUM }: CaretProps) {
+const Caret = memo(function Caret({ speed = CARET_SPEEDS.MEDIUM, className }: CaretProps) {
   const getTransition = () => {
     switch (speed) {
       case CARET_SPEEDS.FAST:
@@ -24,7 +26,7 @@ const Caret = memo(function Caret({ speed = CARET_SPEEDS.MEDIUM }: CaretProps) {
       initial={{ opacity: 1 }}
       animate={{ opacity: 0.6 }}
       transition={getTransition()}
-      className="absolute w-0.5 bg-accent-foreground"
+      className={cn("absolute w-0.5", className ?? "bg-accent-foreground")}
       layoutId="caret"
       style={{ height: "1.3em", left: "-2px" }}
     />

@@ -12,6 +12,7 @@ import {
   Settings,
   Trophy,
   User2,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -101,6 +102,11 @@ export default function Nav() {
   const isActive = (path: string) => pathname === path;
 
   const navItems = [
+    {
+      name: "Multiplayer",
+      href: "/multiplayer",
+      icon: Users,
+    },
     {
       name: "Leaderboard",
       href: "/leaderboard",

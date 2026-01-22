@@ -10,10 +10,21 @@ type CharacterProps = {
   isCorrect: boolean;
   isMistake: boolean;
   caretSpeed?: CaretSpeed;
+  isOpponentCurrent?: boolean;
+  opponentCaretClassName?: string;
 };
 
 const Character = memo(
-  function Character({ char, isCurrent, isTyped, isCorrect, isMistake, caretSpeed }: CharacterProps) {
+  function Character({
+    char,
+    isCurrent,
+    isTyped,
+    isCorrect,
+    isMistake,
+    caretSpeed,
+    isOpponentCurrent = false,
+    opponentCaretClassName,
+  }: CharacterProps) {
     return (
       <motion.span
         className={`
@@ -26,6 +37,7 @@ const Character = memo(
         layout
       >
         {isCurrent && <Caret speed={caretSpeed} />}
+        {isOpponentCurrent && <Caret className={opponentCaretClassName} speed={caretSpeed} />}
         {char}
       </motion.span>
     );
