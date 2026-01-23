@@ -5,6 +5,7 @@ import BestScores from "@/components/profile/BestScores";
 import ActivityGraph from "@/components/profile/ActivityGraph";
 import WpmChart from "@/components/profile/WpmChart";
 import LoadingProfile from "@/components/profile/LoadingProfile";
+import RankedStatsCard from "@/components/profile/RankedStatsCard";
 import { formatDate } from "@/lib/utils";
 
 const ProfileContent = async () => {
@@ -30,6 +31,8 @@ const ProfileContent = async () => {
         testsCompleted={testResults.length}
         leaderboardRankings={leaderboardRankings}
       />
+
+      <RankedStatsCard profile={user?.profile ?? null} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <BestScores bestScores={bestScores} />
