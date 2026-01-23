@@ -23,12 +23,14 @@ import { Button } from "./button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "./sheet";
 import { AnnouncementBar } from "./AnnouncementBar";
 import { KeyRushLogo } from "./KeyRushLogo";
+import { useGameContext } from "@/contexts/GameContext";
 
 export default function Nav() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<UserWithProfile | null>(null);
+  const { isGameActive } = useGameContext();
 
   // Fetch user function
   const fetchUser = async () => {
@@ -180,7 +182,7 @@ export default function Nav() {
             {/* Site Nav - fades during typing test */}
             <div
               className="hidden md:flex items-center space-x-4 transition-opacity duration-300"
-              id="navbar-links"
+              style={{ opacity: isGameActive ? 0 : 1 }}
             >
               <NavLinks />
             </div>
@@ -189,7 +191,7 @@ export default function Nav() {
             {user ? (
               <div
                 className="hidden md:flex items-center space-x-8 transition-opacity duration-300"
-                id="navbar-user"
+                style={{ opacity: isGameActive ? 0 : 1 }}
               >
                 <Link
                   href="/profile"
@@ -202,17 +204,15 @@ export default function Nav() {
                 <LogoutButton />
               </div>
             ) : (
-              <>
-                <Link
-                  href="/auth/login"
-                  className={`hover:text-primary transition-all`}
-                  id="navbar-login"
-                  aria-label="Login"
-                  title="Login"
-                >
-                  <LogIn className="size-5" />
-                </Link>
-              </>
+              <Link
+                href="/auth/login"
+                className="hover:text-primary transition-all transition-opacity duration-300"
+                style={{ opacity: isGameActive ? 0 : 1 }}
+                aria-label="Login"
+                title="Login"
+              >
+                <LogIn className="size-5" />
+              </Link>
             )}
           </div>
 

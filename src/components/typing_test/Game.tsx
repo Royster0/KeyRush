@@ -8,9 +8,9 @@ import { generateText, cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import TimeSelect from "./TimeSelect";
 import { Timer, Gauge } from "lucide-react";
-import { useTheme } from "next-themes";
 import { useTextMeasurement } from "@/hooks/useTextMeasurement";
 import { useCalculateTypingStats } from "@/hooks/useCalculateTypingStats";
+import { useTypingInput } from "@/hooks/useTypingInput";
 import { STORAGE_KEY_TIME_SELECTION, TIME_OPTIONS } from "@/lib/constants";
 import { useSettings } from "@/hooks/useSettings";
 import GameStats from "./GameStats";
@@ -20,6 +20,7 @@ import { saveTestResult } from "@/app/actions";
 import toast from "react-hot-toast";
 import dynamic from "next/dynamic";
 import { ThemeModal } from "../ThemeModal";
+import { useGameContext } from "@/contexts/GameContext";
 
 const ResultsChart = dynamic(() => import("./ResultsChart"), { ssr: false });
 
@@ -32,16 +33,12 @@ interface GameProps {
 
 const Game = ({ initialBestScores = [], user }: GameProps) => {
   const [text, setText] = useState("");
-  const [typed, setTyped] = useState("");
   const [selectedTime, setSelectedTime] = useState(30);
   const [timeLeft, setTimeLeft] = useState(selectedTime);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [wpm, setWpm] = useState(0);
   const [rawWpm, setRawWpm] = useState(0);
   const [accuracy, setAccuracy] = useState(100);
-  const [totalKeystrokes, setTotalKeystrokes] = useState(0);
-  const [correctKeystrokes, setCorrectKeystrokes] = useState(0);
-  const [mistakes, setMistakes] = useState(new Set());
   const [lines, setLines] = useState<string[]>([]);
   const [isActive, setIsActive] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
@@ -51,9 +48,24 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
   const [showWpm, setShowWpm] = useState(true);
   const [wpmHistory, setWpmHistory] = useState<{ time: number; wpm: number }[]>([]);
   const { caretSpeed, singleplayerWidth } = useSettings();
+  const { setIsGameActive } = useGameContext();
 
   const textRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const {
+    typed,
+    mistakes,
+    totalKeystrokes,
+    correctKeystrokes,
+    handleKeyDown: handleTypingKeyDown,
+    reset: resetTyping,
+  } = useTypingInput({
+    text,
+    isActive: !isFinished, // Allow typing before active for first keystroke detection
+    isFinished,
+    onTypedChange: () => setLastTypedTime(Date.now()),
+  });
 
   const measureText = useTextMeasurement(containerRef);
   const calculatedStats = useCalculateTypingStats(
@@ -63,32 +75,20 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
   );
 
   const restartTest = useCallback(() => {
-    console.log("restartTest called");
     const newText = generateText();
     setText(newText);
-    setTyped("");
+    resetTyping();
     setStartTime(null);
     setTimeLeft(selectedTime);
     setWpm(0);
     setRawWpm(0);
     setAccuracy(100);
-    setTotalKeystrokes(0);
-    setCorrectKeystrokes(0);
-    setMistakes(new Set());
     setIsActive(false);
     setIsFinished(false);
     setLastTypedTime(null);
     setIsAfk(false);
     setWpmHistory([]);
-
-    // Restore UI elements on test restart
-    const navbarLinks = document.getElementById("navbar-links");
-    const navbarUser = document.getElementById("navbar-user");
-    const navbarLogin = document.getElementById("navbar-login");
-
-    if (navbarLinks) navbarLinks.style.opacity = "1";
-    if (navbarUser) navbarUser.style.opacity = "1";
-    if (navbarLogin) navbarLogin.style.opacity = "1";
+    setIsGameActive(false);
 
     // Refocus on test
     setTimeout(() => {
@@ -96,7 +96,7 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
         textRef.current.focus();
       }
     }, 0);
-  }, [selectedTime]);
+  }, [selectedTime, setIsGameActive, resetTyping]);
 
   // Load saved time on mount
   useEffect(() => {
@@ -115,7 +115,7 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
     restartTest();
   }, [restartTest]);
 
-  // Updates
+  // Keyboard event handler
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Restart on Tab
@@ -125,95 +125,13 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
         return;
       }
 
-      if (isFinished) {
-        return;
-      }
-
-      // Prevent page scrolling
-      if (e.key === " " || e.key === "Backspace") {
-        e.preventDefault();
-      }
-
-      setLastTypedTime(Date.now());
-
-      // Mistake handling
-      if (e.key === "Backspace") {
-        if (typed.length > 0) {
-          // Smart backspace: prevent backspacing into a correct previous word
-          const charToDelete = typed[typed.length - 1];
-          const isSpaceMistake = mistakes.has(typed.length - 1);
-
-          if (charToDelete === " " && !isSpaceMistake) {
-            const previousSpaceIndex = typed.lastIndexOf(" ", typed.length - 2);
-            const startOfWord = previousSpaceIndex + 1;
-            const endOfWord = typed.length - 1;
-
-            let hasMistakesInWord = false;
-            for (let i = startOfWord; i < endOfWord; i++) {
-              if (mistakes.has(i)) {
-                hasMistakesInWord = true;
-                break;
-              }
-            }
-
-            if (!hasMistakesInWord) {
-              return;
-            }
-          }
-          const lastIndex = typed.length - 1;
-          const wasCorrect = typed[lastIndex] === text[lastIndex];
-          setTotalKeystrokes((prev) => Math.max(0, prev - 1));
-
-          if (wasCorrect) {
-            setCorrectKeystrokes((prev) => Math.max(0, prev - 1));
-          }
-
-          setTyped((prev) => prev.slice(0, -1));
-          const newMistakes = new Set(mistakes);
-          newMistakes.delete(lastIndex);
-          setMistakes(newMistakes);
-        }
-
-        return;
-      }
-
-      if (
-        e.key === " " &&
-        typed.length > 0 &&
-        typed[typed.length - 1] !== " "
-      ) {
-        setTyped((prev) => prev + " ");
-        setTotalKeystrokes((prev) => prev + 1);
-
-        if (text[typed.length] === " ") {
-          setCorrectKeystrokes((prev) => prev + 1);
-        }
-
-        return;
-      }
-
-      if (e.key.length === 1) {
-        const currentIndex = typed.length;
-        if (currentIndex < text.length) {
-          const isCorrect = e.key === text[currentIndex];
-          setTotalKeystrokes((prev) => prev + 1);
-
-          if (isCorrect) {
-            setCorrectKeystrokes((prev) => prev + 1);
-          } else {
-            const newMistakes = new Set(mistakes);
-            newMistakes.add(currentIndex);
-            setMistakes(newMistakes);
-          }
-
-          setTyped((prev) => prev + e.key);
-        }
-      }
+      // Delegate to typing input hook
+      handleTypingKeyDown(e);
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [typed, mistakes, text, restartTest, isFinished]);
+  }, [restartTest, handleTypingKeyDown]);
 
   // Start test on first keystroke down
   useEffect(() => {
@@ -221,17 +139,9 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
       setStartTime(Date.now());
       setLastTypedTime(Date.now());
       setIsActive(true);
-
-      // Fade out UI elements for better focus during test
-      const navbarLinks = document.getElementById("navbar-links");
-      const navbarUser = document.getElementById("navbar-user");
-      const navbarLogin = document.getElementById("navbar-login");
-
-      if (navbarLinks) navbarLinks.style.opacity = "0";
-      if (navbarUser) navbarUser.style.opacity = "0";
-      if (navbarLogin) navbarLogin.style.opacity = "0";
+      setIsGameActive(true);
     }
-  }, [typed]);
+  }, [typed, setIsGameActive]);
 
   // AFK checker
   useEffect(() => {
@@ -340,17 +250,9 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
   useEffect(() => {
     if (isFinished) {
       handleSaveTest();
-
-      // Fade UI back in when test completes
-      const navbarLinks = document.getElementById("navbar-links");
-      const navbarUser = document.getElementById("navbar-user");
-      const navbarLogin = document.getElementById("navbar-login");
-
-      if (navbarLinks) navbarLinks.style.opacity = "1";
-      if (navbarUser) navbarUser.style.opacity = "1";
-      if (navbarLogin) navbarLogin.style.opacity = "1";
+      setIsGameActive(false);
     }
-  }, [isFinished, handleSaveTest]);
+  }, [isFinished, handleSaveTest, setIsGameActive]);
 
   const renderText = () => {
     let typedSoFar = 0;

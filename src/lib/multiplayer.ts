@@ -82,3 +82,20 @@ export function saveEloRecord(record: EloRecord) {
   }
   localStorage.setItem(ELO_STORAGE_KEY, JSON.stringify(record));
 }
+
+export type ParsedMatchId = {
+  mode: "ranked" | "unranked";
+  duration: 30 | 60;
+  expiresAt: number | null;
+};
+
+export function parseMatchId(matchId: string): ParsedMatchId | null {
+  const parts = matchId.split("-");
+  if (parts.length < 4 || parts[0] !== "match") {
+    return null;
+  }
+  const mode: "ranked" | "unranked" = parts[1] === "unranked" ? "unranked" : "ranked";
+  const duration: 30 | 60 = Number(parts[2]) === 60 ? 60 : 30;
+  const expiresAt = parts.length >= 5 ? Number(parts[3]) : null;
+  return { mode, duration, expiresAt: Number.isFinite(expiresAt) ? expiresAt : null };
+}

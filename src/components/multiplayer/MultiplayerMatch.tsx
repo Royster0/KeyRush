@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Timer, Zap, Target, Users } from "lucide-react";
 import Character from "@/components/typing_test/Character";
 import { useCalculateTypingStats } from "@/hooks/useCalculateTypingStats";
 import { useTextMeasurement } from "@/hooks/useTextMeasurement";
+import { useTypingInput } from "@/hooks/useTypingInput";
 import { useSettings } from "@/hooks/useSettings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import GameStats from "@/components/typing_test/GameStats";
@@ -31,10 +31,6 @@ const MultiplayerMatch = ({
   onProgress,
   onFinish,
 }: MultiplayerMatchProps) => {
-  const [typed, setTyped] = useState("");
-  const [mistakes, setMistakes] = useState(new Set<number>());
-  const [totalKeystrokes, setTotalKeystrokes] = useState(0);
-  const [correctKeystrokes, setCorrectKeystrokes] = useState(0);
   const [timeLeft, setTimeLeft] = useState(duration);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [wpm, setWpm] = useState(0);
@@ -50,6 +46,15 @@ const MultiplayerMatch = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const { caretSpeed, multiplayerWidth } = useSettings();
 
+  const {
+    typed,
+    mistakes,
+    totalKeystrokes,
+    correctKeystrokes,
+    handleKeyDown,
+    reset: resetTyping,
+  } = useTypingInput({ text, isActive, isFinished });
+
   const measureText = useTextMeasurement(containerRef);
   const calculatedStats = useCalculateTypingStats(
     startTime,
@@ -58,10 +63,7 @@ const MultiplayerMatch = ({
   );
 
   const resetState = useCallback(() => {
-    setTyped("");
-    setMistakes(new Set());
-    setTotalKeystrokes(0);
-    setCorrectKeystrokes(0);
+    resetTyping();
     setTimeLeft(duration);
     setStartTime(null);
     setWpm(0);
@@ -70,7 +72,7 @@ const MultiplayerMatch = ({
     setIsActive(false);
     setIsFinished(false);
     hasReportedRef.current = false;
-  }, [duration]);
+  }, [duration, resetTyping]);
 
   useEffect(() => {
     resetState();
@@ -105,90 +107,13 @@ const MultiplayerMatch = ({
     return () => clearInterval(interval);
   }, [startAt, duration, phase, isFinished]);
 
+  // Attach keyboard event listener
   useEffect(() => {
-    if (!isActive || isFinished) {
-      return;
-    }
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === " " || e.key === "Backspace") {
-        e.preventDefault();
-      }
-
-      if (e.key === "Backspace") {
-        if (typed.length > 0) {
-          const charToDelete = typed[typed.length - 1];
-          const isSpaceMistake = mistakes.has(typed.length - 1);
-
-          if (charToDelete === " " && !isSpaceMistake) {
-            const previousSpaceIndex = typed.lastIndexOf(" ", typed.length - 2);
-            const startOfWord = previousSpaceIndex + 1;
-            const endOfWord = typed.length - 1;
-
-            let hasMistakesInWord = false;
-            for (let i = startOfWord; i < endOfWord; i += 1) {
-              if (mistakes.has(i)) {
-                hasMistakesInWord = true;
-                break;
-              }
-            }
-
-            if (!hasMistakesInWord) {
-              return;
-            }
-          }
-
-          const lastIndex = typed.length - 1;
-          const wasCorrect = typed[lastIndex] === text[lastIndex];
-          setTotalKeystrokes((prev) => Math.max(0, prev - 1));
-
-          if (wasCorrect) {
-            setCorrectKeystrokes((prev) => Math.max(0, prev - 1));
-          }
-
-          setTyped((prev) => prev.slice(0, -1));
-          setMistakes((prev) => {
-            const next = new Set(prev);
-            next.delete(lastIndex);
-            return next;
-          });
-        }
-        return;
-      }
-
-      if (e.key === " " && typed.length > 0 && typed[typed.length - 1] !== " ") {
-        setTyped((prev) => prev + " ");
-        setTotalKeystrokes((prev) => prev + 1);
-        if (text[typed.length] === " ") {
-          setCorrectKeystrokes((prev) => prev + 1);
-        }
-        return;
-      }
-
-      if (e.key.length === 1) {
-        const currentIndex = typed.length;
-        if (currentIndex < text.length) {
-          const isCorrect = e.key === text[currentIndex];
-          setTotalKeystrokes((prev) => prev + 1);
-
-          if (isCorrect) {
-            setCorrectKeystrokes((prev) => prev + 1);
-          } else {
-            setMistakes((prev) => {
-              const next = new Set(prev);
-              next.add(currentIndex);
-              return next;
-            });
-          }
-
-          setTyped((prev) => prev + e.key);
-        }
-      }
-    };
+    if (!isActive || isFinished) return;
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isActive, isFinished, typed, mistakes, text]);
+  }, [isActive, isFinished, handleKeyDown]);
 
   useEffect(() => {
     if (!isActive || isFinished) {

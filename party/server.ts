@@ -1,5 +1,6 @@
 import type * as PartyKit from "partykit/server";
-import { WORD_POOL } from "../src/lib/constants";
+import { generateText } from "../src/lib/utils";
+import { parseMatchId } from "../src/lib/multiplayer";
 
 type QueuePlayer = {
   connectionId: string;
@@ -34,45 +35,6 @@ type MatchState = {
   expiresAt: number | null;
   players: Record<string, MatchPlayer>;
 };
-
-function generateText() {
-  const BUFFER_SIZE = 10;
-  const words: string[] = [];
-  const recentWords: string[] = [];
-
-  for (let i = 0; i < 400; i += 1) {
-    let newWord = WORD_POOL[Math.floor(Math.random() * WORD_POOL.length)];
-    let attempts = 0;
-
-    while (recentWords.includes(newWord) && attempts < 50) {
-      newWord = WORD_POOL[Math.floor(Math.random() * WORD_POOL.length)];
-      attempts += 1;
-    }
-
-    words.push(newWord);
-    recentWords.push(newWord);
-    if (recentWords.length > BUFFER_SIZE) {
-      recentWords.shift();
-    }
-  }
-
-  return words.join(" ");
-}
-
-function parseMatchId(matchId: string) {
-  const parts = matchId.split("-");
-  if (parts.length < 4 || parts[0] !== "match") {
-    return null;
-  }
-  const mode = parts[1] === "unranked" ? "unranked" : "ranked";
-  const duration = Number(parts[2]) === 60 ? 60 : 30;
-  const expiresAt = parts.length >= 5 ? Number(parts[3]) : null;
-  return {
-    mode,
-    duration,
-    expiresAt: Number.isFinite(expiresAt) ? expiresAt : null,
-  };
-}
 
 export default class Server implements PartyKit.Server {
   private waitingQueue: QueuePlayer[] = [];

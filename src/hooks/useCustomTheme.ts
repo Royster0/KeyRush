@@ -32,7 +32,7 @@ export type CustomTheme = {
   colors: ThemeColors;
 };
 
-const DEFAULT_THEME_COLORS: ThemeColors = {
+export const DEFAULT_THEME_COLORS: ThemeColors = {
   background: "0 0% 100%",
   foreground: "240 10% 3.9%",
   card: "0 0% 100%",
