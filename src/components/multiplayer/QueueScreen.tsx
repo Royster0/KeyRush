@@ -19,11 +19,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getRankColor } from "./multiplayer-utils";
 import { InviteLinkDetails } from "./InviteLinkDetails";
+import { UserWithProfile } from "@/types/auth.types";
 
 type QueueMode = "ranked" | "unranked";
 
 type QueueScreenProps = {
-  user: { profile?: { username?: string } } | null | undefined;
+  user: UserWithProfile | null | undefined;
   queueMode: QueueMode;
   setQueueMode: (mode: QueueMode) => void;
   duration: 30 | 60;
