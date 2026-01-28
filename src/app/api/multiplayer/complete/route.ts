@@ -1,6 +1,17 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
+type EloUpdateResult = {
+  previous_elo: number;
+  new_elo: number;
+  delta: number;
+  rank_tier: string;
+  matches_played: number;
+  k_factor: number;
+  expected_score: number;
+  margin_bonus: number;
+};
+
 export async function POST(request: Request) {
   const supabase = await createClient();
   const {
@@ -22,7 +33,9 @@ export async function POST(request: Request) {
     player2Id,
     winnerId,
     stats,
-    profileUpdate,
+    isRanked,
+    opponentId,
+    result, // 0 = loss, 0.5 = draw, 1 = win
   } = payload ?? {};
 
   if (!partyMatchId || !player1Id || !player2Id || !stats?.userId) {
@@ -33,6 +46,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  // Upsert match record
   const { data: matchRow, error: matchError } = await supabase
     .from("matches")
     .upsert(
@@ -56,6 +70,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: matchError?.message ?? "Match error" }, { status: 500 });
   }
 
+  // Upsert match results (without elo data - that's set by the RPC)
   const { error: resultError } = await supabase
     .from("match_results")
     .upsert(
@@ -67,9 +82,6 @@ export async function POST(request: Request) {
         accuracy: stats.accuracy,
         progress: stats.progress,
         left_match: stats.leftMatch ?? false,
-        rank_tier: stats.rankTier,
-        elo_before: stats.eloBefore,
-        elo_after: stats.eloAfter,
       },
       { onConflict: "match_id,user_id" }
     );
@@ -78,19 +90,29 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: resultError.message }, { status: 500 });
   }
 
-  if (profileUpdate) {
-    await supabase
-      .from("profiles")
-      .update({
-        elo: profileUpdate.elo,
-        rank_tier: profileUpdate.rank_tier,
-        matches_played: profileUpdate.matches_played,
-        wins: profileUpdate.wins,
-        losses: profileUpdate.losses,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", user.id);
+  // For ranked matches, calculate Elo server-side
+  let eloResult: EloUpdateResult | null = null;
+  if (isRanked && opponentId && result !== undefined) {
+    const { data, error: eloError } = await supabase.rpc("calculate_elo_update", {
+      p_user_id: user.id,
+      p_opponent_id: opponentId,
+      p_match_id: matchRow.id,
+      p_result: result,
+      p_player_wpm: stats.wpm,
+      p_opponent_wpm: stats.opponentWpm ?? 0,
+    });
+
+    if (eloError) {
+      console.error("Elo calculation error:", eloError);
+      // Don't fail the request, just log the error
+    } else {
+      eloResult = data as EloUpdateResult;
+    }
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({
+    ok: true,
+    matchId: matchRow.id,
+    elo: eloResult,
+  });
 }
