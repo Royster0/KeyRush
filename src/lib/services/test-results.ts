@@ -49,7 +49,6 @@ export async function saveTestResult(result: Omit<TestResults, "user_id">) {
     .single();
 
   if (error) {
-    console.error("Error saving test result:", error);
     return null;
   }
 
@@ -71,7 +70,6 @@ export async function getUserTestResults(): Promise<TestResults[]> {
     .order("created_at", { ascending: false });
     
   if (error) {
-    console.error("Error fetching test results:", error);
     return [];
   }
   
@@ -90,7 +88,6 @@ export async function getUserBestScores(): Promise<TestResults[]> {
     .rpc('get_user_best_scores_full', { target_user_id: user.id });
       
   if (error) {
-    console.error("Error fetching best scores:", error);
     return [];
   }
   

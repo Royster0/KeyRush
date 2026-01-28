@@ -13,13 +13,8 @@ export async function GET(request: Request) {
     }
     
     const data = await getAllLeaderboardDurations(timeframe);
-    
-    // Log the response size
-    console.log(`Leaderboard API returning data for timeframe: ${timeframe}, with ${data.length} duration groups`);
-    
     return NextResponse.json(data);
-  } catch (error) {
-    console.error("Error in leaderboard API:", error);
+  } catch {
     return NextResponse.json({ error: "Failed to fetch leaderboard data" }, { status: 500 });
   }
 }
