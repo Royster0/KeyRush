@@ -7,7 +7,7 @@ import { Button } from "../ui/button";
 import { generateText, cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import TimeSelect from "./TimeSelect";
-import { Timer, Gauge } from "lucide-react";
+import { Timer, Gauge, RotateCcw } from "lucide-react";
 import { useTextMeasurement } from "@/hooks/useTextMeasurement";
 import { useCalculateTypingStats } from "@/hooks/useCalculateTypingStats";
 import { useTypingInput } from "@/hooks/useTypingInput";
@@ -350,6 +350,23 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
                     )}
                   >
                     <Gauge className="size-5" />
+                  </button>
+                </div>
+
+                <div className="w-px h-4 bg-border" />
+
+                {/* Reset */}
+                <div className="flex items-center">
+                  <button
+                    onClick={restartTest}
+                    title="Reset Test"
+                    aria-label="Reset Test"
+                    className={cn(
+                      "text-sm font-medium transition-colors duration-200 flex items-center gap-2",
+                      "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <RotateCcw className="size-5" />
                   </button>
                 </div>
 
