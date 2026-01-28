@@ -8,8 +8,8 @@ import LeaderboardTable from "@/components/leaderboard/LeaderboardTable";
 import RankedLeaderboardTable from "@/components/leaderboard/RankedLeaderboardTable";
 import { TIME_OPTIONS } from "@/lib/constants";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trophy, Zap, Crown, Clock, CalendarDays, Infinity as InfinityIcon } from "lucide-react";
-import { getRankColor } from "@/components/multiplayer/multiplayer-utils";
+import { Trophy, Zap, Clock, CalendarDays, Infinity as InfinityIcon } from "lucide-react";
+import { RankIcon } from "@/components/RankIcon";
 
 interface LeaderboardClientProps {
   userId?: string;
@@ -106,7 +106,11 @@ export default function LeaderboardClient({ userId }: LeaderboardClientProps) {
                   <div className="relative flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <div className="p-3 rounded-xl bg-primary/10">
-                        <Crown className={`h-6 w-6 ${getRankColor(userRankInfo.player.rank_tier)}`} />
+                        <RankIcon
+                          rank={userRankInfo.player.rank_tier}
+                          size={32}
+                          title={userRankInfo.player.rank_tier}
+                        />
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Your Position</p>

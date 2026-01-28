@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="gS" x1="128" y1="64" x2="384" y2="464" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F4F6F8"/>
+      <stop offset="1" stop-color="#8E98A3"/>
+    </linearGradient>
+    <linearGradient id="gS2" x1="176" y1="120" x2="336" y2="420" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D9DEE3"/>
+      <stop offset="1" stop-color="#6F7B86"/>
+    </linearGradient>
+  </defs>
+
+  <path d="M256 56 L396 124 L396 284 Q396 356 256 460 Q116 356 116 284 L116 124 Z" fill="url(#gS)"/>
+  <path d="M256 92 L364 146 L364 280 Q364 336 256 420 Q148 336 148 280 L148 146 Z" fill="url(#gS2)"/>
+
+  <!-- Center gem -->
+  <circle cx="256" cy="248" r="74" fill="#0B1220" opacity="0.14"/>
+  <circle cx="256" cy="244" r="74" fill="#FFFFFF" opacity="0.10"/>
+  <path d="M256 188 L304 244 L256 300 L208 244 Z" fill="#F7FBFF" opacity="0.85"/>
+</svg>

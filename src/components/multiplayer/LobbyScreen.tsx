@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { getRankColor } from "./multiplayer-utils";
 import { InviteLinkDetails } from "./InviteLinkDetails";
 import { MatchState } from "@/types/multiplayer.types";
+import { RankIcon } from "@/components/RankIcon";
 
 type PlayerInfo = {
   id: string;
@@ -70,9 +71,16 @@ export function LobbyScreen({
               </div>
               <p className="font-bold text-lg">{player?.name ?? "You"}</p>
               {matchState.mode === "ranked" && (
-                <p className={`text-sm ${getRankColor(player?.rank ?? rankLabel)}`}>
-                  {player?.rank ?? rankLabel}
-                </p>
+                <div className="flex items-center justify-center gap-1 text-sm">
+                  <RankIcon
+                    rank={player?.rank ?? rankLabel}
+                    size={16}
+                    title={player?.rank ?? rankLabel}
+                  />
+                  <span className={getRankColor(player?.rank ?? rankLabel)}>
+                    {player?.rank ?? rankLabel}
+                  </span>
+                </div>
               )}
               <div className="mt-4">
                 {player?.ready ? (
@@ -118,9 +126,16 @@ export function LobbyScreen({
                   </div>
                   <p className="font-bold text-lg">{opponent.name}</p>
                   {matchState.mode === "ranked" && (
-                    <p className={`text-sm ${getRankColor(opponent.rank ?? "Placement")}`}>
-                      {opponent.rank ?? "Placement"}
-                    </p>
+                    <div className="flex items-center justify-center gap-1 text-sm">
+                      <RankIcon
+                        rank={opponent.rank ?? "Placement"}
+                        size={16}
+                        title={opponent.rank ?? "Placement"}
+                      />
+                      <span className={getRankColor(opponent.rank ?? "Placement")}>
+                        {opponent.rank ?? "Placement"}
+                      </span>
+                    </div>
                   )}
                   <div className="mt-4">
                     {opponent.ready ? (

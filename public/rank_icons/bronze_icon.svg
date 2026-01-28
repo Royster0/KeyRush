@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="gB" x1="128" y1="64" x2="384" y2="464" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D79A62"/>
+      <stop offset="1" stop-color="#8A4B22"/>
+    </linearGradient>
+    <linearGradient id="gB2" x1="176" y1="120" x2="336" y2="420" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#B87333"/>
+      <stop offset="1" stop-color="#6E3718"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Outer badge -->
+  <path d="M256 56 L396 124 L396 284 Q396 356 256 460 Q116 356 116 284 L116 124 Z" fill="url(#gB)"/>
+  <!-- Inner badge -->
+  <path d="M256 92 L364 146 L364 280 Q364 336 256 420 Q148 336 148 280 L148 146 Z" fill="url(#gB2)" opacity="0.95"/>
+
+  <!-- Center medallion -->
+  <circle cx="256" cy="252" r="72" fill="#2A1A12" opacity="0.22"/>
+  <circle cx="256" cy="248" r="72" fill="#F2D4B8" opacity="0.12"/>
+
+  <!-- Simple star -->
+  <path d="M256 196 L271 233 L312 236 L281 262 L291 302 L256 281 L221 302 L231 262 L200 236 L241 233 Z"
+        fill="#F6D7B7" opacity="0.85"/>
+</svg>
