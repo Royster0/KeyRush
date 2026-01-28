@@ -57,28 +57,26 @@ export function useTypingInput({
     if (e.key === "Backspace") {
       if (typed.length > 0) {
         const charToDelete = typed[typed.length - 1];
-        const isSpaceMistake = mistakes.has(typed.length - 1);
+        const lastIndex = typed.length - 1;
+        const isSpaceCorrect = text[lastIndex] === " ";
 
         // Smart backspace: prevent backspacing into a correct previous word
-        if (charToDelete === " " && !isSpaceMistake) {
-          const previousSpaceIndex = typed.lastIndexOf(" ", typed.length - 2);
+        if (charToDelete === " " && isSpaceCorrect) {
+          const previousSpaceIndex = text.lastIndexOf(" ", lastIndex - 1);
           const startOfWord = previousSpaceIndex + 1;
-          const endOfWord = typed.length - 1;
+          const endOfWord = lastIndex;
 
-          let hasMistakesInWord = false;
+          let wordIsCorrect = true;
           for (let i = startOfWord; i < endOfWord; i++) {
-            if (mistakes.has(i)) {
-              hasMistakesInWord = true;
+            if (typed[i] !== text[i]) {
+              wordIsCorrect = false;
               break;
             }
           }
 
-          if (!hasMistakesInWord) {
-            return;
-          }
+          if (wordIsCorrect) return;
         }
 
-        const lastIndex = typed.length - 1;
         const wasCorrect = typed[lastIndex] === text[lastIndex];
         setTotalKeystrokes((prev) => Math.max(0, prev - 1));
 
