@@ -244,15 +244,42 @@ const MultiplayerMatch = ({
         <CardContent>
           <div
             ref={containerRef}
-            className="p-6 rounded-lg mb-4 font-mono leading-relaxed overflow-hidden"
+            className="relative p-6 rounded-lg mb-4 font-mono leading-relaxed overflow-hidden"
           >
-            <div
+            <AnimatePresence>
+              {countdown !== null && countdown > 0 && (
+                <motion.div
+                  key="countdown-overlay"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-background/70 backdrop-blur-sm"
+                >
+                  <motion.span
+                    key={countdown}
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 1.05, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="text-6xl font-bold text-primary/80"
+                  >
+                    {countdown}
+                  </motion.span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <motion.div
               ref={textRef}
               tabIndex={0}
               className={cn(
                 "focus:outline-none transition-all duration-300",
                 isFinished ? "h-auto" : "h-[9em]"
               )}
+              initial={false}
+              animate={{ opacity: countdown !== null && countdown > 0 ? 0.25 : 1 }}
+              transition={{ duration: 0.25 }}
             >
               <AnimatePresence mode="wait">
                 <motion.div
@@ -264,7 +291,7 @@ const MultiplayerMatch = ({
                   {renderText()}
                 </motion.div>
               </AnimatePresence>
-            </div>
+            </motion.div>
           </div>
         </CardContent>
       </Card>
