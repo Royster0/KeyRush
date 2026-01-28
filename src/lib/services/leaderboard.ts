@@ -1,5 +1,12 @@
+import { z } from "zod";
 import { createClient } from "@/utils/supabase/server";
 import { TIME_OPTIONS } from "@/lib/constants";
+import {
+  UserRankingRowSchema,
+  LeaderboardEntrySchema,
+  RankedPlayerRowSchema,
+  MultiplayerResultRowSchema,
+} from "@/lib/schemas/leaderboard";
 
 export interface LeaderboardRanking {
   duration: number;
@@ -31,14 +38,19 @@ export async function getUserLeaderboardRankings(): Promise<LeaderboardRanking[]
     target_user_id: user.id
   });
 
-  if (error) {
+  if (error || !data) {
     return [];
   }
 
-  return (data as any[]).map((row) => ({
+  const parsed = z.array(UserRankingRowSchema).safeParse(data);
+  if (!parsed.success) {
+    return [];
+  }
+
+  return parsed.data.map((row) => ({
     duration: row.duration,
     rank: row.rank ? Number(row.rank) : "N/A",
-    totalUsers: Number(row.total_users)
+    totalUsers: Number(row.total_users),
   }));
 }
 
@@ -67,14 +79,16 @@ export async function getLeaderboardData(
     min_date: minDate
   });
 
-  if (singleplayerError) {
-    // Singleplayer leaderboard fetch failed, continue with empty array
+  let singleplayerEntries: LeaderboardEntry[] = [];
+  if (!singleplayerError && singleplayerData) {
+    const parsed = z.array(LeaderboardEntrySchema).safeParse(singleplayerData);
+    if (parsed.success) {
+      singleplayerEntries = parsed.data.map((entry) => ({
+        ...entry,
+        source: "singleplayer" as const,
+      }));
+    }
   }
-
-  const singleplayerEntries: LeaderboardEntry[] = ((singleplayerData as LeaderboardEntry[]) || []).map(entry => ({
-    ...entry,
-    source: "singleplayer" as const,
-  }));
 
   // Fetch multiplayer scores (only for 30s and 60s durations)
   let multiplayerEntries: LeaderboardEntry[] = [];
@@ -107,15 +121,18 @@ export async function getLeaderboardData(
     const { data: multiplayerData, error: multiplayerError } = await multiplayerQuery;
 
     if (!multiplayerError && multiplayerData) {
-      multiplayerEntries = multiplayerData.map((row: any) => ({
-        username: row.profiles?.username || "Anonymous",
-        wpm: row.wpm,
-        accuracy: row.accuracy,
-        user_id: row.user_id,
-        test_id: `match-${row.match_id}`,
-        created_at: row.matches?.ended_at || new Date().toISOString(),
-        source: "multiplayer" as const,
-      }));
+      const parsed = z.array(MultiplayerResultRowSchema).safeParse(multiplayerData);
+      if (parsed.success) {
+        multiplayerEntries = parsed.data.map((row) => ({
+          username: row.profiles.username || "Anonymous",
+          wpm: row.wpm,
+          accuracy: row.accuracy,
+          user_id: row.user_id,
+          test_id: `match-${row.match_id}`,
+          created_at: row.matches.ended_at || new Date().toISOString(),
+          source: "multiplayer" as const,
+        }));
+      }
     }
   }
 
@@ -171,11 +188,16 @@ export async function getRankedLeaderboard(): Promise<RankedPlayer[]> {
     .order("elo", { ascending: false })
     .limit(100);
 
-  if (error) {
+  if (error || !data) {
     return [];
   }
 
-  return (data || []).map((profile) => ({
+  const parsed = z.array(RankedPlayerRowSchema).safeParse(data);
+  if (!parsed.success) {
+    return [];
+  }
+
+  return parsed.data.map((profile) => ({
     user_id: profile.id,
     username: profile.username || "Anonymous",
     elo: profile.elo || 1000,

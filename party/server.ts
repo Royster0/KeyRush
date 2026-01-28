@@ -1,6 +1,7 @@
 import type * as PartyKit from "partykit/server";
 import { generateText } from "../src/lib/utils";
 import { parseMatchId } from "../src/lib/multiplayer";
+import type { ClientMessage, MultiplayerPlayer, MatchPhase } from "../src/types/multiplayer.types";
 
 type QueuePlayer = {
   connectionId: string;
@@ -11,30 +12,29 @@ type QueuePlayer = {
   rank: string;
 };
 
-type MatchPlayer = {
-  id: string;
-  name: string;
-  ready: boolean;
-  progress: number;
-  wpm: number;
-  rawWpm: number;
-  accuracy: number;
-  finished: boolean;
-  left: boolean;
-  elo: number;
-  rank: string;
-};
+type MatchPlayer = MultiplayerPlayer;
 
 type MatchState = {
   matchId: string;
   mode: "ranked" | "unranked";
   duration: number;
   text: string;
-  phase: "lobby" | "countdown" | "active" | "finished";
+  phase: MatchPhase;
   startAt: number | null;
   expiresAt: number | null;
   players: Record<string, MatchPlayer>;
 };
+
+function isClientMessage(data: unknown): data is ClientMessage {
+  if (typeof data !== "object" || data === null) {
+    return false;
+  }
+  const msg = data as { type?: unknown };
+  return (
+    typeof msg.type === "string" &&
+    ["queue-join", "match-join", "ready", "progress", "finish", "leave"].includes(msg.type)
+  );
+}
 
 export default class Server implements PartyKit.Server {
   private waitingQueue: QueuePlayer[] = [];
@@ -106,10 +106,14 @@ export default class Server implements PartyKit.Server {
   }
 
   onMessage(message: string, sender: PartyKit.Connection) {
-    let payload: any;
+    let payload: unknown;
     try {
       payload = JSON.parse(message);
     } catch {
+      return;
+    }
+
+    if (!isClientMessage(payload)) {
       return;
     }
 
@@ -155,8 +159,8 @@ export default class Server implements PartyKit.Server {
     return this.party.id.startsWith("queue-");
   }
 
-  private handleQueueMessage(payload: any, sender: PartyKit.Connection) {
-    if (payload?.type === "queue-join") {
+  private handleQueueMessage(payload: ClientMessage, sender: PartyKit.Connection) {
+    if (payload.type === "queue-join") {
       const existing = this.waitingQueue.find(
         (entry) => entry.connectionId === sender.id
       );
@@ -194,12 +198,12 @@ export default class Server implements PartyKit.Server {
     }
   }
 
-  private handleMatchMessage(payload: any, sender: PartyKit.Connection) {
+  private handleMatchMessage(payload: ClientMessage, sender: PartyKit.Connection) {
     if (!this.matchState) {
       return;
     }
 
-    if (payload?.type === "match-join") {
+    if (payload.type === "match-join") {
       if (this.matchState.expiresAt && Date.now() > this.matchState.expiresAt) {
         sender.send(
           JSON.stringify({ type: "match-error", message: "Invite link expired." })
@@ -227,7 +231,7 @@ export default class Server implements PartyKit.Server {
       return;
     }
 
-    if (payload?.type === "ready") {
+    if (payload.type === "ready") {
       const player = this.matchState.players[payload.userId];
       if (!player) {
         return;
@@ -238,7 +242,7 @@ export default class Server implements PartyKit.Server {
       return;
     }
 
-    if (payload?.type === "progress") {
+    if (payload.type === "progress") {
       const player = this.matchState.players[payload.userId];
       if (!player) {
         return;
@@ -249,7 +253,7 @@ export default class Server implements PartyKit.Server {
       return;
     }
 
-    if (payload?.type === "finish") {
+    if (payload.type === "finish") {
       const player = this.matchState.players[payload.userId];
       if (!player) {
         return;
@@ -264,7 +268,7 @@ export default class Server implements PartyKit.Server {
       return;
     }
 
-    if (payload?.type === "leave") {
+    if (payload.type === "leave") {
       const player = this.matchState.players[payload.userId];
       if (!player) {
         return;

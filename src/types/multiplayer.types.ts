@@ -41,3 +41,12 @@ export type MatchErrorMessage = {
 };
 
 export type ServerMessage = QueueMatchFound | MatchStateMessage | MatchErrorMessage;
+
+// Client-to-server message types
+export type ClientMessage =
+  | { type: "queue-join"; userId: string; name: string; duration: number; elo?: number; rank?: string }
+  | { type: "match-join"; userId?: string; name?: string; elo?: number; rank?: string }
+  | { type: "ready"; userId: string; ready: boolean }
+  | { type: "progress"; userId: string; progress?: number; wpm?: number }
+  | { type: "finish"; userId: string; progress?: number; wpm?: number; rawWpm?: number; accuracy?: number }
+  | { type: "leave"; userId: string };

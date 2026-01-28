@@ -49,47 +49,25 @@ export async function signup(prevState: FormState, formData: FormData) {
     };
   }
 
-  // Create user
+  // Create user with pending username stored in metadata
   const { data: authData, error: signUpError } = await supabase.auth.signUp({
     email: data.email,
     password: data.password,
+    options: {
+      data: { pending_username: data.username },
+    },
   });
 
-  if (signUpError) {
+  if (signUpError || !authData.user) {
     return {
       error: "Error signing up user",
     };
   }
 
-  if (!authData.user) {
-    return {
-      error: "User creation failed unexpectedly",
-    };
-  }
-
-  // Wait for auth to propagate before creating profile
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  try {
-    const { error: profileError } = await supabase.from("profiles").insert({
-      id: authData.user.id,
-      username: data.username,
-    });
-
-    if (profileError) {
-      return {
-        error: "Error creating user profile.",
-      };
-    }
-  } catch {
-    return {
-      error:
-        "Account created but profile setup failed. Please contact support.",
-    };
-  }
-
+  // Redirect to create-username page (same flow as OAuth)
+  // Profile creation happens there after auth has propagated
   revalidatePath("/", "layout");
-  redirect("/");
+  redirect("/auth/create-username");
 }
 
 export async function signInWithGoogle() {

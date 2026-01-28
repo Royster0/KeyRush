@@ -8,7 +8,22 @@ type FormState = { error?: string } | null;
 
 export async function createUsername(prevState: FormState, formData: FormData) {
   const supabase = await createClient();
-  const username = formData.get("username") as string;
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      error: "You must be logged in to create a username",
+    };
+  }
+
+  // Get username from form OR from signup metadata (for email signup flow)
+  let username = formData.get("username") as string | null;
+  if (!username) {
+    username = user.user_metadata?.pending_username as string | null;
+  }
 
   if (!username || username.length < 3) {
     return {
@@ -26,16 +41,6 @@ export async function createUsername(prevState: FormState, formData: FormData) {
   if (existingUser) {
     return {
       error: "Username is already taken",
-    };
-  }
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return {
-      error: "You must be logged in to create a username",
     };
   }
 

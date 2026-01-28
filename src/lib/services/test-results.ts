@@ -1,5 +1,7 @@
+import { z } from "zod";
 import { createClient } from "@/utils/supabase/server";
 import { TestResults } from "@/types/game.types";
+import { DbTestResultSchema } from "@/lib/schemas/test-results";
 
 export interface DbTestResult {
   id: string;
@@ -48,11 +50,16 @@ export async function saveTestResult(result: Omit<TestResults, "user_id">) {
     .select()
     .single();
 
-  if (error) {
+  if (error || !data) {
     return null;
   }
 
-  return mapDbToModel(data as DbTestResult);
+  const parsed = DbTestResultSchema.safeParse(data);
+  if (!parsed.success) {
+    return null;
+  }
+
+  return mapDbToModel(parsed.data);
 }
 
 export async function getUserTestResults(): Promise<TestResults[]> {
@@ -69,11 +76,16 @@ export async function getUserTestResults(): Promise<TestResults[]> {
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
     
-  if (error) {
+  if (error || !testResults) {
     return [];
   }
-  
-  return (testResults as DbTestResult[]).map(mapDbToModel);
+
+  const parsed = z.array(DbTestResultSchema).safeParse(testResults);
+  if (!parsed.success) {
+    return [];
+  }
+
+  return parsed.data.map(mapDbToModel);
 }
 
 export async function getUserBestScores(): Promise<TestResults[]> {
@@ -86,10 +98,15 @@ export async function getUserBestScores(): Promise<TestResults[]> {
   
   const { data, error } = await supabase
     .rpc('get_user_best_scores_full', { target_user_id: user.id });
-      
-  if (error) {
+
+  if (error || !data) {
     return [];
   }
-  
-  return ((data as DbTestResult[]) || []).map(mapDbToModel);
+
+  const parsed = z.array(DbTestResultSchema).safeParse(data);
+  if (!parsed.success) {
+    return [];
+  }
+
+  return parsed.data.map(mapDbToModel);
 }
