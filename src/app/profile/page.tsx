@@ -19,12 +19,7 @@ const ProfileContent = async () => {
     : "N/A";
 
   return (
-    <div className="container mx-auto max-w-6xl p-6 space-y-8">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-4xl font-bold tracking-tight">Profile</h1>
-        <p className="text-muted-foreground">Manage your account and view your stats.</p>
-      </div>
-
+    <div className="container mx-auto max-w-6xl px-4 py-8 space-y-6">
       <ProfileOverview
         username={user?.profile?.username || "User"}
         joinDate={joinDate}
@@ -34,7 +29,7 @@ const ProfileContent = async () => {
 
       <RankedStatsCard profile={user?.profile ?? null} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <BestScores bestScores={bestScores} />
         <ActivityGraph testResults={testResults} />
       </div>

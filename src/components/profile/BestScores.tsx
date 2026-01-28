@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatDuration } from "@/lib/utils";
+import { Flame, Clock } from "lucide-react";
+import { motion } from "motion/react";
 
 interface BestScoreProps {
   bestScores: Array<{
@@ -18,62 +18,91 @@ interface BestScoreProps {
 }
 
 const BestScores: React.FC<BestScoreProps> = ({ bestScores }) => {
-  // Sort scores by duration for consistent display
   const sortedScores = [...bestScores].sort((a, b) => a.duration - b.duration);
 
   return (
-    <Card className="h-full border-none bg-muted/40 shadow-none">
-      <CardHeader>
-        <CardTitle className="text-xl font-bold">Your Best Scores</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {sortedScores.length === 0 ? (
-          <p className="text-center text-muted-foreground py-6">
-            No test results yet. Complete some typing tests to see your best scores!
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: 0.4 }}
+      className="h-full rounded-2xl bg-muted/30 border border-border/30 p-6"
+    >
+      <div className="flex items-center gap-2 mb-5">
+        <div className="p-2 rounded-xl bg-primary/10">
+          <Flame className="h-5 w-5 text-primary" />
+        </div>
+        <h3 className="text-lg font-semibold">Best Scores</h3>
+      </div>
+
+      {sortedScores.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+            <Clock className="h-6 w-6 text-muted-foreground" />
+          </div>
+          <p className="text-muted-foreground">No test results yet</p>
+          <p className="text-sm text-muted-foreground/60 mt-1">
+            Complete some typing tests to see your best scores
           </p>
-        ) : (
-          <div className="flex flex-col gap-4">
-            {sortedScores.map((score) => {
-              const rawWpm = score.rawWpm || score.raw_wpm || 0;
-              return (
-                <div
-                  key={score.duration}
-                  className="group flex items-center justify-between py-2 border-b border-border/50 last:border-0"
-                >
-                  <div className="flex items-baseline gap-4">
-                    <h3 className="text-2xl font-bold text-primary w-16">
-                      {score.duration}s
-                    </h3>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-bold group-hover:hidden">{Math.round(score.wpm)}</span>
-                      <span className="text-3xl font-bold hidden group-hover:inline">{score.wpm.toFixed(2)}</span>
-                      <span className="text-sm text-muted-foreground font-medium">WPM</span>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {sortedScores.map((score, index) => {
+            const rawWpm = score.rawWpm || score.raw_wpm || 0;
+            return (
+              <motion.div
+                key={score.duration}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: 0.5 + index * 0.05 }}
+                className="group relative rounded-xl bg-background/40 border border-border/50 p-4 hover:border-primary/30 transition-all duration-200"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    {/* Duration Badge */}
+                    <div className="w-14 h-14 rounded-xl bg-primary/10 flex flex-col items-center justify-center">
+                      <span className="text-lg font-bold text-primary">{score.duration}</span>
+                      <span className="text-[10px] text-primary/70 -mt-1">sec</span>
+                    </div>
+
+                    {/* WPM */}
+                    <div>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-2xl font-bold group-hover:text-primary transition-colors">
+                          {Math.round(score.wpm)}
+                        </span>
+                        <span className="text-sm text-muted-foreground">wpm</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Raw: {Math.round(rawWpm)} wpm
+                      </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-6 text-right">
-                    <div className="hidden sm:block">
-                      <p className="text-sm font-medium text-muted-foreground">Accuracy</p>
+                  {/* Stats */}
+                  <div className="flex items-center gap-4">
+                    <div className="text-right hidden sm:block">
                       <p className="text-lg font-semibold">{Math.round(score.accuracy)}%</p>
+                      <p className="text-xs text-muted-foreground">Accuracy</p>
                     </div>
-                    <div className="hidden sm:block">
-                      <p className="text-sm font-medium text-muted-foreground">Raw</p>
-                      <p className="text-lg font-semibold group-hover:hidden">{Math.round(rawWpm)}</p>
-                      <p className="text-lg font-semibold hidden group-hover:inline">{rawWpm.toFixed(2)}</p>
-                    </div>
-                    <div className="text-xs text-muted-foreground text-right min-w-[80px]">
+                    <div className="text-right text-xs text-muted-foreground">
                       {score.created_at
-                        ? new Date(score.created_at).toLocaleDateString()
-                        : "N/A"}
+                        ? new Date(score.created_at).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                          })
+                        : "—"}
                     </div>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+
+                {/* Hover effect */}
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
+    </motion.div>
   );
 };
 

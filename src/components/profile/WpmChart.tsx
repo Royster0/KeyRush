@@ -1,17 +1,12 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { TrendingUp, BarChart3 } from "lucide-react";
 import { Chart, registerables } from "chart.js";
 import { TestResults } from "@/types/game.types";
 import { formatDate } from "@/lib/utils";
+import { useThemeColors } from "@/hooks/useCustomTheme";
+import { motion } from "motion/react";
 
 Chart.register(...registerables);
 
@@ -21,7 +16,22 @@ interface WpmChartProps {
   testResults: TestResults[];
 }
 
-import { useThemeColors } from "@/hooks/useCustomTheme";
+const TIME_CATEGORIES = [
+  { value: "all", label: "All" },
+  { value: "5", label: "5s" },
+  { value: "15", label: "15s" },
+  { value: "30", label: "30s" },
+  { value: "60", label: "60s" },
+  { value: "120", label: "120s" },
+];
+
+const TIME_PERIODS = [
+  { value: "all-time", label: "All Time" },
+  { value: "last-week", label: "Week" },
+  { value: "last-month", label: "Month" },
+  { value: "last-three-months", label: "3 Months" },
+  { value: "last-year", label: "Year" },
+];
 
 const WpmChart: React.FC<WpmChartProps> = ({ testResults }) => {
   const chartRef = useRef<HTMLCanvasElement | null>(null);
@@ -97,62 +107,58 @@ const WpmChart: React.FC<WpmChartProps> = ({ testResults }) => {
             {
               label: "WPM",
               data,
-              backgroundColor: primaryColor,
+              backgroundColor: `hsla(${colors.primary}, 0.1)`,
               borderColor: primaryColor,
               borderWidth: 2,
               pointBackgroundColor: primaryColor,
               pointRadius: 3,
-              pointHoverRadius: 5,
-              tension: 0.3, // Add some curve to the line
+              pointHoverRadius: 6,
+              tension: 0.3,
+              fill: true,
             },
           ],
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          interaction: {
+            intersect: false,
+            mode: "index",
+          },
           scales: {
             x: {
               ticks: {
                 autoSkip: true,
-                maxTicksLimit: 10,
+                maxTicksLimit: 8,
                 color: `hsl(${colors.mutedForeground})`,
+                font: { size: 11 },
               },
-              grid: {
-                display: false,
-              }
+              grid: { display: false },
             },
             y: {
               beginAtZero: true,
               ticks: {
                 color: `hsl(${colors.mutedForeground})`,
+                font: { size: 11 },
               },
-              border: {
-                display: false,
-                dash: [4, 4],
-              },
-              grid: {
-                color: `hsl(${colors.border})`,
-              }
+              border: { display: false },
+              grid: { color: `hsl(${colors.border})` },
             },
           },
           plugins: {
-            legend: {
-              display: false, // Hide legend for cleaner look
-            },
+            legend: { display: false },
             tooltip: {
-              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              backgroundColor: "rgba(0, 0, 0, 0.8)",
               padding: 12,
               cornerRadius: 8,
-              titleFont: {
-                size: 13,
-              },
-              bodyFont: {
-                size: 14,
-                weight: 'bold',
-              },
+              titleFont: { size: 12 },
+              bodyFont: { size: 14, weight: "bold" },
               displayColors: false,
-            }
-          }
+              callbacks: {
+                label: (context) => `${Math.round(context.raw as number)} WPM`,
+              },
+            },
+          },
         },
       });
       chartInstanceRef.current = newChartInstance;
@@ -172,52 +178,81 @@ const WpmChart: React.FC<WpmChartProps> = ({ testResults }) => {
   }, [testResults, timeCategory, timePeriod, colors]);
 
   return (
-    <Card className="h-full border-none bg-muted/40 shadow-none">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-xl font-bold">WPM History</CardTitle>
-        <div className="flex gap-2">
-          <Select onValueChange={setTimeCategory} defaultValue="all">
-            <SelectTrigger className="w-[140px] bg-background border-none shadow-sm h-8 text-xs">
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Modes</SelectItem>
-              <SelectItem value="5">5s</SelectItem>
-              <SelectItem value="15">15s</SelectItem>
-              <SelectItem value="30">30s</SelectItem>
-              <SelectItem value="60">60s</SelectItem>
-              <SelectItem value="120">120s</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select onValueChange={setTimePeriod} defaultValue="all-time">
-            <SelectTrigger className="w-[140px] bg-background border-none shadow-sm h-8 text-xs">
-              <SelectValue placeholder="Period" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all-time">All Time</SelectItem>
-              <SelectItem value="last-week">Last Week</SelectItem>
-              <SelectItem value="last-month">Last Month</SelectItem>
-              <SelectItem value="last-three-months">
-                3 Months
-              </SelectItem>
-              <SelectItem value="last-year">Last Year</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </CardHeader>
-      <CardContent className="h-[380px]">
-        {testResults.length === 0 ? (
-          <p className="text-center text-muted-foreground py-6">
-            No WPM data yet. Complete some typing tests to see your WPM over
-            time!
-          </p>
-        ) : (
-          <div className="w-full h-full">
-            <canvas id="wpm-chart-canvas" ref={chartRef} />
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: 0.5 }}
+      className="rounded-2xl bg-muted/30 border border-border/30 p-6"
+    >
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-2">
+          <div className="p-2 rounded-xl bg-primary/10">
+            <TrendingUp className="h-5 w-5 text-primary" />
           </div>
+          <h3 className="text-lg font-semibold">WPM History</h3>
+        </div>
+
+        {/* Filters */}
+        <div className="flex flex-wrap gap-2">
+          {/* Time Category */}
+          <div className="inline-flex items-center rounded-lg bg-background/60 border border-border/50 p-1">
+            {TIME_CATEGORIES.map((cat) => (
+              <button
+                key={cat.value}
+                onClick={() => setTimeCategory(cat.value)}
+                className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
+                  timeCategory === cat.value
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Time Period */}
+          <div className="inline-flex items-center rounded-lg bg-background/60 border border-border/50 p-1">
+            {TIME_PERIODS.map((period) => (
+              <button
+                key={period.value}
+                onClick={() => setTimePeriod(period.value)}
+                className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
+                  timePeriod === period.value
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {period.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="h-[350px]">
+        {testResults.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-center">
+            <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+              <BarChart3 className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <p className="text-muted-foreground">No WPM data yet</p>
+            <p className="text-sm text-muted-foreground/60 mt-1">
+              Complete some typing tests to see your progress
+            </p>
+          </div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.65 }}
+            className="w-full h-full"
+          >
+            <canvas id="wpm-chart-canvas" ref={chartRef} />
+          </motion.div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </motion.div>
   );
 };
 

@@ -1,15 +1,14 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Activity, Calendar } from "lucide-react";
 import { Chart, registerables } from "chart.js";
 import { formatDate } from "@/lib/utils";
 import { useThemeColors } from "@/hooks/useCustomTheme";
+import { motion } from "motion/react";
 
-// Register all Chart.js components
 Chart.register(...registerables);
 
-// Global static chart instance to track if a chart exists
 let globalChartInstance: Chart | null = null;
 
 interface ActivityGraphProps {
@@ -29,9 +28,7 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
   const chartInstanceRef = useRef<Chart | null>(null);
   const colors = useThemeColors();
 
-  // Process data for the activity chart
   useEffect(() => {
-    // Clean up any existing chart instances (from global or local state)
     if (globalChartInstance) {
       globalChartInstance.destroy();
       globalChartInstance = null;
@@ -42,47 +39,34 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
       chartInstanceRef.current = null;
     }
 
-    // Also attempt to destroy any charts by ID in case they're orphaned
     const existingChart = Chart.getChart("activity-chart-canvas");
     if (existingChart) {
       existingChart.destroy();
     }
 
-    // Return early if no canvas reference or data
     if (!chartRef.current || testResults.length === 0) return;
 
-    // Ensure the canvas is clean before creating a new chart
     const canvasContext = chartRef.current.getContext("2d");
     if (canvasContext) {
-      canvasContext.clearRect(
-        0,
-        0,
-        chartRef.current.width,
-        chartRef.current.height
-      );
+      canvasContext.clearRect(0, 0, chartRef.current.width, chartRef.current.height);
     }
 
-    // Get dates for the last 2 months
     const today = new Date();
     const twoMonthsAgo = new Date();
     twoMonthsAgo.setMonth(today.getMonth() - 2);
 
-    // Generate daily labels for the last 2 months
     const labels: string[] = [];
     const dataPoints: number[] = [];
     const daysMap = new Map<string, number>();
 
-    // Create array of dates
     const currentDate = new Date(twoMonthsAgo);
     while (currentDate <= today) {
       const dateStr = currentDate.toISOString().split("T")[0];
       labels.push(dateStr);
       daysMap.set(dateStr, 0);
-
       currentDate.setDate(currentDate.getDate() + 1);
     }
 
-    // Count tests per day
     testResults.forEach((result) => {
       if (result.created_at) {
         const resultDate = new Date(result.created_at);
@@ -94,12 +78,10 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
       }
     });
 
-    // Convert map to array for chart data
     labels.forEach((date) => {
       dataPoints.push(daysMap.get(date) || 0);
     });
 
-    // Format dates for display
     const displayLabels = labels.map((date) => {
       const d = new Date(date);
       return d.getDate() === 1 || d.getDate() === 15
@@ -107,19 +89,17 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
         : "";
     });
 
-    // Create the chart with a unique ID
     const ctx = chartRef.current.getContext("2d");
     if (ctx) {
       const primaryColor = `hsl(${colors.primary})`;
 
-      // Create a new chart instance with a proper ID
       const newChartInstance = new Chart(ctx, {
         type: "bar",
         data: {
           labels: displayLabels,
           datasets: [
             {
-              label: "Tests Completed",
+              label: "Tests",
               data: dataPoints,
               backgroundColor: primaryColor,
               borderColor: primaryColor,
@@ -133,23 +113,22 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
           maintainAspectRatio: false,
           plugins: {
             legend: {
-              display: true,
-              position: "top",
-              labels: {
-                usePointStyle: true,
-                boxWidth: 8,
-              }
+              display: false,
             },
             tooltip: {
-              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              backgroundColor: "rgba(0, 0, 0, 0.8)",
               padding: 12,
               cornerRadius: 8,
+              titleFont: { size: 12 },
+              bodyFont: { size: 14, weight: "bold" },
+              displayColors: false,
               callbacks: {
                 title: (context) => {
                   const index = context[0].dataIndex;
                   const date = new Date(labels[index]);
                   return formatDate(date);
                 },
+                label: (context) => `${context.raw} tests`,
               },
             },
           },
@@ -158,71 +137,51 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
               ticks: {
                 autoSkip: false,
                 maxRotation: 0,
-                font: {
-                  size: 10,
-                },
+                font: { size: 10 },
+                color: `hsl(${colors.mutedForeground})`,
               },
-              grid: {
-                display: false,
-              },
+              grid: { display: false },
             },
             y: {
               beginAtZero: true,
               ticks: {
                 stepSize: 1,
                 precision: 0,
+                color: `hsl(${colors.mutedForeground})`,
               },
-              border: {
-                display: false,
-                dash: [4, 4],
-              },
-              grid: {
-                color: 'rgba(0, 0, 0, 0.05)',
-              }
+              border: { display: false },
+              grid: { color: `hsl(${colors.border})` },
             },
           },
         },
       });
 
-      // Store chart instance in both state and global variable
       chartInstanceRef.current = newChartInstance;
       globalChartInstance = newChartInstance;
     }
 
-    // Return cleanup function
     return () => {
       if (chartInstanceRef.current) {
         chartInstanceRef.current.destroy();
         chartInstanceRef.current = null;
       }
-
       if (globalChartInstance) {
         globalChartInstance.destroy();
         globalChartInstance = null;
       }
-
-      // Also clean up by canvas ID
-      const existingChart = Chart.getChart("activity-chart-canvas");
-      if (existingChart) {
-        existingChart.destroy();
-      }
     };
   }, [testResults, colors]);
 
-  // Cleanup on component unmount
   useEffect(() => {
     return () => {
       if (chartInstanceRef.current) {
         chartInstanceRef.current.destroy();
         chartInstanceRef.current = null;
       }
-
       if (globalChartInstance) {
         globalChartInstance.destroy();
         globalChartInstance = null;
       }
-
-      // Also clean up by canvas ID
       const existingChart = Chart.getChart("activity-chart-canvas");
       if (existingChart) {
         existingChart.destroy();
@@ -230,7 +189,6 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
     };
   }, []);
 
-  // Extra safety: cleanup on page visibility change
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "hidden") {
@@ -238,7 +196,6 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
           chartInstanceRef.current.destroy();
           chartInstanceRef.current = null;
         }
-
         if (globalChartInstance) {
           globalChartInstance.destroy();
           globalChartInstance = null;
@@ -247,30 +204,49 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
-
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 
   return (
-    <Card className="h-full border-none bg-muted/40 shadow-none">
-      <CardHeader>
-        <CardTitle className="text-xl font-bold">Activity</CardTitle>
-      </CardHeader>
-      <CardContent className="h-[380px]">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: 0.45 }}
+      className="h-full rounded-2xl bg-muted/30 border border-border/30 p-6"
+    >
+      <div className="flex items-center gap-2 mb-5">
+        <div className="p-2 rounded-xl bg-primary/10">
+          <Activity className="h-5 w-5 text-primary" />
+        </div>
+        <h3 className="text-lg font-semibold">Activity</h3>
+        <span className="text-xs text-muted-foreground ml-auto">Last 2 months</span>
+      </div>
+
+      <div className="h-[320px]">
         {testResults.length === 0 ? (
-          <p className="text-center text-muted-foreground py-6">
-            No activity data yet. Complete some typing tests to see your
-            activity graph!
-          </p>
-        ) : (
-          <div className="w-full h-full">
-            <canvas id="activity-chart-canvas" ref={chartRef} />
+          <div className="flex flex-col items-center justify-center h-full text-center">
+            <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+              <Calendar className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <p className="text-muted-foreground">No activity data yet</p>
+            <p className="text-sm text-muted-foreground/60 mt-1">
+              Complete some typing tests to see your activity
+            </p>
           </div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+            className="w-full h-full"
+          >
+            <canvas id="activity-chart-canvas" ref={chartRef} />
+          </motion.div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </motion.div>
   );
 };
 
