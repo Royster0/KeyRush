@@ -6,6 +6,7 @@ import { GameProvider } from "@/contexts/GameContext";
 import { Toaster } from "react-hot-toast";
 import Nav from "@/components/ui/Nav";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: "KeyRush",
@@ -42,6 +43,7 @@ export default function RootLayout({
               <main className="pt-20">
                 {children}
                 <Analytics />
+                <SpeedInsights />
               </main>
             </GameProvider>
           </ThemeProvider>
