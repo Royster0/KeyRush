@@ -86,3 +86,41 @@ export async function getAllLeaderboardDurations(
 
   return leaderboards;
 }
+
+// Ranked Leaderboard Types and Functions
+export type RankedPlayer = {
+  user_id: string;
+  username: string;
+  elo: number;
+  rank_tier: string;
+  matches_played: number;
+  wins: number;
+  losses: number;
+};
+
+export async function getRankedLeaderboard(): Promise<RankedPlayer[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, username, elo, rank_tier, matches_played, wins, losses")
+    .gte("matches_played", 5)
+    .not("elo", "is", null)
+    .order("elo", { ascending: false })
+    .limit(100);
+
+  if (error) {
+    console.error("Error fetching ranked leaderboard:", error);
+    return [];
+  }
+
+  return (data || []).map((profile) => ({
+    user_id: profile.id,
+    username: profile.username || "Anonymous",
+    elo: profile.elo || 1000,
+    rank_tier: profile.rank_tier || "Bronze",
+    matches_played: profile.matches_played || 0,
+    wins: profile.wins || 0,
+    losses: profile.losses || 0,
+  }));
+}
