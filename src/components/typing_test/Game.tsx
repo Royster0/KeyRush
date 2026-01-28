@@ -3,7 +3,6 @@
 import Link from "next/link";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button } from "../ui/button";
 import { generateText, cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import GameControls from "./GameControls";
@@ -45,7 +44,9 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
   const [isAfk, setIsAfk] = useState(false);
   const [showTimer, setShowTimer] = useState(true);
   const [showWpm, setShowWpm] = useState(true);
-  const [wpmHistory, setWpmHistory] = useState<{ time: number; wpm: number }[]>([]);
+  const [wpmHistory, setWpmHistory] = useState<{ time: number; wpm: number }[]>(
+    [],
+  );
   const { caretSpeed, singleplayerWidth } = useSettings();
   const { setIsGameActive } = useGameContext();
 
@@ -70,7 +71,7 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
   const calculatedStats = useCalculateTypingStats(
     startTime,
     totalKeystrokes,
-    correctKeystrokes
+    correctKeystrokes,
   );
 
   const restartTest = useCallback(() => {
@@ -102,7 +103,7 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
     const savedTime = localStorage.getItem(STORAGE_KEY_TIME_SELECTION);
     if (savedTime) {
       const time = parseInt(savedTime);
-      if (TIME_OPTIONS.includes(time as any)) {
+      if (TIME_OPTIONS.includes(time as (typeof TIME_OPTIONS)[number])) {
         setSelectedTime(time);
         setTimeLeft(time);
       }
@@ -267,7 +268,7 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
     const displayLines = lines
       .slice(
         Math.max(0, currentLineIndex - 1),
-        Math.max(3, currentLineIndex + 2)
+        Math.max(3, currentLineIndex + 2),
       )
       .slice(0, 3);
 
@@ -298,7 +299,10 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
 
   return (
     <div className="w-full flex items-center justify-center">
-      <Card className="w-full shadow-none border-none" style={{ maxWidth: `${singleplayerWidth}vw` }}>
+      <Card
+        className="w-full shadow-none border-none"
+        style={{ maxWidth: `${singleplayerWidth}vw` }}
+      >
         <CardHeader>
           <CardTitle className="flex justify-between items-center px-6 py">
             <div className="flex items-center justify-center w-full">
@@ -306,7 +310,10 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
                 selectedTime={selectedTime}
                 onTimeSelect={(time) => {
                   setSelectedTime(time);
-                  localStorage.setItem(STORAGE_KEY_TIME_SELECTION, time.toString());
+                  localStorage.setItem(
+                    STORAGE_KEY_TIME_SELECTION,
+                    time.toString(),
+                  );
                   restartTest();
                 }}
                 showTimer={showTimer}
@@ -330,7 +337,7 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
               tabIndex={0}
               className={cn(
                 "focus:outline-none transition-all duration-300",
-                isFinished ? "h-auto" : "h-[9em]"
+                isFinished ? "h-auto" : "h-[9em]",
               )}
             >
               <AnimatePresence mode="wait">
@@ -342,7 +349,8 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
                     exit={{ opacity: 0 }}
                   >
                     <p className="text-2xl">
-                      Speed: <span className="font-bold">{wpm.toFixed(2)} wpm</span>
+                      Speed:{" "}
+                      <span className="font-bold">{wpm.toFixed(2)} wpm</span>
                     </p>
                     <p className="text-2xl">
                       Accuracy: <span className="font-bold">{accuracy}%</span>
@@ -357,8 +365,9 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
                         data={wpmHistory}
                         duration={selectedTime}
                         personalBest={
-                          initialBestScores.find((s) => s.duration === selectedTime)
-                            ?.wpm
+                          initialBestScores.find(
+                            (s) => s.duration === selectedTime,
+                          )?.wpm
                         }
                       />
                     )}
@@ -366,11 +375,17 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
                     {!user && (
                       <div className="mt-6 p-4 bg-secondary/30 rounded-lg border border-border/50 max-w-md mx-auto">
                         <p className="text-muted-foreground">
-                          <Link href="/auth/login" className="text-primary hover:underline font-medium">
+                          <Link
+                            href="/auth/login"
+                            className="text-primary hover:underline font-medium"
+                          >
                             Login
                           </Link>
                           {" or "}
-                          <Link href="/auth/login" className="text-primary hover:underline font-medium">
+                          <Link
+                            href="/auth/login"
+                            className="text-primary hover:underline font-medium"
+                          >
                             Sign Up
                           </Link>
                           {" to save your results"}
@@ -392,19 +407,17 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
             </div>
           </div>
         </CardContent>
+        <div className="fixed bottom-50 left-1/2 -translate-x-1/2 pointer-events-none">
+          <GameStats
+            timeLeft={timeLeft}
+            wpm={wpm}
+            rawWpm={rawWpm}
+            accuracy={accuracy}
+            showTimer={showTimer}
+            showWpm={showWpm}
+          />
+        </div>
       </Card>
-
-      {/* Live Stats */}
-      <div className="fixed bottom-20 left-1/2 -translate-x-1/2 pointer-events-none">
-        <GameStats
-          timeLeft={timeLeft}
-          wpm={wpm}
-          rawWpm={rawWpm}
-          accuracy={accuracy}
-          showTimer={showTimer}
-          showWpm={showWpm}
-        />
-      </div>
 
       {/* Floating Theme Toggle */}
       <ThemeModal />

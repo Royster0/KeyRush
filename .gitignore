@@ -43,4 +43,6 @@ next-env.d.ts
 # partykit
 .partykit
 
+# agents
 /.claude/
+CLAUDE.md
