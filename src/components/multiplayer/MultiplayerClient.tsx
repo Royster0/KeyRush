@@ -20,6 +20,9 @@ import {
   parseMatchId,
 } from "@/lib/multiplayer";
 import { UserWithProfile } from "@/types/auth.types";
+import { CongratsModal } from "@/components/CongratsModal";
+import type { AchievementData } from "@/lib/services/achievements";
+import { checkAchievements, getPreSaveState } from "@/app/actions";
 
 type MultiplayerClientProps = {
   user?: UserWithProfile | null;
@@ -51,6 +54,7 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
   const [animatedDelta, setAnimatedDelta] = useState<number | null>(null);
   const [inviteLink, setInviteLink] = useState<string | null>(null);
   const [inviteExpiresAt, setInviteExpiresAt] = useState<number | null>(null);
+  const [achievementQueue, setAchievementQueue] = useState<AchievementData[]>([]);
 
   const queueSocketRef = useRef<PartySocket | null>(null);
   const matchSocketRef = useRef<PartySocket | null>(null);
@@ -127,6 +131,7 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
     setAnimatedDelta(null);
     setInviteLink(null);
     setInviteExpiresAt(null);
+    setAchievementQueue([]);
     hasUpdatedEloRef.current = false;
     lastPlayerSecondRef.current = null;
     lastOpponentSecondRef.current = null;
@@ -456,11 +461,32 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
         },
       };
 
-      fetch("/api/multiplayer/complete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      }).catch(() => {});
+      // Fetch pre-save state, save results, then check achievements
+      (async () => {
+        try {
+          const preSaveState = await getPreSaveState();
+
+          await fetch("/api/multiplayer/complete", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+
+          // Check for achievements by comparing pre-save state with new result
+          if (preSaveState) {
+            const achievements = await checkAchievements(
+              player.wpm,
+              matchState.duration,
+              preSaveState
+            );
+            if (achievements.length > 0) {
+              setAchievementQueue(achievements);
+            }
+          }
+        } catch {
+          // Silently handle errors
+        }
+      })();
     }
   }, [eloRecord, matchState, user]);
 
@@ -583,6 +609,13 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
           />
         )}
       </div>
+
+      {/* Congratulations Modal */}
+      <CongratsModal
+        open={achievementQueue.length > 0}
+        onClose={() => setAchievementQueue((prev) => prev.slice(1))}
+        achievement={achievementQueue[0] ?? null}
+      />
     </div>
   );
 };
