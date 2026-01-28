@@ -71,6 +71,7 @@ const MultiplayerMatch = ({
     setAccuracy(100);
     setIsActive(false);
     setIsFinished(false);
+    setCountdown(null);
     hasReportedRef.current = false;
   }, [duration, resetTyping]);
 
@@ -84,17 +85,30 @@ const MultiplayerMatch = ({
     }
 
     const syncTimer = () => {
-      const now = Date.now();
-      const elapsed = Math.max(0, Math.floor((now - startAt) / 1000));
-      const remaining = Math.max(0, duration - elapsed);
-
-      setTimeLeft(remaining);
-      setCountdown(Math.max(0, Math.ceil((startAt - now) / 1000)));
-      if (now >= startAt && phase !== "finished") {
-        setIsActive(true);
-        setStartTime(startAt);
+      if (phase === "finished") {
+        setIsFinished(true);
+        setIsActive(false);
+        return;
       }
 
+      const now = Date.now();
+      const secondsUntilStart = Math.ceil((startAt - now) / 1000);
+
+      if (secondsUntilStart > 0) {
+        setCountdown(secondsUntilStart);
+        setTimeLeft(duration);
+        setIsActive(false);
+        setStartTime(null);
+        return;
+      }
+
+      setCountdown(null);
+      setIsActive(!isFinished);
+      setStartTime(startAt);
+
+      const elapsed = Math.max(0, Math.floor((now - startAt) / 1000));
+      const remaining = Math.max(0, duration - elapsed);
+      setTimeLeft(remaining);
       if (remaining <= 0 && !isFinished) {
         setIsFinished(true);
         setIsActive(false);
@@ -257,7 +271,7 @@ const MultiplayerMatch = ({
 
       <div className="flex justify-center">
         <GameStats
-          timeLeft={timeLeft}
+          timeLeft={phase === "countdown" && countdown !== null ? countdown : timeLeft}
           wpm={wpm}
           rawWpm={rawWpm}
           accuracy={accuracy}
