@@ -16,6 +16,7 @@ export type LeaderboardEntry = {
   user_id: string;
   test_id: string;
   created_at: string;
+  source?: "singleplayer" | "multiplayer";
 };
 
 export async function getUserLeaderboardRankings(): Promise<LeaderboardRanking[]> {
@@ -47,7 +48,7 @@ export async function getLeaderboardData(
   timeframe: LeaderboardTimeframe
 ): Promise<LeaderboardEntry[]> {
   const supabase = await createClient();
-  
+
   let minDate: string | null = null;
   const now = new Date();
 
@@ -61,17 +62,81 @@ export async function getLeaderboardData(
     minDate = lastWeek.toISOString();
   }
 
-  const { data, error } = await supabase.rpc('get_leaderboard', {
+  // Fetch singleplayer scores from existing RPC
+  const { data: singleplayerData, error: singleplayerError } = await supabase.rpc('get_leaderboard', {
     duration_val: duration,
     min_date: minDate
   });
 
-  if (error) {
-    console.error("Error fetching leaderboard:", error);
-    return [];
+  if (singleplayerError) {
+    console.error("Error fetching singleplayer leaderboard:", singleplayerError);
   }
 
-  return data as LeaderboardEntry[];
+  const singleplayerEntries: LeaderboardEntry[] = ((singleplayerData as LeaderboardEntry[]) || []).map(entry => ({
+    ...entry,
+    source: "singleplayer" as const,
+  }));
+
+  // Fetch multiplayer scores (only for 30s and 60s durations)
+  let multiplayerEntries: LeaderboardEntry[] = [];
+  if (duration === 30 || duration === 60) {
+    let multiplayerQuery = supabase
+      .from("match_results")
+      .select(`
+        user_id,
+        wpm,
+        accuracy,
+        match_id,
+        matches!inner (
+          id,
+          duration,
+          ended_at
+        ),
+        profiles!inner (
+          username
+        )
+      `)
+      .eq("matches.duration", duration)
+      .eq("left_match", false)
+      .order("wpm", { ascending: false })
+      .limit(100);
+
+    if (minDate) {
+      multiplayerQuery = multiplayerQuery.gte("matches.ended_at", minDate);
+    }
+
+    const { data: multiplayerData, error: multiplayerError } = await multiplayerQuery;
+
+    if (multiplayerError) {
+      console.error("Error fetching multiplayer leaderboard:", multiplayerError);
+    } else if (multiplayerData) {
+      multiplayerEntries = multiplayerData.map((row: any) => ({
+        username: row.profiles?.username || "Anonymous",
+        wpm: row.wpm,
+        accuracy: row.accuracy,
+        user_id: row.user_id,
+        test_id: `match-${row.match_id}`,
+        created_at: row.matches?.ended_at || new Date().toISOString(),
+        source: "multiplayer" as const,
+      }));
+    }
+  }
+
+  // Combine and deduplicate (keep best score per user)
+  const allEntries = [...singleplayerEntries, ...multiplayerEntries];
+  const bestByUser = new Map<string, LeaderboardEntry>();
+
+  for (const entry of allEntries) {
+    const existing = bestByUser.get(entry.user_id);
+    if (!existing || entry.wpm > existing.wpm) {
+      bestByUser.set(entry.user_id, entry);
+    }
+  }
+
+  // Sort by WPM descending and return top 100
+  return Array.from(bestByUser.values())
+    .sort((a, b) => b.wpm - a.wpm)
+    .slice(0, 100);
 }
 
 export async function getAllLeaderboardDurations(

@@ -13,6 +13,7 @@ import {
 import { formatDate } from "@/lib/utils";
 import { LeaderboardEntry } from "@/app/leaderboard/actions";
 import { Badge } from "@/components/ui/badge";
+import { Users, User } from "lucide-react";
 
 interface LeaderboardTableProps {
   data: LeaderboardEntry[];
@@ -20,6 +21,8 @@ interface LeaderboardTableProps {
 }
 
 export default function LeaderboardTable({ data, duration }: LeaderboardTableProps) {
+  const showSource = duration === 30 || duration === 60;
+
   return (
     <div className="rounded-lg border">
       <Table>
@@ -29,6 +32,7 @@ export default function LeaderboardTable({ data, duration }: LeaderboardTablePro
             <TableHead>Player</TableHead>
             <TableHead className="text-right">WPM</TableHead>
             <TableHead className="text-right">Accuracy</TableHead>
+            {showSource && <TableHead className="w-20 text-center">Mode</TableHead>}
             <TableHead className="text-right">Date</TableHead>
           </TableRow>
         </TableHeader>
@@ -50,6 +54,19 @@ export default function LeaderboardTable({ data, duration }: LeaderboardTablePro
                 <TableCell>{entry.username}</TableCell>
                 <TableCell className="text-right font-semibold">{Number(entry.wpm).toFixed(2)}</TableCell>
                 <TableCell className="text-right">{typeof entry.accuracy === 'number' ? entry.accuracy.toFixed(1) : '0.0'}%</TableCell>
+                {showSource && (
+                  <TableCell className="text-center">
+                    {entry.source === "multiplayer" ? (
+                      <span className="inline-flex items-center gap-1 text-xs text-sky-500" title="Multiplayer">
+                        <Users className="h-4 w-4" />
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-xs text-muted-foreground" title="Singleplayer">
+                        <User className="h-4 w-4" />
+                      </span>
+                    )}
+                  </TableCell>
+                )}
                 <TableCell className="text-right text-sm text-muted-foreground">
                   {formatDate(new Date(entry.created_at))}
                 </TableCell>
@@ -57,7 +74,7 @@ export default function LeaderboardTable({ data, duration }: LeaderboardTablePro
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={5} className="text-center text-muted-foreground">
+              <TableCell colSpan={showSource ? 6 : 5} className="text-center text-muted-foreground">
                 No recorded scores for {duration}s tests
               </TableCell>
             </TableRow>
