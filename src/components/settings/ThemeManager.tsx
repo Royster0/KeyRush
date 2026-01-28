@@ -88,8 +88,7 @@ export function ThemeManager() {
                 saveTheme(importedTheme);
                 applyTheme(id);
                 toast.success("Theme imported successfully");
-            } catch (error) {
-                console.error(error);
+            } catch {
                 toast.error("Failed to import theme");
             }
         };

@@ -34,8 +34,7 @@ export async function GET(request: NextRequest) {
         "Cache-Control": "public, max-age=31536000, immutable",
       },
     });
-  } catch (error) {
-    console.error("Error generating favicon:", error);
+  } catch {
     return new NextResponse("Error generating favicon", { status: 500 });
   }
 }

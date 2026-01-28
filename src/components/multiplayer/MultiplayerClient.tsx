@@ -150,7 +150,12 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
       });
 
       socket.addEventListener("message", (event) => {
-        const data = JSON.parse(event.data) as ServerMessage;
+        let data: ServerMessage;
+        try {
+          data = JSON.parse(event.data) as ServerMessage;
+        } catch {
+          return;
+        }
         if (data.type === "match-state") {
           setMatchState(data.state);
         }
@@ -208,7 +213,12 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
     });
 
     socket.addEventListener("message", (event) => {
-      const data = JSON.parse(event.data) as ServerMessage;
+      let data: ServerMessage;
+      try {
+        data = JSON.parse(event.data) as ServerMessage;
+      } catch {
+        return;
+      }
       if (data.type === "match-found") {
         socket.close();
         setQueuePhase("idle");

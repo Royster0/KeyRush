@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <!-- Tachyon: ultra-tier, cosmic/relativistic vibe -->
+    <linearGradient id="gT" x1="128" y1="64" x2="384" y2="464" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C7FFFA"/>
+      <stop offset="0.35" stop-color="#7A5CFF"/>
+      <stop offset="0.7" stop-color="#FF4FD8"/>
+      <stop offset="1" stop-color="#0A0A20"/>
+    </linearGradient>
+    <linearGradient id="gT2" x1="176" y1="120" x2="336" y2="420" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="0.35" stop-color="#B8F1FF"/>
+      <stop offset="0.75" stop-color="#FFB3F1"/>
+      <stop offset="1" stop-color="#2B4CFF"/>
+    </linearGradient>
+    <linearGradient id="tachyonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E8D0FF"/>
+      <stop offset="20%" style="stop-color:#C898FF"/>
+      <stop offset="40%" style="stop-color:#9858E8"/>
+      <stop offset="60%" style="stop-color:#7030C0"/>
+      <stop offset="80%" style="stop-color:#5018A0"/>
+      <stop offset="100%" style="stop-color:#380880"/>
+    </linearGradient>
+    <filter id="tachyonGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#380880" flood-opacity="0.4"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="10" flood-color="#9858E8" flood-opacity="0.6"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="15" flood-color="#C898FF" flood-opacity="0.3"/>
+    </filter>
+    <radialGradient id="rgT" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse"
+      gradientTransform="translate(256 244) rotate(90) scale(132)">
+      <stop stop-color="#FFFFFF" stop-opacity="0.28"/>
+      <stop offset="0.55" stop-color="#00D2FF" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Badge -->
+  <path d="M256 56 L396 124 L396 284 Q396 356 256 460 Q116 356 116 284 L116 124 Z" fill="url(#gT)"/>
+  <path d="M256 92 L364 146 L364 280 Q364 336 256 420 Q148 336 148 280 L148 146 Z" fill="url(#gT2)" opacity="0.96"/>
+
+  <!-- Cosmic halo / energy field -->
+  <circle cx="256" cy="246" r="98" fill="url(#rgT)"/>
+  <circle cx="256" cy="246" r="92" stroke="#C7FFFA" stroke-opacity="0.40" stroke-width="10"/>
+  <circle cx="256" cy="246" r="74" stroke="#FF4FD8" stroke-opacity="0.22" stroke-width="8"/>
+
+  <!-- Tachyon core: "warp diamond" + split -->
+  <path d="M256 156 L340 240 L256 336 L172 240 Z" fill="url(#tachyonGrad)" filter="url(#tachyonGlow)" opacity="0.5"/>
+</svg>

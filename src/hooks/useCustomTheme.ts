@@ -168,8 +168,8 @@ export function useCustomTheme() {
     if (storedThemes) {
       try {
         setCustomThemes(JSON.parse(storedThemes));
-      } catch (e) {
-        console.error("Failed to parse custom themes", e);
+      } catch {
+        // Invalid JSON in localStorage, reset to empty
       }
     }
   }, []);
@@ -260,8 +260,8 @@ export function useThemeColors() {
     if (storedThemes) {
       try {
         customThemes = JSON.parse(storedThemes);
-      } catch (e) {
-        console.error("Failed to parse custom themes", e);
+      } catch {
+        // Invalid JSON in localStorage, use empty array
       }
     }
 

@@ -1,9 +1,10 @@
 "use client";
 
 import React from "react";
-import { Swords, Crown, Target, TrendingUp, TrendingDown } from "lucide-react";
+import { Swords, Target, TrendingUp, TrendingDown } from "lucide-react";
 import { getRankLabel } from "@/lib/multiplayer";
 import { motion } from "motion/react";
+import { RankIcon } from "@/components/RankIcon";
 
 type RankedStatsProfile = {
   elo?: number | null;
@@ -51,8 +52,13 @@ const RankedStatsCard: React.FC<RankedStatsCardProps> = ({ profile }) => {
           transition={{ duration: 0.3, delay: 0.4 }}
           className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent p-5 border border-primary/20"
         >
-          <div className="absolute top-2 right-2">
-            <Crown className="h-5 w-5 text-primary/40" />
+          <div className="absolute top-3 right-3">
+            <RankIcon
+              rank={rankTier}
+              size={32}
+              className="opacity-80"
+              title={rankTier}
+            />
           </div>
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
             Current Rank

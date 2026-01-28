@@ -4,7 +4,9 @@ import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
-export async function createUsername(prevState: any, formData: FormData) {
+type FormState = { error?: string } | null;
+
+export async function createUsername(prevState: FormState, formData: FormData) {
   const supabase = await createClient();
   const username = formData.get("username") as string;
 
@@ -43,7 +45,6 @@ export async function createUsername(prevState: any, formData: FormData) {
   });
 
   if (error) {
-    console.error("Error creating profile:", error);
     return {
       error: "Failed to create username. Please try again.",
     };

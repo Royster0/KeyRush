@@ -15,6 +15,7 @@ import {
   Shield,
   Gamepad2,
 } from "lucide-react";
+import { RankIcon } from "@/components/RankIcon";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getRankColor } from "./multiplayer-utils";
@@ -89,8 +90,13 @@ export function QueueScreen({
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                   <div className="relative">
-                    <div className="h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center">
-                      <Trophy className={`h-8 w-8 ${getRankColor(rankLabel)}`} />
+                    <div className="h-20 w-20 rounded-full bg-primary/20 flex items-center justify-center">
+                      <RankIcon
+                        rank={rankLabel}
+                        size={48}
+                        title={rankLabel}
+                        fallback={<Trophy className={`h-12 w-12 ${getRankColor(rankLabel)}`} />}
+                      />
                     </div>
                     {placementRemaining > 0 && (
                       <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground text-xs font-bold px-1.5 py-0.5 rounded-full">
@@ -175,7 +181,14 @@ export function QueueScreen({
                 {user && (
                   <div className="mt-4 flex flex-wrap items-center gap-3 text-xs">
                     <span className={`px-2 py-1 rounded-full bg-muted font-medium ${getRankColor(rankLabel)}`}>
-                      {rankLabel}
+                      <span className="inline-flex items-center gap-1">
+                        <RankIcon
+                          rank={rankLabel}
+                          size={14}
+                          title={rankLabel}
+                        />
+                        {rankLabel}
+                      </span>
                     </span>
                     <span className="text-muted-foreground">
                       {eloRecord.elo} Elo

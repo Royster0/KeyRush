@@ -257,8 +257,8 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
           setAchievementQueue(achievements);
         }
       }
-    } catch (error) {
-      console.log("Failed to save user test scores:", error);
+    } catch {
+      // Test result save failed silently - user can retry
     }
   }, [wpm, rawWpm, accuracy, selectedTime, isFinished, isAfk, user]);
 

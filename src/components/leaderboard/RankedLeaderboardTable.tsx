@@ -10,10 +10,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Trophy } from "lucide-react";
 import { RankedPlayer } from "@/lib/services/leaderboard";
-import { getRankColor } from "@/components/multiplayer/multiplayer-utils";
 import { getRankLabel } from "@/lib/multiplayer";
+import { RankIcon } from "@/components/RankIcon";
 
 interface RankedLeaderboardTableProps {
   data: RankedPlayer[];
@@ -73,7 +72,11 @@ export default function RankedLeaderboardTable({ data, currentUserId }: RankedLe
                     )}
                   </TableCell>
                   <TableCell>
-                    <Trophy className={`h-5 w-5 ${getRankColor(rankTier)}`} />
+                    <RankIcon
+                      rank={rankTier}
+                      size={20}
+                      title={rankTier}
+                    />
                   </TableCell>
                   <TableCell className="font-medium">{player.username}</TableCell>
                   <TableCell className="text-right font-mono font-semibold">

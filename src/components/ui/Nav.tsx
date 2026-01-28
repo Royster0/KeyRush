@@ -39,8 +39,8 @@ export default function Nav() {
       const res = await fetch("/api/get-user");
       const data = await res.json();
       setUser(data.user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
+    } catch {
+      // User fetch failed, will retry on next auth event
     }
   };
 
@@ -81,8 +81,7 @@ export default function Nav() {
             const result = JSON.parse(pendingResult);
             await saveTestResult(result);
             toast.success("Saved your recent test result!");
-          } catch (error) {
-            console.error("Error saving pending result:", error);
+          } catch {
             // If failed, put it back so we can try again later
             localStorage.setItem("pendingResult", pendingResult);
           }

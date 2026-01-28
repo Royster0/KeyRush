@@ -9,6 +9,7 @@ export const RANK_COLORS: Record<string, string> = {
   Diamond: "text-blue-400",
   Sonic: "text-purple-500",
   Mach: "text-red-500",
+  Tachyon: "text-fuchsia-400",
 };
 
 export function getRankColor(rank: string): string {

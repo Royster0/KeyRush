@@ -19,6 +19,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { getRankColor, getResultType, getResultColorClass } from "./multiplayer-utils";
 import { MatchState } from "@/types/multiplayer.types";
 import { getRankLabel } from "@/lib/multiplayer";
+import { RankIcon } from "@/components/RankIcon";
 
 const ResultsChart = dynamic(() => import("../typing_test/ResultsChart"), { ssr: false });
 
@@ -62,6 +63,7 @@ export function ResultsScreen({
 }: ResultsScreenProps) {
   const resultType = getResultType(resultLabel);
   const resultColorClass = getResultColorClass(resultType);
+  const currentRank = getRankLabel(eloRecord.elo, eloRecord.matchesPlayed);
 
   const getResultIcon = () => {
     if (resultType === "victory") return <Crown className="h-8 w-8" />;
@@ -166,9 +168,16 @@ export function ResultsScreen({
                 </div>
                 <p className="font-semibold">{player?.name ?? "You"}</p>
                 {matchState.mode === "ranked" && (
-                  <p className={`text-xs ${getRankColor(player?.rank ?? rankLabel)}`}>
-                    {player?.rank ?? rankLabel}
-                  </p>
+                  <div className="flex items-center justify-center gap-1 text-xs">
+                    <RankIcon
+                      rank={player?.rank ?? rankLabel}
+                      size={14}
+                      title={player?.rank ?? rankLabel}
+                    />
+                    <span className={getRankColor(player?.rank ?? rankLabel)}>
+                      {player?.rank ?? rankLabel}
+                    </span>
+                  </div>
                 )}
               </div>
               <div className="text-center">
@@ -180,9 +189,16 @@ export function ResultsScreen({
                 </div>
                 <p className="font-semibold">{opponent?.name ?? "Opponent"}</p>
                 {matchState.mode === "ranked" && (
-                  <p className={`text-xs ${getRankColor(opponent?.rank ?? "Placement")}`}>
-                    {opponent?.rank ?? "Placement"}
-                  </p>
+                  <div className="flex items-center justify-center gap-1 text-xs">
+                    <RankIcon
+                      rank={opponent?.rank ?? "Placement"}
+                      size={14}
+                      title={opponent?.rank ?? "Placement"}
+                    />
+                    <span className={getRankColor(opponent?.rank ?? "Placement")}>
+                      {opponent?.rank ?? "Placement"}
+                    </span>
+                  </div>
                 )}
               </div>
             </div>
@@ -367,9 +383,16 @@ export function ResultsScreen({
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-muted-foreground">Current Rank</p>
-                  <p className={`text-2xl font-bold ${getRankColor(getRankLabel(eloRecord.elo, eloRecord.matchesPlayed))}`}>
-                    {getRankLabel(eloRecord.elo, eloRecord.matchesPlayed)}
-                  </p>
+                  <div className="flex items-center justify-end gap-2">
+                    <RankIcon
+                      rank={currentRank}
+                      size={24}
+                      title={currentRank}
+                    />
+                    <p className={`text-2xl font-bold ${getRankColor(currentRank)}`}>
+                      {currentRank}
+                    </p>
+                  </div>
                 </div>
               </div>
             </CardContent>

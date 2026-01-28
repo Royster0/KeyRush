@@ -56,29 +56,32 @@ export async function signup(prevState: FormState, formData: FormData) {
   });
 
   if (signUpError) {
-    console.log(signUpError.message);
     return {
       error: "Error signing up user",
     };
   }
 
-  // Wait a second to ensure user is created
+  if (!authData.user) {
+    return {
+      error: "User creation failed unexpectedly",
+    };
+  }
+
+  // Wait for auth to propagate before creating profile
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   try {
     const { error: profileError } = await supabase.from("profiles").insert({
-      id: authData.user!.id,
+      id: authData.user.id,
       username: data.username,
     });
 
     if (profileError) {
-      console.log(profileError.message);
       return {
         error: "Error creating user profile.",
       };
     }
-  } catch (err) {
-    console.log("Profile creation error:", err);
+  } catch {
     return {
       error:
         "Account created but profile setup failed. Please contact support.",

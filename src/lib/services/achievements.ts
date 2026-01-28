@@ -95,8 +95,7 @@ export async function checkAchievements(
     }
 
     return achievements;
-  } catch (error) {
-    console.error("Error checking achievements:", error);
+  } catch {
     return [];
   }
 }

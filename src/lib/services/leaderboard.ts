@@ -32,7 +32,6 @@ export async function getUserLeaderboardRankings(): Promise<LeaderboardRanking[]
   });
 
   if (error) {
-    console.error("Error fetching rankings:", error);
     return [];
   }
 
@@ -69,7 +68,7 @@ export async function getLeaderboardData(
   });
 
   if (singleplayerError) {
-    console.error("Error fetching singleplayer leaderboard:", singleplayerError);
+    // Singleplayer leaderboard fetch failed, continue with empty array
   }
 
   const singleplayerEntries: LeaderboardEntry[] = ((singleplayerData as LeaderboardEntry[]) || []).map(entry => ({
@@ -107,9 +106,7 @@ export async function getLeaderboardData(
 
     const { data: multiplayerData, error: multiplayerError } = await multiplayerQuery;
 
-    if (multiplayerError) {
-      console.error("Error fetching multiplayer leaderboard:", multiplayerError);
-    } else if (multiplayerData) {
+    if (!multiplayerError && multiplayerData) {
       multiplayerEntries = multiplayerData.map((row: any) => ({
         username: row.profiles?.username || "Anonymous",
         wpm: row.wpm,
@@ -175,7 +172,6 @@ export async function getRankedLeaderboard(): Promise<RankedPlayer[]> {
     .limit(100);
 
   if (error) {
-    console.error("Error fetching ranked leaderboard:", error);
     return [];
   }
 
