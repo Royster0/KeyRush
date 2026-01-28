@@ -38,22 +38,99 @@ export function getPlacementRemaining(matchesPlayed: number) {
   return Math.max(0, PLACEMENT_MATCHES - matchesPlayed);
 }
 
+export type EloUpdateResult = {
+  newElo: number;
+  delta: number;
+};
+
+/**
+ * Calculate Elo rating change using a more sophisticated formula:
+ * - Graduated K-factor based on experience level
+ * - Rating floor to prevent going below minimum
+ * - Optional performance bonus for dominant wins
+ */
 export function calculateEloUpdate({
   currentElo,
   opponentElo,
   result,
-  isPlacement,
+  matchesPlayed,
+  playerWpm,
+  opponentWpm,
 }: {
   currentElo: number;
   opponentElo: number;
-  result: 0 | 0.5 | 1;
-  isPlacement: boolean;
-}) {
-  const expected = 1 / (1 + Math.pow(10, (opponentElo - currentElo) / 400));
-  const kFactor = isPlacement ? 64 : 32;
-  const delta = Math.round(kFactor * (result - expected));
-  return currentElo + delta;
+  result: 0 | 0.5 | 1; // 0 = loss, 0.5 = draw, 1 = win
+  matchesPlayed: number;
+  playerWpm?: number;
+  opponentWpm?: number;
+}): EloUpdateResult {
+  const RATING_FLOOR = 100;
+
+  // Expected score based on rating difference (standard Elo formula)
+  // If you're higher rated, expected > 0.5; if lower rated, expected < 0.5
+  const expectedScore = 1 / (1 + Math.pow(10, (opponentElo - currentElo) / 400));
+
+  // Dynamic K-factor based on experience
+  // Higher K = more volatile ratings (bigger swings)
+  const kFactor = getKFactor(matchesPlayed, currentElo);
+
+  // Base Elo change: K * (actual - expected)
+  // Beat higher-rated opponent: gain more (expected was low)
+  // Lose to lower-rated opponent: lose more (expected was high)
+  let delta = kFactor * (result - expectedScore);
+
+  // Performance bonus for dominant wins (optional, based on WPM margin)
+  if (result === 1 && playerWpm !== undefined && opponentWpm !== undefined) {
+    const marginBonus = calculateMarginBonus(playerWpm, opponentWpm);
+    delta += marginBonus;
+  }
+
+  // Round and apply floor
+  delta = Math.round(delta);
+  const newElo = Math.max(RATING_FLOOR, currentElo + delta);
+  const actualDelta = newElo - currentElo;
+
+  return { newElo, delta: actualDelta };
 }
+
+/**
+ * Get K-factor based on player experience and rating.
+ * - Placement (0-4 matches): K=64 (very volatile, find true skill quickly)
+ * - Provisional (5-14 matches): K=48 (still calibrating)
+ * - Established low-rated (<1200): K=32 (room to climb)
+ * - Established mid-rated (1200-1600): K=28
+ * - Established high-rated (1600+): K=24 (more stable at top)
+ */
+function getKFactor(matchesPlayed: number, currentElo: number): number {
+  if (matchesPlayed < PLACEMENT_MATCHES) {
+    return 64;
+  }
+  if (matchesPlayed < 15) {
+    return 48;
+  }
+  if (currentElo < 1200) {
+    return 32;
+  }
+  if (currentElo < 1600) {
+    return 28;
+  }
+  return 24;
+}
+
+/**
+ * Calculate bonus points for dominant wins.
+ * Rewards players who win by a significant WPM margin.
+ * Max bonus: +8 points for 40+ WPM advantage.
+ */
+function calculateMarginBonus(playerWpm: number, opponentWpm: number): number {
+  if (playerWpm <= opponentWpm) {
+    return 0;
+  }
+  const wpmMargin = playerWpm - opponentWpm;
+  // +1 point per 5 WPM advantage, capped at +8
+  return Math.min(8, Math.floor(wpmMargin / 5));
+}
+
 
 export function loadEloRecord(): EloRecord {
   if (typeof window === "undefined") {

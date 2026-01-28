@@ -395,21 +395,20 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
       return;
     }
 
-    const isPlacement = eloRecord.matchesPlayed < 5;
-    const updatedElo = calculateEloUpdate({
+    const { newElo, delta } = calculateEloUpdate({
       currentElo: eloRecord.elo,
       opponentElo: opponent.elo,
       result,
-      isPlacement,
+      matchesPlayed: eloRecord.matchesPlayed,
+      playerWpm: player.wpm,
+      opponentWpm: opponent.wpm,
     });
 
     const nextRecord = {
-      elo: updatedElo,
+      elo: newElo,
       matchesPlayed: eloRecord.matchesPlayed + 1,
       updatedAt: new Date().toISOString(),
     };
-
-    const delta = updatedElo - eloRecord.elo;
     setEloDelta(delta);
     setEloRecord(nextRecord);
     saveEloRecord(nextRecord);
@@ -418,7 +417,7 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
 
     // Animate elo change
     const from = eloRecord.elo;
-    const to = updatedElo;
+    const to = newElo;
     const start = performance.now();
     const durationMs = 1200;
 
@@ -435,12 +434,11 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
     setAnimatedElo(from);
     requestAnimationFrame(tick);
 
-    // Persist match results
+    // Persist match results (Elo is calculated server-side)
     if (user?.id && matchState) {
       const [player1Id, player2Id] = [player.id, opponent.id].sort();
       const winnerId =
         result === 1 ? player.id : result === 0 ? opponent.id : null;
-      const nextRank = getRankLabel(nextRecord.elo, nextRecord.matchesPlayed);
 
       const payload = {
         partyMatchId: matchState.matchId,
@@ -458,17 +456,12 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
           accuracy: player.accuracy,
           progress: player.progress,
           leftMatch: player.left,
-          eloBefore: eloRecord.elo,
-          eloAfter: nextRecord.elo,
-          rankTier: nextRank,
+          opponentWpm: opponent.wpm,
         },
-        profileUpdate: {
-          elo: nextRecord.elo,
-          rank_tier: nextRank,
-          matches_played: nextRecord.matchesPlayed,
-          wins: (user.profile?.wins ?? 0) + (result === 1 ? 1 : 0),
-          losses: (user.profile?.losses ?? 0) + (result === 0 ? 1 : 0),
-        },
+        // Server-side Elo calculation params
+        isRanked: matchState.mode === "ranked",
+        opponentId: opponent.id,
+        result, // 0 = loss, 0.5 = draw, 1 = win
       };
 
       // Fetch pre-save state, save results, then check achievements
@@ -476,11 +469,19 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
         try {
           const preSaveState = await getPreSaveState();
 
-          await fetch("/api/multiplayer/complete", {
+          const response = await fetch("/api/multiplayer/complete", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
           });
+
+          // Server returns authoritative Elo values
+          const data = await response.json();
+          if (data.elo) {
+            // Server calculated Elo - could update local state here if needed
+            // For now, we trust the client prediction for UI animation
+            // and the server has updated the database authoritatively
+          }
 
           // Check for achievements by comparing pre-save state with new result
           if (preSaveState) {
