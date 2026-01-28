@@ -6,8 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "../ui/button";
 import { generateText, cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import TimeSelect from "./TimeSelect";
-import { Timer, Gauge, RotateCcw } from "lucide-react";
+import GameControls from "./GameControls";
 import { useTextMeasurement } from "@/hooks/useTextMeasurement";
 import { useCalculateTypingStats } from "@/hooks/useCalculateTypingStats";
 import { useTypingInput } from "@/hooks/useTypingInput";
@@ -303,74 +302,20 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
         <CardHeader>
           <CardTitle className="flex justify-between items-center px-6 py">
             <div className="flex items-center justify-center w-full">
-              <motion.div
-                animate={{ opacity: isActive ? 0 : 1 }}
-                transition={{ duration: 0.3 }}
-                className="flex items-center gap-4 bg-secondary/50 px-4 py-2 rounded-md"
-              >
-                {/* Time Selection */}
-                <TimeSelect
-                  selectedTime={selectedTime}
-                  onTimeSelect={(time) => {
-                    setSelectedTime(time);
-                    localStorage.setItem(STORAGE_KEY_TIME_SELECTION, time.toString());
-                    restartTest();
-                  }}
-                  isActive={isActive}
-                  isVisible={true}
-                />
-
-                <div className="w-px h-4 bg-border" />
-
-                {/* Toggles */}
-                <div className="flex items-center gap-5">
-                  <button
-                    onClick={() => setShowTimer((prev) => !prev)}
-                    title="Toggle Timer"
-                    aria-label="Toggle Timer"
-                    className={cn(
-                      "text-sm font-medium transition-colors duration-200 flex items-center gap-2",
-                      showTimer
-                        ? "text-primary"
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    <Timer className="size-5" />
-                  </button>
-
-                  <button
-                    onClick={() => setShowWpm((prev) => !prev)}
-                    title="Toggle WPM"
-                    aria-label="Toggle WPM"
-                    className={cn(
-                      "text-sm font-medium transition-colors duration-200 flex items-center gap-2",
-                      showWpm
-                        ? "text-primary"
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    <Gauge className="size-5" />
-                  </button>
-                </div>
-
-                <div className="w-px h-4 bg-border" />
-
-                {/* Reset */}
-                <div className="flex items-center">
-                  <button
-                    onClick={restartTest}
-                    title="Reset Test"
-                    aria-label="Reset Test"
-                    className={cn(
-                      "text-sm font-medium transition-colors duration-200 flex items-center gap-2",
-                      "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    <RotateCcw className="size-5" />
-                  </button>
-                </div>
-
-              </motion.div>
+              <GameControls
+                selectedTime={selectedTime}
+                onTimeSelect={(time) => {
+                  setSelectedTime(time);
+                  localStorage.setItem(STORAGE_KEY_TIME_SELECTION, time.toString());
+                  restartTest();
+                }}
+                showTimer={showTimer}
+                onToggleTimer={() => setShowTimer((prev) => !prev)}
+                showWpm={showWpm}
+                onToggleWpm={() => setShowWpm((prev) => !prev)}
+                onReset={restartTest}
+                isActive={isActive}
+              />
             </div>
           </CardTitle>
         </CardHeader>
