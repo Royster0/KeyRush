@@ -10,18 +10,61 @@ import {
 import { Button } from "@/components/ui/button";
 import { Palette, Plus } from "lucide-react";
 import Link from "next/link";
-import { useCustomTheme } from "@/hooks/useCustomTheme";
+import { useCustomTheme, CustomTheme, DEFAULT_THEME_COLORS } from "@/hooks/useCustomTheme";
 import { cn } from "@/lib/utils";
+import { hexToHsl } from "@/lib/colors";
 import { useState } from "react";
 
 export function ThemeModal() {
     const { presets, customThemes, applyTheme } = useCustomTheme();
     const [open, setOpen] = useState(false);
+    const [isSelecting, setIsSelecting] = useState(false);
 
-    const allThemes = [...presets, ...customThemes];
+    const builtInThemes: CustomTheme[] = [
+        {
+            id: "light",
+            name: "Light",
+            colors: DEFAULT_THEME_COLORS,
+        },
+        {
+            id: "dark",
+            name: "Dark",
+            colors: {
+                background: hexToHsl("#0a0a0a"),
+                foreground: hexToHsl("#fafafa"),
+                card: hexToHsl("#0a0a0a"),
+                cardForeground: hexToHsl("#fafafa"),
+                popover: hexToHsl("#0a0a0a"),
+                popoverForeground: hexToHsl("#fafafa"),
+                primary: hexToHsl("#fafafa"),
+                primaryForeground: hexToHsl("#18181b"),
+                secondary: hexToHsl("#27272a"),
+                secondaryForeground: hexToHsl("#fafafa"),
+                muted: hexToHsl("#27272a"),
+                mutedForeground: hexToHsl("#a1a1aa"),
+                accent: hexToHsl("#27272a"),
+                accentForeground: hexToHsl("#fafafa"),
+                destructive: hexToHsl("#ef4444"),
+                destructiveForeground: hexToHsl("#fafafa"),
+                border: hexToHsl("#27272a"),
+                input: hexToHsl("#27272a"),
+                ring: hexToHsl("#d4d4d8"),
+            },
+        },
+    ];
+
+    const allThemes = [...builtInThemes, ...presets, ...customThemes];
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog
+            open={open}
+            onOpenChange={(nextOpen) => {
+                setOpen(nextOpen);
+                if (!nextOpen) {
+                    setIsSelecting(false);
+                }
+            }}
+        >
             <DialogTrigger asChild>
                 <Button
                     variant="outline"
@@ -44,8 +87,12 @@ export function ThemeModal() {
                                 "group relative flex flex-col items-center gap-2 rounded-lg border p-4 hover:bg-accent transition-all duration-200",
                                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                             )}
-                            onMouseEnter={() => applyTheme(theme.id)}
+                            onMouseEnter={() => {
+                                if (isSelecting) return;
+                                applyTheme(theme.id);
+                            }}
                             onClick={() => {
+                                setIsSelecting(true);
                                 applyTheme(theme.id);
                                 setOpen(false);
                             }}

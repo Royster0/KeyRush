@@ -24,6 +24,7 @@ import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "./sheet";
 import { AnnouncementBar } from "./AnnouncementBar";
 import { KeyRushLogo } from "./KeyRushLogo";
 import { useGameContext } from "@/contexts/GameContext";
+import { ThemeModal } from "../ThemeModal";
 
 export default function Nav() {
   const pathname = usePathname();
@@ -103,6 +104,9 @@ export default function Nav() {
   }, []);
 
   const isActive = (path: string) => pathname === path;
+  const showThemeModal = ["/multiplayer", "/leaderboard", "/about", "/profile"].some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`)
+  );
 
   const navItems = [
     {
@@ -155,6 +159,7 @@ export default function Nav() {
   };
 
   return (
+    <>
     <div className="fixed top-0 left-0 right-0 z-50 mb-10">
       {/* <AnnouncementBar
         message="Services are currently offline pending database upgrade"
@@ -280,5 +285,7 @@ export default function Nav() {
         </div>
       </nav>
     </div>
+    {showThemeModal && <ThemeModal />}
+    </>
   );
 }
