@@ -8,6 +8,7 @@ import MultiplayerMatch from "./MultiplayerMatch";
 import { QueueScreen } from "./QueueScreen";
 import { LobbyScreen } from "./LobbyScreen";
 import { ResultsScreen } from "./ResultsScreen";
+import { RankChangeAnimation } from "./RankChangeAnimation";
 import { MatchPhase, MatchState, ServerMessage } from "@/types/multiplayer.types";
 import {
   ANON_ID_KEY,
@@ -55,6 +56,11 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
   const [inviteLink, setInviteLink] = useState<string | null>(null);
   const [inviteExpiresAt, setInviteExpiresAt] = useState<number | null>(null);
   const [achievementQueue, setAchievementQueue] = useState<AchievementData[]>([]);
+  const [rankChange, setRankChange] = useState<{
+    previousRank: string;
+    newRank: string;
+    isRankUp: boolean;
+  } | null>(null);
 
   const queueSocketRef = useRef<PartySocket | null>(null);
   const matchSocketRef = useRef<PartySocket | null>(null);
@@ -132,6 +138,7 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
     setInviteLink(null);
     setInviteExpiresAt(null);
     setAchievementQueue([]);
+    setRankChange(null);
     hasUpdatedEloRef.current = false;
     lastPlayerSecondRef.current = null;
     lastOpponentSecondRef.current = null;
@@ -395,6 +402,9 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
       return;
     }
 
+    // Capture previous rank before Elo update
+    const previousRank = getRankLabel(eloRecord.elo, eloRecord.matchesPlayed);
+
     const { newElo, delta } = calculateEloUpdate({
       currentElo: eloRecord.elo,
       opponentElo: opponent.elo,
@@ -409,6 +419,22 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
       matchesPlayed: eloRecord.matchesPlayed + 1,
       updatedAt: new Date().toISOString(),
     };
+
+    // Calculate new rank and detect rank change
+    const newRank = getRankLabel(newElo, nextRecord.matchesPlayed);
+    if (previousRank !== newRank && newRank !== "Placement") {
+      // Determine rank order for comparison (Placement → Any Rank is always a rank up)
+      const rankOrder = ["Bronze", "Silver", "Gold", "Platinum", "Diamond", "Sonic", "Mach", "Tachyon"];
+      const prevIndex = previousRank === "Placement" ? -1 : rankOrder.indexOf(previousRank);
+      const newIndex = rankOrder.indexOf(newRank);
+      const isRankUp = newIndex > prevIndex;
+
+      // Delay rank change animation to show after Elo animation completes
+      setTimeout(() => {
+        setRankChange({ previousRank, newRank, isRankUp });
+      }, 1500);
+    }
+
     setEloDelta(delta);
     setEloRecord(nextRecord);
     saveEloRecord(nextRecord);
@@ -620,6 +646,15 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
           />
         )}
       </div>
+
+      {/* Rank Change Animation */}
+      <RankChangeAnimation
+        isOpen={rankChange !== null}
+        onComplete={() => setRankChange(null)}
+        previousRank={rankChange?.previousRank ?? ""}
+        newRank={rankChange?.newRank ?? ""}
+        isRankUp={rankChange?.isRankUp ?? true}
+      />
 
       {/* Congratulations Modal */}
       <CongratsModal
