@@ -14,8 +14,10 @@ import { useSettings } from "@/hooks/useSettings";
 import GameStats from "./GameStats";
 import { AnimatePresence, motion } from "framer-motion";
 import Character from "./Character";
-import { saveTestResult } from "@/app/actions";
+import { saveTestResult, checkAchievements, getPreSaveState } from "@/app/actions";
 import toast from "react-hot-toast";
+import { CongratsModal } from "@/components/CongratsModal";
+import type { AchievementData } from "@/lib/services/achievements";
 import dynamic from "next/dynamic";
 import { ThemeModal } from "../ThemeModal";
 import { useGameContext } from "@/contexts/GameContext";
@@ -49,6 +51,7 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
   );
   const { caretSpeed, singleplayerWidth } = useSettings();
   const { setIsGameActive } = useGameContext();
+  const [achievementQueue, setAchievementQueue] = useState<AchievementData[]>([]);
 
   const textRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -89,6 +92,7 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
     setIsAfk(false);
     setWpmHistory([]);
     setIsGameActive(false);
+    setAchievementQueue([]);
 
     // Refocus on test
     setTimeout(() => {
@@ -241,7 +245,18 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
     }
 
     try {
+      // Fetch pre-save state BEFORE saving to compare against
+      const preSaveState = await getPreSaveState();
+
       await saveTestResult(resultData);
+
+      // Check for achievements by comparing pre-save state with new result
+      if (preSaveState) {
+        const achievements = await checkAchievements(wpm, selectedTime, preSaveState);
+        if (achievements.length > 0) {
+          setAchievementQueue(achievements);
+        }
+      }
     } catch (error) {
       console.log("Failed to save user test scores:", error);
     }
@@ -421,6 +436,13 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
 
       {/* Floating Theme Toggle */}
       <ThemeModal />
+
+      {/* Congratulations Modal */}
+      <CongratsModal
+        open={achievementQueue.length > 0}
+        onClose={() => setAchievementQueue((prev) => prev.slice(1))}
+        achievement={achievementQueue[0] ?? null}
+      />
     </div>
   );
 };
