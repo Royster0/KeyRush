@@ -13,7 +13,7 @@ import Link from "next/link";
 import { useCustomTheme, CustomTheme, DEFAULT_THEME_COLORS } from "@/hooks/useCustomTheme";
 import { cn } from "@/lib/utils";
 import { hexToHsl } from "@/lib/colors";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function ThemeModal() {
     const { presets, customThemes, applyTheme } = useCustomTheme();
@@ -54,6 +54,12 @@ export function ThemeModal() {
     ];
 
     const allThemes = [...builtInThemes, ...presets, ...customThemes];
+
+    useEffect(() => {
+        if (open) {
+            setIsSelecting(false);
+        }
+    }, [open]);
 
     return (
         <Dialog
