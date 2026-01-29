@@ -35,7 +35,6 @@ export async function signup(prevState: FormState, formData: FormData) {
   const data = {
     email: formData.get("email") as string,
     password: formData.get("password") as string,
-    username: formData.get("username") as string,
   };
 
   if (data.password.length < 6) {
@@ -43,19 +42,10 @@ export async function signup(prevState: FormState, formData: FormData) {
       error: "Password must be at least 6 characters long",
     };
   }
-  if (data.username.length < 3) {
-    return {
-      error: "Username must be at least 3 characters long",
-    };
-  }
 
-  // Create user with pending username stored in metadata
   const { data: authData, error: signUpError } = await supabase.auth.signUp({
     email: data.email,
     password: data.password,
-    options: {
-      data: { pending_username: data.username },
-    },
   });
 
   if (signUpError || !authData.user) {

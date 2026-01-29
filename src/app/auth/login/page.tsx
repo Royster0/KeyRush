@@ -109,13 +109,6 @@ export default function AuthPage() {
                   required
                   className="w-full"
                 />
-                <Input
-                  name="username"
-                  type="text"
-                  placeholder="Username"
-                  required
-                  className="w-full"
-                />
               </div>
               <SubmitButton>Sign Up</SubmitButton>
               <Button

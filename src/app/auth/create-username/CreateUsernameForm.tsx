@@ -30,11 +30,7 @@ const initialState = {
   error: "",
 };
 
-interface CreateUsernameFormProps {
-  defaultUsername?: string;
-}
-
-export function CreateUsernameForm({ defaultUsername }: CreateUsernameFormProps) {
+export function CreateUsernameForm() {
   const [state, action] = useActionState(createUsername, initialState);
 
   useEffect(() => {
@@ -58,7 +54,6 @@ export function CreateUsernameForm({ defaultUsername }: CreateUsernameFormProps)
               name="username"
               type="text"
               placeholder="Username"
-              defaultValue={defaultUsername}
               required
               minLength={3}
               className="w-full"

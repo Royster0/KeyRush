@@ -19,11 +19,7 @@ export async function createUsername(prevState: FormState, formData: FormData) {
     };
   }
 
-  // Get username from form OR from signup metadata (for email signup flow)
-  let username = formData.get("username") as string | null;
-  if (!username) {
-    username = user.user_metadata?.pending_username as string | null;
-  }
+  const username = formData.get("username") as string | null;
 
   if (!username || username.length < 3) {
     return {
@@ -31,11 +27,11 @@ export async function createUsername(prevState: FormState, formData: FormData) {
     };
   }
 
-  // Check if username is taken
+  // Check if username is taken (case-insensitive)
   const { data: existingUser } = await supabase
     .from("profiles")
     .select("username")
-    .eq("username", username)
+    .ilike("username", username)
     .single();
 
   if (existingUser) {
@@ -50,6 +46,12 @@ export async function createUsername(prevState: FormState, formData: FormData) {
   });
 
   if (error) {
+    // Check for unique constraint violation (PostgreSQL error code 23505)
+    if (error.code === "23505") {
+      return {
+        error: "Username is already taken",
+      };
+    }
     return {
       error: "Failed to create username. Please try again.",
     };
