@@ -6,6 +6,7 @@ import ActivityGraph from "@/components/profile/ActivityGraph";
 import WpmChart from "@/components/profile/WpmChart";
 import LoadingProfile from "@/components/profile/LoadingProfile";
 import RankedStatsCard from "@/components/profile/RankedStatsCard";
+import XpProgressCard from "@/components/profile/XpProgressCard";
 import { formatDate } from "@/lib/utils";
 
 const ProfileContent = async () => {
@@ -25,6 +26,11 @@ const ProfileContent = async () => {
         joinDate={joinDate}
         testsCompleted={testResults.length}
         leaderboardRankings={leaderboardRankings}
+      />
+
+      <XpProgressCard
+        totalXp={user?.profile?.total_xp ?? 0}
+        level={user?.profile?.level ?? 1}
       />
 
       <RankedStatsCard profile={user?.profile ?? null} />

@@ -25,6 +25,8 @@ import { AnnouncementBar } from "./AnnouncementBar";
 import { KeyRushLogo } from "./KeyRushLogo";
 import { useGameContext } from "@/contexts/GameContext";
 import { ThemeModal } from "../ThemeModal";
+import { XpBar } from "./XpBar";
+import { getLevelProgress } from "@/lib/xp";
 
 export default function Nav() {
   const pathname = usePathname();
@@ -67,6 +69,26 @@ export default function Nav() {
   useEffect(() => {
     fetchUser();
   }, [pathname]);
+
+  // Listen for XP updates from game completion
+  useEffect(() => {
+    const handleXpUpdate = (event: CustomEvent<{ totalXp: number; level: number }>) => {
+      setUser((prev) => {
+        if (!prev?.profile) return prev;
+        return {
+          ...prev,
+          profile: {
+            ...prev.profile,
+            total_xp: event.detail.totalXp,
+            level: event.detail.level,
+          },
+        };
+      });
+    };
+
+    window.addEventListener("xp-updated", handleXpUpdate as EventListener);
+    return () => window.removeEventListener("xp-updated", handleXpUpdate as EventListener);
+  }, []);
 
   // Check for pending results on login
   useEffect(() => {
@@ -199,11 +221,19 @@ export default function Nav() {
               >
                 <Link
                   href="/profile"
-                  className="hover:text-primary transition-all flex items-center gap-2"
+                  className="hover:text-primary transition-all flex flex-col gap-1"
                   title="Profile"
                 >
-                  <User2 className="size-5" />
-                  {user.profile?.username}
+                  <div className="flex items-center gap-2">
+                    <User2 className="size-5" />
+                    {user.profile?.username}
+                  </div>
+                  {user.profile && (
+                    <XpBar
+                      level={user.profile.level ?? 1}
+                      progress={getLevelProgress(user.profile.total_xp ?? 0).progress}
+                    />
+                  )}
                 </Link>
                 <LogoutButton />
               </div>
@@ -237,15 +267,23 @@ export default function Nav() {
                       <>
                         <Link
                           href="/profile"
-                          className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors
+                          className={`flex flex-col gap-1 px-4 py-2 rounded-md transition-colors
                               ${isActive("/profile")
                               ? "bg-primary text-primary-foreground"
                               : "hover:bg-muted"
                             }`}
                           onClick={() => setIsOpen(false)}
                         >
-                          <User2 className="h-4 w-4" />
-                          {user.profile?.username || "Profile"}
+                          <div className="flex items-center gap-2">
+                            <User2 className="h-4 w-4" />
+                            {user.profile?.username || "Profile"}
+                          </div>
+                          {user.profile && (
+                            <XpBar
+                              level={user.profile.level ?? 1}
+                              progress={getLevelProgress(user.profile.total_xp ?? 0).progress}
+                            />
+                          )}
                         </Link>
                         <form action={signOut}>
                           <Button
