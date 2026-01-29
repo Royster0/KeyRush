@@ -17,5 +17,7 @@ export type UserWithProfile = User & {
     matches_played?: number | null;
     wins?: number | null;
     losses?: number | null;
+    total_xp?: number | null;
+    level?: number | null;
   } | null;
 };

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { calculateXpGain } from "@/lib/xp";
+import { XpAwardResultSchema, mapDbXpAwardToModel, type XpAwardResult } from "@/lib/schemas/xp";
 
 type EloUpdateResult = {
   previous_elo: number;
@@ -110,9 +112,44 @@ export async function POST(request: Request) {
     }
   }
 
+  // Award XP for the match
+  let xpResult: XpAwardResult | null = null;
+  const activeTypingSeconds = (duration || 30) * (stats.accuracy / 100);
+  const wpmMargin = result === 1 && stats.opponentWpm
+    ? Math.max(0, stats.wpm - stats.opponentWpm)
+    : 0;
+
+  const xpAmount = calculateXpGain({
+    activeTypingSeconds,
+    accuracy: stats.accuracy,
+    isMultiplayer: true,
+    wpmMargin,
+  });
+
+  if (xpAmount > 0) {
+    const { data: xpData, error: xpError } = await supabase.rpc("award_xp", {
+      p_user_id: user.id,
+      p_xp_amount: xpAmount,
+    });
+
+    if (xpError) {
+      console.error("XP award error:", xpError);
+      // Don't fail the request, just log the error
+    } else {
+      const row = Array.isArray(xpData) ? xpData[0] : xpData;
+      if (row) {
+        const parsed = XpAwardResultSchema.safeParse(row);
+        if (parsed.success) {
+          xpResult = mapDbXpAwardToModel(parsed.data);
+        }
+      }
+    }
+  }
+
   return NextResponse.json({
     ok: true,
     matchId: matchRow.id,
     elo: eloResult,
+    xp: xpResult,
   });
 }

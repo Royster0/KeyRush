@@ -14,10 +14,12 @@ import { useSettings } from "@/hooks/useSettings";
 import GameStats from "./GameStats";
 import { AnimatePresence, motion } from "framer-motion";
 import Character from "./Character";
-import { saveTestResult, checkAchievements, getPreSaveState } from "@/app/actions";
+import { saveTestResult, checkAchievements, getPreSaveState, awardXp } from "@/app/actions";
 import toast from "react-hot-toast";
 import { CongratsModal } from "@/components/CongratsModal";
+import { LevelUpModal, type LevelUpData } from "@/components/LevelUpModal";
 import type { AchievementData } from "@/lib/services/achievements";
+import { useActiveTypingTime } from "@/hooks/useActiveTypingTime";
 import dynamic from "next/dynamic";
 import { ThemeModal } from "../ThemeModal";
 import { useGameContext } from "@/contexts/GameContext";
@@ -52,6 +54,7 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
   const { caretSpeed, singleplayerWidth } = useSettings();
   const { setIsGameActive } = useGameContext();
   const [achievementQueue, setAchievementQueue] = useState<AchievementData[]>([]);
+  const [levelUpData, setLevelUpData] = useState<LevelUpData | null>(null);
 
   const textRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -67,10 +70,18 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
     text,
     isActive: !isFinished, // Allow typing before active for first keystroke detection
     isFinished,
-    onTypedChange: () => setLastTypedTime(Date.now()),
+    onTypedChange: () => {
+      setLastTypedTime(Date.now());
+      recordKeystroke();
+    },
   });
 
   const measureText = useTextMeasurement(containerRef);
+  const {
+    recordKeystroke,
+    getActiveSeconds,
+    reset: resetActiveTime,
+  } = useActiveTypingTime();
   const calculatedStats = useCalculateTypingStats(
     startTime,
     totalKeystrokes,
@@ -93,6 +104,8 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
     setWpmHistory([]);
     setIsGameActive(false);
     setAchievementQueue([]);
+    setLevelUpData(null);
+    resetActiveTime();
 
     // Refocus on test
     setTimeout(() => {
@@ -100,7 +113,7 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
         textRef.current.focus();
       }
     }, 0);
-  }, [selectedTime, setIsGameActive, resetTyping]);
+  }, [selectedTime, setIsGameActive, resetTyping, resetActiveTime]);
 
   // Load saved time on mount
   useEffect(() => {
@@ -257,10 +270,39 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
           setAchievementQueue(achievements);
         }
       }
+
+      // Award XP for the test
+      const activeSeconds = getActiveSeconds();
+      if (activeSeconds > 0) {
+        const xpResult = await awardXp({
+          activeTypingSeconds: activeSeconds,
+          accuracy: accuracy,
+          isMultiplayer: false,
+        });
+
+        if (xpResult) {
+          // Notify Nav to update XP bar
+          window.dispatchEvent(new CustomEvent("xp-updated", {
+            detail: {
+              totalXp: xpResult.newXp,
+              level: xpResult.newLevel,
+            }
+          }));
+
+          // Show level-up modal if user leveled up
+          if (xpResult.leveledUp) {
+            setLevelUpData({
+              oldLevel: xpResult.previousLevel,
+              newLevel: xpResult.newLevel,
+              xpGained: xpResult.xpGained,
+            });
+          }
+        }
+      }
     } catch {
       // Test result save failed silently - user can retry
     }
-  }, [wpm, rawWpm, accuracy, selectedTime, isFinished, isAfk, user]);
+  }, [wpm, rawWpm, accuracy, selectedTime, isFinished, isAfk, user, getActiveSeconds]);
 
   useEffect(() => {
     if (isFinished) {
@@ -442,6 +484,13 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
         open={achievementQueue.length > 0}
         onClose={() => setAchievementQueue((prev) => prev.slice(1))}
         achievement={achievementQueue[0] ?? null}
+      />
+
+      {/* Level Up Modal */}
+      <LevelUpModal
+        open={levelUpData !== null}
+        onClose={() => setLevelUpData(null)}
+        data={levelUpData}
       />
     </div>
   );

@@ -4,6 +4,7 @@ import * as userServices from "@/lib/services/user";
 import * as testResultServices from "@/lib/services/test-results";
 import * as leaderboardServices from "@/lib/services/leaderboard";
 import * as achievementServices from "@/lib/services/achievements";
+import * as xpServices from "@/lib/services/xp";
 import { TestResults } from "@/types/game.types";
 import { redirect } from "next/navigation";
 
@@ -65,5 +66,26 @@ export async function checkAchievements(
     return [];
   }
   return achievementServices.checkAchievements(wpm, duration, preSaveState);
+}
+
+export async function awardXp(params: {
+  activeTypingSeconds: number;
+  accuracy: number;
+  isMultiplayer?: boolean;
+  wpmMargin?: number;
+}) {
+  const user = await userServices.getUser();
+  if (!user) {
+    return null;
+  }
+  return xpServices.awardXp(params);
+}
+
+export async function getUserXpProgress() {
+  const user = await userServices.getUser();
+  if (!user) {
+    return null;
+  }
+  return xpServices.getUserXpProgress();
 }
 
