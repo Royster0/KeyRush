@@ -21,7 +21,7 @@ export async function getUser() {
   // Get user profile with username
   const { data: profile } = await supabase
     .from("profiles")
-    .select("username, created_at, elo, rank_tier, matches_played, wins, losses, total_xp, level")
+    .select("username, created_at, elo, rank_tier, matches_played, wins, losses, total_xp, level, friend_code")
     .eq("id", user.id)
     .single();
       

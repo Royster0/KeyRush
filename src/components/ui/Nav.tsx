@@ -1,10 +1,11 @@
 "use client";
 
-import { signOut, saveTestResult } from "@/app/actions";
+import { signOut, saveTestResult, respondToFriendRequest } from "@/app/actions";
 import toast from "react-hot-toast";
 import { createClient } from "@/utils/supabase/client";
 import { UserWithProfile } from "@/types/auth.types";
 import {
+  Check,
   Home,
   Info,
   LogIn,
@@ -14,11 +15,11 @@ import {
   Trophy,
   User2,
   Users,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LogoutButton } from "../ui/LogoutButton";
 import { Button } from "./button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "./sheet";
 import { AnnouncementBar } from "./AnnouncementBar";
@@ -70,9 +71,26 @@ export default function Nav() {
     fetchUser();
   }, [pathname]);
 
+  const handleFriendRequestAction = async (
+    requestId: string,
+    action: "accepted" | "declined",
+  ) => {
+    const result = await respondToFriendRequest(requestId, action);
+    if (!result.ok) {
+      toast.error(result.error);
+      return false;
+    }
+    toast.success(
+      action === "accepted" ? "Friend added!" : "Request declined.",
+    );
+    return true;
+  };
+
   // Listen for XP updates from game completion
   useEffect(() => {
-    const handleXpUpdate = (event: CustomEvent<{ totalXp: number; level: number }>) => {
+    const handleXpUpdate = (
+      event: CustomEvent<{ totalXp: number; level: number }>,
+    ) => {
       setUser((prev) => {
         if (!prev?.profile) return prev;
         return {
@@ -87,7 +105,8 @@ export default function Nav() {
     };
 
     window.addEventListener("xp-updated", handleXpUpdate as EventListener);
-    return () => window.removeEventListener("xp-updated", handleXpUpdate as EventListener);
+    return () =>
+      window.removeEventListener("xp-updated", handleXpUpdate as EventListener);
   }, []);
 
   // Check for pending results on login
@@ -124,10 +143,121 @@ export default function Nav() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Track online presence for friends
+  useEffect(() => {
+    if (!user?.id) return;
+    const supabase = createClient();
+    const channel = supabase.channel("online-users", {
+      config: { presence: { key: user.id } },
+    });
+
+    channel.subscribe((status) => {
+      if (status === "SUBSCRIBED") {
+        channel.track({ user_id: user.id });
+      }
+    });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
+
+  // Live friend request notifications
+  useEffect(() => {
+    if (!user?.id) return;
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`friend-requests-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "friend_requests",
+          filter: `receiver_id=eq.${user.id}`,
+        },
+        async (payload) => {
+          const request = payload.new as {
+            id?: string;
+            sender_id?: string;
+            status?: string;
+          };
+          if (
+            !request.id ||
+            !request.sender_id ||
+            (request.status && request.status !== "pending")
+          ) {
+            return;
+          }
+
+          const { data: senderProfile } = await supabase
+            .from("profiles")
+            .select("username")
+            .eq("id", request.sender_id)
+            .single();
+
+          const senderName = senderProfile?.username || "Someone";
+
+          toast.custom(
+            (t) => (
+              <div className="w-72 rounded-lg border border-border bg-background p-4 shadow-lg">
+                <p className="font-semibold">Friend request</p>
+                <p className="text-sm text-muted-foreground">
+                  {senderName} wants to add you.
+                </p>
+                <div className="mt-3 flex gap-2">
+                  <Button
+                    size="sm"
+                    onClick={async () => {
+                      const ok = await handleFriendRequestAction(
+                        request.id!,
+                        "accepted",
+                      );
+                      if (ok) {
+                        toast.dismiss(t.id);
+                      }
+                    }}
+                  >
+                    <Check className="h-4 w-4" />
+                    Accept
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={async () => {
+                      const ok = await handleFriendRequestAction(
+                        request.id!,
+                        "declined",
+                      );
+                      if (ok) {
+                        toast.dismiss(t.id);
+                      }
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                    Decline
+                  </Button>
+                </div>
+              </div>
+            ),
+            { duration: 10000 },
+          );
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
+
   const isActive = (path: string) => pathname === path;
-  const showThemeModal = ["/multiplayer", "/leaderboard", "/about", "/profile"].some(
-    (path) => pathname === path || pathname.startsWith(`${path}/`)
-  );
+  const showThemeModal = [
+    "/multiplayer",
+    "/leaderboard",
+    "/about",
+    "/profile",
+  ].some((path) => pathname === path || pathname.startsWith(`${path}/`));
 
   const navItems = [
     {
@@ -181,148 +311,200 @@ export default function Nav() {
 
   return (
     <>
-    <div className="fixed top-0 left-0 right-0 z-50 mb-10">
-      {/* <AnnouncementBar
+      <div className="fixed top-0 left-0 right-0 z-50 mb-10">
+        {/* <AnnouncementBar
         message="Services are currently offline pending database upgrade"
         storageKey="announcement-db-upgrade-2025-12-01"
       /> */}
-      <nav
-        className={`transition-all duration-200 bg-background/95 backdrop-blur-sm ${scrolled ? "shadow-md" : ""
+        <nav
+          className={`transition-all duration-200 bg-background/95 backdrop-blur-sm ${
+            scrolled ? "shadow-md" : ""
           }`}
-      >
-        <div className="container mx-auto px-4">
-          <div className="flex h-16 items-center justify-between">
-            {/* Title */}
-            <Link
-              href="/"
-              className="flex items-center gap-2 text-2xl font-bold text-foreground group"
-              aria-label="Home"
-              title="Home"
-            >
-              <div className="size-8 text-primary transition-colors group-hover:text-primary/80">
-                <KeyRushLogo />
-              </div>
-              KeyRush
-            </Link>
-
-            {/* Site Nav - fades during typing test */}
-            <div
-              className="hidden md:flex items-center space-x-4 transition-opacity duration-300"
-              style={{ opacity: isGameActive ? 0 : 1 }}
-            >
-              <NavLinks />
-            </div>
-
-            {/* User - fades during typing test */}
-            {user ? (
-              <div
-                className="hidden md:flex items-center space-x-8 transition-opacity duration-300"
-                style={{ opacity: isGameActive ? 0 : 1 }}
-              >
-                <Link
-                  href="/profile"
-                  className="hover:text-primary transition-all flex flex-col gap-1"
-                  title="Profile"
-                >
-                  <div className="flex items-center gap-2">
-                    <User2 className="size-5" />
-                    {user.profile?.username}
-                  </div>
-                  {user.profile && (
-                    <XpBar
-                      level={user.profile.level ?? 1}
-                      progress={getLevelProgress(user.profile.total_xp ?? 0).progress}
-                    />
-                  )}
-                </Link>
-                <LogoutButton />
-              </div>
-            ) : (
+        >
+          <div className="container mx-auto px-4">
+            <div className="flex h-16 items-center justify-between">
+              {/* Title */}
               <Link
-                href="/auth/login"
-                className="hover:text-primary transition-all transition-opacity duration-300"
-                style={{ opacity: isGameActive ? 0 : 1 }}
-                aria-label="Login"
-                title="Login"
+                href="/"
+                className="flex items-center gap-2 text-2xl font-bold text-foreground group"
+                aria-label="Home"
+                title="Home"
               >
-                <LogIn className="size-5" />
+                <div className="size-8 text-primary transition-colors group-hover:text-primary/80">
+                  <KeyRushLogo />
+                </div>
+                KeyRush
               </Link>
-            )}
-          </div>
 
-          {/* Mobile Menu */}
-          <div className="md:hidden">
-            <Sheet open={isOpen} onOpenChange={setIsOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label="Open menu">
-                  <Menu className="size-6" />
-                </Button>
-              </SheetTrigger>
-              <SheetTitle aria-describedby="Navigation Menu" />
-              <SheetContent side="right" className="w-64 z-[100]">
-                <div className="flex flex-col space-y-4 mt-8">
-                  <NavLinks />
-                  <div className="border-t pt-4">
-                    {user ? (
-                      <>
+              {/* Site Nav - fades during typing test */}
+              <div
+                className="hidden md:flex items-center space-x-4 transition-opacity duration-300"
+                style={{ opacity: isGameActive ? 0 : 1 }}
+              >
+                <NavLinks />
+              </div>
+
+              {/* User - fades during typing test */}
+              {user ? (
+                <div
+                  className="hidden md:flex items-center space-x-8 transition-opacity duration-300"
+                  style={{ opacity: isGameActive ? 0 : 1 }}
+                >
+                  <div className="relative group">
+                    <Link
+                      href="/profile"
+                      className="hover:text-primary transition-all flex flex-col gap-1"
+                      title="Profile"
+                    >
+                      <div className="flex items-center gap-2">
+                        <User2 className="size-5" />
+                        {user.profile?.username}
+                      </div>
+                      {user.profile && (
+                        <XpBar
+                          level={user.profile.level ?? 1}
+                          progress={
+                            getLevelProgress(user.profile.total_xp ?? 0)
+                              .progress
+                          }
+                        />
+                      )}
+                    </Link>
+                    <div className="absolute left-0 top-full w-48 rounded-lg border border-border/60 bg-background/95 shadow-lg opacity-0 translate-y-1 pointer-events-none transition-all group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto">
+                      <div className="py-1">
                         <Link
                           href="/profile"
-                          className={`flex flex-col gap-1 px-4 py-2 rounded-md transition-colors
-                              ${isActive("/profile")
-                              ? "bg-primary text-primary-foreground"
-                              : "hover:bg-muted"
-                            }`}
-                          onClick={() => setIsOpen(false)}
+                          className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted"
                         >
-                          <div className="flex items-center gap-2">
-                            <User2 className="h-4 w-4" />
-                            {user.profile?.username || "Profile"}
-                          </div>
-                          {user.profile && (
-                            <XpBar
-                              level={user.profile.level ?? 1}
-                              progress={getLevelProgress(user.profile.total_xp ?? 0).progress}
-                            />
-                          )}
+                          <User2 className="h-4 w-4" />
+                          Profile
                         </Link>
+                        <Link
+                          href="/friends"
+                          className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted"
+                        >
+                          <Users className="h-4 w-4" />
+                          Friends
+                        </Link>
+                        <div className="my-1 border-t border-border/60" />
                         <form action={signOut}>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="w-full justify-start gap-2 mt-2"
+                          <button
+                            type="submit"
+                            className="flex w-full items-center gap-2 px-4 py-2 text-sm hover:bg-muted"
                           >
                             <LogOut className="h-4 w-4" />
                             Logout
-                          </Button>
+                          </button>
                         </form>
-                      </>
-                    ) : (
-                      <div className="space-y-2">
-                        <Link
-                          href="/auth/login"
-                          onClick={() => setIsOpen(false)}
-                        >
-                          <Button variant="ghost" className="w-full">
-                            Login
-                          </Button>
-                        </Link>
-                        <Link
-                          href="/auth/register"
-                          onClick={() => setIsOpen(false)}
-                        >
-                          <Button className="w-full">Register</Button>
-                        </Link>
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
-              </SheetContent>
-            </Sheet>
+              ) : (
+                <Link
+                  href="/auth/login"
+                  className="hover:text-primary transition-opacity duration-300"
+                  style={{ opacity: isGameActive ? 0 : 1 }}
+                  aria-label="Login"
+                  title="Login"
+                >
+                  <LogIn className="size-5" />
+                </Link>
+              )}
+            </div>
+
+            {/* Mobile Menu */}
+            <div className="md:hidden">
+              <Sheet open={isOpen} onOpenChange={setIsOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" aria-label="Open menu">
+                    <Menu className="size-6" />
+                  </Button>
+                </SheetTrigger>
+                <SheetTitle aria-describedby="Navigation Menu" />
+                <SheetContent side="right" className="w-64 z-[100]">
+                  <div className="flex flex-col space-y-4 mt-8">
+                    <NavLinks />
+                    <div className="border-t pt-4">
+                      {user ? (
+                        <>
+                          <Link
+                            href="/friends"
+                            className={`flex flex-col gap-1 px-4 py-2 rounded-md transition-colors
+                              ${
+                                isActive("/friends")
+                                  ? "bg-primary text-primary-foreground"
+                                  : "hover:bg-muted"
+                              }`}
+                            onClick={() => setIsOpen(false)}
+                          >
+                            <div className="flex items-center gap-2">
+                              <Users className="h-4 w-4" />
+                              Friends
+                            </div>
+                          </Link>
+                          <Link
+                            href="/profile"
+                            className={`flex flex-col gap-1 px-4 py-2 rounded-md transition-colors
+                              ${
+                                isActive("/profile")
+                                  ? "bg-primary text-primary-foreground"
+                                  : "hover:bg-muted"
+                              }`}
+                            onClick={() => setIsOpen(false)}
+                          >
+                            <div className="flex items-center gap-2">
+                              <User2 className="h-4 w-4" />
+                              {user.profile?.username || "Profile"}
+                            </div>
+                            {user.profile && (
+                              <XpBar
+                                level={user.profile.level ?? 1}
+                                progress={
+                                  getLevelProgress(user.profile.total_xp ?? 0)
+                                    .progress
+                                }
+                              />
+                            )}
+                          </Link>
+                          <form action={signOut}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="w-full justify-start gap-2 mt-2"
+                            >
+                              <LogOut className="h-4 w-4" />
+                              Logout
+                            </Button>
+                          </form>
+                        </>
+                      ) : (
+                        <div className="space-y-2">
+                          <Link
+                            href="/auth/login"
+                            onClick={() => setIsOpen(false)}
+                          >
+                            <Button variant="ghost" className="w-full">
+                              Login
+                            </Button>
+                          </Link>
+                          <Link
+                            href="/auth/register"
+                            onClick={() => setIsOpen(false)}
+                          >
+                            <Button className="w-full">Register</Button>
+                          </Link>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
-        </div>
-      </nav>
-    </div>
-    {showThemeModal && <ThemeModal />}
+        </nav>
+      </div>
+      {showThemeModal && <ThemeModal />}
     </>
   );
 }
