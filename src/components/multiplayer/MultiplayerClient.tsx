@@ -22,7 +22,9 @@ import {
 } from "@/lib/multiplayer";
 import { UserWithProfile } from "@/types/auth.types";
 import { CongratsModal } from "@/components/CongratsModal";
+import { BadgeNotification } from "@/components/BadgeNotification";
 import type { AchievementData } from "@/lib/services/achievements";
+import type { BadgeNotification as BadgeNotificationData } from "@/types/badges.types";
 import { checkAchievements, getPreSaveState } from "@/app/actions";
 
 type MultiplayerClientProps = {
@@ -56,6 +58,7 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
   const [inviteLink, setInviteLink] = useState<string | null>(null);
   const [inviteExpiresAt, setInviteExpiresAt] = useState<number | null>(null);
   const [achievementQueue, setAchievementQueue] = useState<AchievementData[]>([]);
+  const [badgeQueue, setBadgeQueue] = useState<BadgeNotificationData[]>([]);
   const [rankChange, setRankChange] = useState<{
     previousRank: string;
     newRank: string;
@@ -138,6 +141,7 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
     setInviteLink(null);
     setInviteExpiresAt(null);
     setAchievementQueue([]);
+    setBadgeQueue([]);
     setRankChange(null);
     hasUpdatedEloRef.current = false;
     lastPlayerSecondRef.current = null;
@@ -509,6 +513,11 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
             // and the server has updated the database authoritatively
           }
 
+          // Handle badges from server response
+          if (data.badges && data.badges.length > 0) {
+            setBadgeQueue(data.badges);
+          }
+
           // Check for achievements by comparing pre-save state with new result
           if (preSaveState) {
             const achievements = await checkAchievements(
@@ -661,6 +670,13 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
         open={achievementQueue.length > 0}
         onClose={() => setAchievementQueue((prev) => prev.slice(1))}
         achievement={achievementQueue[0] ?? null}
+      />
+
+      {/* Badge Notification */}
+      <BadgeNotification
+        open={badgeQueue.length > 0 && achievementQueue.length === 0 && rankChange === null}
+        onClose={() => setBadgeQueue((prev) => prev.slice(1))}
+        notification={badgeQueue[0] ?? null}
       />
     </div>
   );

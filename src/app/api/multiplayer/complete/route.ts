@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { calculateXpGain } from "@/lib/xp";
 import { XpAwardResultSchema, mapDbXpAwardToModel, type XpAwardResult } from "@/lib/schemas/xp";
+import * as badgeServices from "@/lib/services/badges";
+import type { BadgeNotification } from "@/types/badges.types";
 
 type EloUpdateResult = {
   previous_elo: number;
@@ -146,10 +148,35 @@ export async function POST(request: Request) {
     }
   }
 
+  // Check for badges
+  let badges: BadgeNotification[] = [];
+  try {
+    // Get user stats for badge context
+    const userStats = await badgeServices.getUserStatsForBadges();
+
+    badges = await badgeServices.checkAndAwardBadges({
+      userId: user.id,
+      wpm: stats.wpm,
+      accuracy: stats.accuracy,
+      duration,
+      isMultiplayer: true,
+      isWin: result === 1,
+      matchesPlayed: eloResult?.matches_played ?? userStats.matchesPlayed,
+      newLevel: xpResult?.newLevel,
+      previousLevel: xpResult?.previousLevel,
+      friendCount: userStats.friendCount,
+      totalTests: userStats.totalTests,
+    });
+  } catch (badgeError) {
+    console.error("Badge check error:", badgeError);
+    // Don't fail the request, just log the error
+  }
+
   return NextResponse.json({
     ok: true,
     matchId: matchRow.id,
     elo: eloResult,
     xp: xpResult,
+    badges,
   });
 }

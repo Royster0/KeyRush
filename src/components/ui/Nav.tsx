@@ -5,6 +5,7 @@ import toast, { type Toast } from "react-hot-toast";
 import { createClient } from "@/utils/supabase/client";
 import { UserWithProfile } from "@/types/auth.types";
 import {
+  Award,
   Check,
   Home,
   Info,
@@ -257,6 +258,7 @@ export default function Nav() {
     "/leaderboard",
     "/about",
     "/profile",
+    "/badges",
   ].some((path) => pathname === path || pathname.startsWith(`${path}/`));
 
   const navItems = [
@@ -386,6 +388,13 @@ export default function Nav() {
                           <Users className="h-4 w-4" />
                           Friends
                         </Link>
+                        <Link
+                          href="/badges"
+                          className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted"
+                        >
+                          <Award className="h-4 w-4" />
+                          Badges
+                        </Link>
                         <div className="my-1 border-t border-border/60" />
                         <form action={signOut}>
                           <button
@@ -441,6 +450,21 @@ export default function Nav() {
                             <div className="flex items-center gap-2">
                               <Users className="h-4 w-4" />
                               Friends
+                            </div>
+                          </Link>
+                          <Link
+                            href="/badges"
+                            className={`flex flex-col gap-1 px-4 py-2 rounded-md transition-colors
+                              ${
+                                isActive("/badges")
+                                  ? "bg-primary text-primary-foreground"
+                                  : "hover:bg-muted"
+                              }`}
+                            onClick={() => setIsOpen(false)}
+                          >
+                            <div className="flex items-center gap-2">
+                              <Award className="h-4 w-4" />
+                              Badges
                             </div>
                           </Link>
                           <Link

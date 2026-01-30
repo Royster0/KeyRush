@@ -14,11 +14,13 @@ import { useSettings } from "@/hooks/useSettings";
 import GameStats from "./GameStats";
 import { AnimatePresence, motion } from "framer-motion";
 import Character from "./Character";
-import { saveTestResult, checkAchievements, getPreSaveState, awardXp } from "@/app/actions";
+import { saveTestResult, checkAchievements, getPreSaveState, awardXp, checkAndAwardBadges, getUserStatsForBadges } from "@/app/actions";
 import toast from "react-hot-toast";
 import { CongratsModal } from "@/components/CongratsModal";
 import { LevelUpModal, type LevelUpData } from "@/components/LevelUpModal";
+import { BadgeNotification } from "@/components/BadgeNotification";
 import type { AchievementData } from "@/lib/services/achievements";
+import type { BadgeNotification as BadgeNotificationData } from "@/types/badges.types";
 import { useActiveTypingTime } from "@/hooks/useActiveTypingTime";
 import dynamic from "next/dynamic";
 import { ThemeModal } from "../ThemeModal";
@@ -55,6 +57,7 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
   const { setIsGameActive } = useGameContext();
   const [achievementQueue, setAchievementQueue] = useState<AchievementData[]>([]);
   const [levelUpData, setLevelUpData] = useState<LevelUpData | null>(null);
+  const [badgeQueue, setBadgeQueue] = useState<BadgeNotificationData[]>([]);
 
   const textRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -105,6 +108,7 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
     setIsGameActive(false);
     setAchievementQueue([]);
     setLevelUpData(null);
+    setBadgeQueue([]);
     resetActiveTime();
 
     // Refocus on test
@@ -296,6 +300,23 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
               newLevel: xpResult.newLevel,
               xpGained: xpResult.xpGained,
             });
+          }
+
+          // Check for badges after XP award (includes level badges)
+          const stats = await getUserStatsForBadges();
+          if (stats) {
+            const badges = await checkAndAwardBadges({
+              wpm,
+              accuracy,
+              duration: selectedTime,
+              newLevel: xpResult.newLevel,
+              previousLevel: xpResult.previousLevel,
+              totalTests: stats.totalTests,
+              friendCount: stats.friendCount,
+            });
+            if (badges.length > 0) {
+              setBadgeQueue(badges);
+            }
           }
         }
       }
@@ -491,6 +512,13 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
         open={levelUpData !== null}
         onClose={() => setLevelUpData(null)}
         data={levelUpData}
+      />
+
+      {/* Badge Notification */}
+      <BadgeNotification
+        open={badgeQueue.length > 0 && achievementQueue.length === 0 && levelUpData === null}
+        onClose={() => setBadgeQueue((prev) => prev.slice(1))}
+        notification={badgeQueue[0] ?? null}
       />
     </div>
   );
