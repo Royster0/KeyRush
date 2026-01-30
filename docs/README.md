@@ -24,6 +24,7 @@ If you just want play solo, there's stuff for you here as well: achievements, XP
 
 ## Roadmap
 
+- Update this sad logo
 - **Different Gamemodes**: 1v1v1 and 1v1v1v1 for a typeracer feel, with different brackets
 - **Bots that are personalized to you**: Different bots that the user can chase after to continuously improve
 - **Character creation**: Create a character that is showed off during matches, to friends, and on leaderboards. Unlock cosmetics through achievements
