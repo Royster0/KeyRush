@@ -513,6 +513,17 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
             // and the server has updated the database authoritatively
           }
 
+          // Notify Nav to update XP bar
+          if (data.xp) {
+            window.dispatchEvent(new CustomEvent("xp-updated", {
+              detail: {
+                totalXp: data.xp.newXp,
+                level: data.xp.newLevel,
+                xpGained: data.xp.xpGained,
+              }
+            }));
+          }
+
           // Handle badges from server response
           if (data.badges && data.badges.length > 0) {
             setBadgeQueue(data.badges);
