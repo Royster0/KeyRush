@@ -23,6 +23,7 @@ import {
 import { UserWithProfile } from "@/types/auth.types";
 import { CongratsModal } from "@/components/CongratsModal";
 import { BadgeNotification } from "@/components/BadgeNotification";
+import { LevelUpModal, type LevelUpData } from "@/components/LevelUpModal";
 import type { AchievementData } from "@/lib/services/achievements";
 import type { BadgeNotification as BadgeNotificationData } from "@/types/badges.types";
 import { checkAchievements, getPreSaveState } from "@/app/actions";
@@ -59,6 +60,7 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
   const [inviteExpiresAt, setInviteExpiresAt] = useState<number | null>(null);
   const [achievementQueue, setAchievementQueue] = useState<AchievementData[]>([]);
   const [badgeQueue, setBadgeQueue] = useState<BadgeNotificationData[]>([]);
+  const [levelUpData, setLevelUpData] = useState<LevelUpData | null>(null);
   const [rankChange, setRankChange] = useState<{
     previousRank: string;
     newRank: string;
@@ -522,6 +524,15 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
                 xpGained: data.xp.xpGained,
               }
             }));
+
+            // Show level-up modal if user leveled up
+            if (data.xp.leveledUp) {
+              setLevelUpData({
+                oldLevel: data.xp.previousLevel,
+                newLevel: data.xp.newLevel,
+                xpGained: data.xp.xpGained,
+              });
+            }
           }
 
           // Handle badges from server response
@@ -683,9 +694,16 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
         achievement={achievementQueue[0] ?? null}
       />
 
+      {/* Level Up Modal */}
+      <LevelUpModal
+        open={levelUpData !== null && achievementQueue.length === 0 && rankChange === null}
+        onClose={() => setLevelUpData(null)}
+        data={levelUpData}
+      />
+
       {/* Badge Notification */}
       <BadgeNotification
-        open={badgeQueue.length > 0 && achievementQueue.length === 0 && rankChange === null}
+        open={badgeQueue.length > 0 && achievementQueue.length === 0 && rankChange === null && levelUpData === null}
         onClose={() => setBadgeQueue((prev) => prev.slice(1))}
         notification={badgeQueue[0] ?? null}
       />
