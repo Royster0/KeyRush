@@ -145,7 +145,7 @@ export async function getBadgesWithStatus(userId?: string) {
   return badgeServices.getBadgesWithStatus(userId);
 }
 
-export async function checkAndAwardBadges(context: BadgeContext) {
+export async function checkAndAwardBadges(context: Omit<BadgeContext, 'userId'>) {
   const user = await userServices.getUser();
   if (!user) {
     return [];
