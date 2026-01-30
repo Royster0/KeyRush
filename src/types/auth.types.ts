@@ -19,5 +19,6 @@ export type UserWithProfile = User & {
     losses?: number | null;
     total_xp?: number | null;
     level?: number | null;
+    friend_code?: string | null;
   } | null;
 };
