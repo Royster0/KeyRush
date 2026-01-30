@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Flame, Clock } from "lucide-react";
+import { Flame, Clock, User, Users } from "lucide-react";
 import { motion } from "motion/react";
 
 interface BestScoreProps {
@@ -14,6 +14,7 @@ interface BestScoreProps {
     accuracy: number;
     duration: number;
     created_at?: string;
+    source?: "singleplayer" | "multiplayer";
   }>;
 }
 
@@ -84,13 +85,27 @@ const BestScores: React.FC<BestScoreProps> = ({ bestScores }) => {
                       <p className="text-lg font-semibold">{Math.round(score.accuracy)}%</p>
                       <p className="text-xs text-muted-foreground">Accuracy</p>
                     </div>
-                    <div className="text-right text-xs text-muted-foreground">
-                      {score.created_at
-                        ? new Date(score.created_at).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                          })
-                        : "—"}
+                    <div className="text-right">
+                      <div className="text-xs text-muted-foreground">
+                        {score.created_at
+                          ? new Date(score.created_at).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                            })
+                          : "—"}
+                      </div>
+                      {score.source && (
+                        <div className="flex items-center justify-end gap-1 mt-1">
+                          {score.source === "multiplayer" ? (
+                            <Users className="h-3 w-3 text-muted-foreground" />
+                          ) : (
+                            <User className="h-3 w-3 text-muted-foreground" />
+                          )}
+                          <span className="text-[10px] text-muted-foreground">
+                            {score.source === "multiplayer" ? "Multi" : "Solo"}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

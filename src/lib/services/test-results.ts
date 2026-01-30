@@ -13,6 +13,10 @@ export interface DbTestResult {
   created_at: string;
 }
 
+export interface BestScore extends TestResults {
+  source: "singleplayer" | "multiplayer";
+}
+
 function mapDbToModel(db: DbTestResult): TestResults {
   return {
     id: db.id,
@@ -88,25 +92,84 @@ export async function getUserTestResults(): Promise<TestResults[]> {
   return parsed.data.map(mapDbToModel);
 }
 
-export async function getUserBestScores(): Promise<TestResults[]> {
+export async function getUserBestScores(): Promise<BestScore[]> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  
+
   if (!user) {
     return [];
   }
-  
-  const { data, error } = await supabase
+
+  // Fetch singleplayer best scores
+  const { data: singleplayerData, error: singleplayerError } = await supabase
     .rpc('get_user_best_scores_full', { target_user_id: user.id });
 
-  if (error || !data) {
-    return [];
+  let singleplayerScores: BestScore[] = [];
+  if (!singleplayerError && singleplayerData) {
+    const parsed = z.array(DbTestResultSchema).safeParse(singleplayerData);
+    if (parsed.success) {
+      singleplayerScores = parsed.data.map((db) => ({
+        ...mapDbToModel(db),
+        source: "singleplayer" as const,
+      }));
+    }
   }
 
-  const parsed = z.array(DbTestResultSchema).safeParse(data);
-  if (!parsed.success) {
-    return [];
+  // Fetch multiplayer best scores (join with matches to get duration)
+  const { data: multiplayerData, error: multiplayerError } = await supabase
+    .from("match_results")
+    .select(`
+      id,
+      user_id,
+      wpm,
+      raw_wpm,
+      accuracy,
+      created_at,
+      matches!inner (
+        duration
+      )
+    `)
+    .eq("user_id", user.id)
+    .eq("left_match", false)
+    .order("wpm", { ascending: false });
+
+  let multiplayerScores: BestScore[] = [];
+  if (!multiplayerError && multiplayerData) {
+    // Group by duration and get best for each
+    const bestByDuration = new Map<number, BestScore>();
+
+    for (const row of multiplayerData) {
+      const duration = (row.matches as { duration: number }).duration;
+      const score: BestScore = {
+        id: row.id,
+        user_id: row.user_id,
+        wpm: Number(row.wpm),
+        rawWpm: Number(row.raw_wpm),
+        accuracy: Number(row.accuracy),
+        duration,
+        created_at: row.created_at,
+        source: "multiplayer",
+      };
+
+      const existing = bestByDuration.get(duration);
+      if (!existing || score.wpm > existing.wpm) {
+        bestByDuration.set(duration, score);
+      }
+    }
+
+    multiplayerScores = Array.from(bestByDuration.values());
   }
 
-  return parsed.data.map(mapDbToModel);
+  // Combine and keep best score per duration (regardless of source)
+  const allScores = [...singleplayerScores, ...multiplayerScores];
+  const bestByDuration = new Map<number, BestScore>();
+
+  for (const score of allScores) {
+    const existing = bestByDuration.get(score.duration);
+    if (!existing || score.wpm > existing.wpm) {
+      bestByDuration.set(score.duration, score);
+    }
+  }
+
+  return Array.from(bestByDuration.values());
 }
