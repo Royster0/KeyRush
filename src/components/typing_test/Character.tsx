@@ -36,8 +36,14 @@ const Character = memo(
         `}
         layout
       >
-        {isCurrent && <Caret speed={caretSpeed} />}
-        {isOpponentCurrent && <Caret className={opponentCaretClassName} speed={caretSpeed} />}
+        {isCurrent && <Caret speed={caretSpeed} layoutId="caret" />}
+        {isOpponentCurrent && (
+          <Caret
+            className={opponentCaretClassName}
+            speed={caretSpeed}
+            layoutId="opponent-caret"
+          />
+        )}
         {char}
       </motion.span>
     );

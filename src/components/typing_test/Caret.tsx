@@ -6,9 +6,14 @@ import { cn } from "@/lib/utils";
 type CaretProps = {
   speed?: CaretSpeed;
   className?: string;
+  layoutId?: string;
 };
 
-const Caret = memo(function Caret({ speed = CARET_SPEEDS.MEDIUM, className }: CaretProps) {
+const Caret = memo(function Caret({
+  speed = CARET_SPEEDS.MEDIUM,
+  className,
+  layoutId = "caret",
+}: CaretProps) {
   const getTransition = () => {
     switch (speed) {
       case CARET_SPEEDS.FAST:
@@ -23,12 +28,11 @@ const Caret = memo(function Caret({ speed = CARET_SPEEDS.MEDIUM, className }: Ca
 
   return (
     <motion.div
-      initial={{ opacity: 1 }}
-      animate={{ opacity: 0.6 }}
+      initial={false}
       transition={getTransition()}
       className={cn("absolute w-0.5", className ?? "bg-accent-foreground")}
-      layoutId="caret"
-      style={{ height: "1.3em", left: "-2px" }}
+      layoutId={layoutId}
+      style={{ height: "1.3em", left: "-2px", opacity: 0.9 }}
     />
   );
 });
