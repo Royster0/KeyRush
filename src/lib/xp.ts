@@ -66,7 +66,8 @@ export function getXpForLevel(level: number): number {
  */
 export function getCumulativeXpForLevel(level: number): number {
   let total = 0;
-  for (let i = 1; i < level; i++) {
+  // Sum XP thresholds from level 2 to target level
+  for (let i = 2; i <= level; i++) {
     total += getXpForLevel(i);
   }
   return total;
@@ -76,16 +77,17 @@ export function getCumulativeXpForLevel(level: number): number {
  * Calculate level from total XP
  */
 export function calculateLevelFromXp(totalXp: number): number {
-  // Handle invalid input (NaN, Infinity, negative)
-  if (!Number.isFinite(totalXp) || totalXp < 0) {
+  // Handle invalid input (NaN, Infinity, negative, or zero)
+  if (!Number.isFinite(totalXp) || totalXp <= 0) {
     return 1;
   }
 
   let level = 1;
   let cumulativeXp = 0;
 
-  while (level <= 100) {
-    const threshold = getXpForLevel(level);
+  while (level < 100) {
+    // XP needed to advance from current level to next
+    const threshold = getXpForLevel(level + 1);
     if (cumulativeXp + threshold > totalXp) {
       break;
     }
@@ -110,7 +112,8 @@ export function getLevelProgress(totalXp: number): {
 
   const level = calculateLevelFromXp(safeXp);
   const levelStartXp = getCumulativeXpForLevel(level);
-  const nextLevelXp = getXpForLevel(level);
+  // XP needed to advance from current level to next level
+  const nextLevelXp = getXpForLevel(level + 1);
   const currentLevelXp = safeXp - levelStartXp;
 
   const progress = nextLevelXp > 0 ? (currentLevelXp / nextLevelXp) * 100 : 0;
