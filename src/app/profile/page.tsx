@@ -28,10 +28,7 @@ const ProfileContent = async () => {
         leaderboardRankings={leaderboardRankings}
       />
 
-      <XpProgressCard
-        totalXp={user?.profile?.total_xp ?? 0}
-        level={user?.profile?.level ?? 1}
-      />
+      <XpProgressCard totalXp={user?.profile?.total_xp ?? 0} />
 
       <RankedStatsCard profile={user?.profile ?? null} />
 

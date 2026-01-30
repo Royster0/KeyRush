@@ -362,15 +362,15 @@ export default function Nav() {
                         <User2 className="size-5" />
                         {user.profile?.username}
                       </div>
-                      {user.profile && (
-                        <XpBar
-                          level={user.profile.level ?? 1}
-                          progress={
-                            getLevelProgress(user.profile.total_xp ?? 0)
-                              .progress
-                          }
-                        />
-                      )}
+                      {user.profile && (() => {
+                        const xpProgress = getLevelProgress(user.profile.total_xp ?? 0);
+                        return (
+                          <XpBar
+                            level={xpProgress.level}
+                            progress={xpProgress.progress}
+                          />
+                        );
+                      })()}
                     </Link>
                     <div className="absolute left-0 top-full w-48 rounded-lg border border-border/60 bg-background/95 shadow-lg opacity-0 translate-y-1 pointer-events-none transition-all group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto">
                       <div className="py-1">
@@ -481,15 +481,15 @@ export default function Nav() {
                               <User2 className="h-4 w-4" />
                               {user.profile?.username || "Profile"}
                             </div>
-                            {user.profile && (
-                              <XpBar
-                                level={user.profile.level ?? 1}
-                                progress={
-                                  getLevelProgress(user.profile.total_xp ?? 0)
-                                    .progress
-                                }
-                              />
-                            )}
+                            {user.profile && (() => {
+                              const xpProgress = getLevelProgress(user.profile.total_xp ?? 0);
+                              return (
+                                <XpBar
+                                  level={xpProgress.level}
+                                  progress={xpProgress.progress}
+                                />
+                              );
+                            })()}
                           </Link>
                           <form action={signOut}>
                             <Button

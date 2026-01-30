@@ -7,11 +7,11 @@ import { getLevelProgress, getXpForLevel } from "@/lib/xp";
 
 interface XpProgressCardProps {
   totalXp: number;
-  level: number;
 }
 
-const XpProgressCard: React.FC<XpProgressCardProps> = ({ totalXp, level }) => {
+const XpProgressCard: React.FC<XpProgressCardProps> = ({ totalXp }) => {
   const progress = getLevelProgress(totalXp);
+  const level = progress.level;
   const xpToNextLevel = progress.nextLevelXp - progress.currentLevelXp;
 
   return (

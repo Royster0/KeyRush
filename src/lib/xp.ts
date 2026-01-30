@@ -2,13 +2,13 @@
  * XP and Level calculation utilities
  *
  * XP Formula:
- * - Base: 2 XP per active typing second × accuracy%
+ * - Base: 2.5 XP per active typing second × accuracy%
  * - Multiplayer bonus: +5% of base
  * - WPM margin bonus: +1% per 5 WPM margin (max +10%)
  *
  * Level Formula (polynomial curve):
- * - XP needed for level N: 100 × N^1.8
- * - Creates smooth progression that rewards sustained play
+ * - XP needed for level N: 100 × (N-1)^1.5
+ * - Gentler curve that balances accessibility with late-game prestige
  */
 
 /**
@@ -26,7 +26,7 @@ export function calculateXpGain({
   wpmMargin?: number;
 }): number {
   // Base XP: 2 × active seconds × accuracy%
-  const baseXp = 2 * activeTypingSeconds * (accuracy / 100);
+  const baseXp = 2.5 * activeTypingSeconds * (accuracy / 100);
 
   let totalXp = baseXp;
 
@@ -47,11 +47,18 @@ export function calculateXpGain({
 }
 
 /**
- * Get XP required for a specific level (polynomial curve: 100 × level^1.8)
+ * Get XP required to advance from level (level-1) to level.
+ * Uses polynomial curve: 100 × (level-1)^1.5
+ *
+ * Examples:
+ * - Level 1→2: 100 XP
+ * - Level 2→3: 282 XP
+ * - Level 3→4: 519 XP
+ * - Level 4→5: 800 XP
  */
 export function getXpForLevel(level: number): number {
   if (level <= 1) return 0;
-  return Math.floor(100 * Math.pow(level, 1.8));
+  return Math.floor(100 * Math.pow(level - 1, 1.5));
 }
 
 /**
@@ -121,7 +128,7 @@ export function getLevelProgress(totalXp: number): {
  */
 export function wouldLevelUp(
   currentTotalXp: number,
-  xpGain: number
+  xpGain: number,
 ): { leveledUp: boolean; oldLevel: number; newLevel: number } {
   const oldLevel = calculateLevelFromXp(currentTotalXp);
   const newLevel = calculateLevelFromXp(currentTotalXp + xpGain);
@@ -134,10 +141,13 @@ export function wouldLevelUp(
 }
 
 /**
- * Level thresholds for reference:
- * Level 1→2:    100 XP
- * Level 5→6:    631 XP
- * Level 10→11:  1,585 XP
- * Level 25→26:  6,310 XP
- * Level 50→51:  16,595 XP
+ * Level thresholds for reference (XP needed to complete level N and reach N+1):
+ * Level 1→2:    100 XP    (100 × 1^1.5)
+ * Level 2→3:    282 XP    (100 × 2^1.5)
+ * Level 3→4:    519 XP    (100 × 3^1.5)
+ * Level 4→5:    800 XP    (100 × 4^1.5)
+ * Level 5→6:    1,118 XP  (100 × 5^1.5)
+ * Level 10→11:  3,162 XP  (100 × 10^1.5)
+ * Level 25→26:  12,500 XP (100 × 25^1.5)
+ * Level 50→51:  35,355 XP (100 × 50^1.5)
  */
