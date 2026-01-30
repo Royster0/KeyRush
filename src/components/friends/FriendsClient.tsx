@@ -1,12 +1,25 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Copy, Trash2, UserPlus, X, Users, UserCheck, Share2 } from "lucide-react";
+import {
+  Check,
+  Copy,
+  Trash2,
+  UserPlus,
+  X,
+  Users,
+  UserCheck,
+  Share2,
+} from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
-import { sendFriendRequest, respondToFriendRequest, removeFriend } from "@/app/actions";
+import {
+  sendFriendRequest,
+  respondToFriendRequest,
+  removeFriend,
+} from "@/app/actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,10 +33,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { RankIcon } from "@/components/RankIcon";
 import { formatDate } from "@/lib/utils";
-import type {
-  FriendRequest,
-  FriendSummary,
-} from "@/types/friends.types";
+import type { FriendRequest, FriendSummary } from "@/types/friends.types";
 
 type FriendsClientProps = {
   currentUserId: string;
@@ -100,12 +110,6 @@ export default function FriendsClient({
     };
   }, [currentUserId]);
 
-  const friendCountLabel = useMemo(() => {
-    if (friends.length === 0) return "No friends yet";
-    if (friends.length === 1) return "1 friend";
-    return `${friends.length} friends`;
-  }, [friends.length]);
-
   const handleInviteSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     const target = inviteName.trim();
@@ -126,7 +130,10 @@ export default function FriendsClient({
     });
   };
 
-  const handleRequestAction = (requestId: string, action: "accepted" | "declined") => {
+  const handleRequestAction = (
+    requestId: string,
+    action: "accepted" | "declined",
+  ) => {
     startTransition(async () => {
       const result = await respondToFriendRequest(requestId, action);
       if (!result.ok) {
@@ -134,7 +141,9 @@ export default function FriendsClient({
         return;
       }
       setRequests((prev) => prev.filter((request) => request.id !== requestId));
-      toast.success(action === "accepted" ? "Friend added!" : "Request declined.");
+      toast.success(
+        action === "accepted" ? "Friend added!" : "Request declined.",
+      );
       router.refresh();
     });
   };
@@ -173,7 +182,7 @@ export default function FriendsClient({
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/10 via-muted/40 to-muted/20 p-8 border border-border/30"
+        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/10 via-muted/40 to-muted/20 p-8 border border-border/20"
       >
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-primary/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
@@ -206,22 +215,6 @@ export default function FriendsClient({
               Build your crew and track your head-to-head record.
             </motion.p>
           </div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.5 }}
-            className="flex gap-6"
-          >
-            <div className="text-center">
-              <p className="text-3xl font-bold text-primary">{friends.length}</p>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider">Friends</p>
-            </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-primary">{requests.length}</p>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider">Pending</p>
-            </div>
-          </motion.div>
         </div>
       </motion.div>
 
@@ -251,7 +244,8 @@ export default function FriendsClient({
             <Button
               variant="destructive"
               onClick={() =>
-                removeTarget && handleRemoveFriend(removeTarget.id, removeTarget.username)
+                removeTarget &&
+                handleRemoveFriend(removeTarget.id, removeTarget.username)
               }
               disabled={!removeTarget || isPending}
             >
@@ -274,9 +268,6 @@ export default function FriendsClient({
               </div>
               <CardTitle className="text-lg">Invite Friends</CardTitle>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Share your code or invite by username or friend code.
-            </p>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-3">
@@ -284,7 +275,7 @@ export default function FriendsClient({
                 <div className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
                   Friend code
                 </div>
-                <div className="font-mono text-sm tracking-wider flex-1 truncate font-semibold">
+                <div className="font-mono text-lg tracking-widest flex-1 truncate font-semibold">
                   {friendCode || "Not set"}
                 </div>
                 <Button
@@ -330,11 +321,6 @@ export default function FriendsClient({
               </div>
               <CardTitle className="text-lg">Friend Requests</CardTitle>
             </div>
-            <p className="text-sm text-muted-foreground">
-              {requests.length === 0
-                ? "No pending requests."
-                : `${requests.length} pending`}
-            </p>
           </CardHeader>
           <CardContent className="space-y-3">
             <AnimatePresence mode="popLayout">
@@ -361,7 +347,9 @@ export default function FriendsClient({
                         {getInitials(request.sender.username)}
                       </div>
                       <div>
-                        <p className="font-semibold">{request.sender.username}</p>
+                        <p className="font-semibold">
+                          {request.sender.username}
+                        </p>
                         <p className="text-xs text-muted-foreground">
                           Level {request.sender.level} ·{" "}
                           {request.sender.rank_tier ?? "Unranked"} ·{" "}
@@ -373,7 +361,9 @@ export default function FriendsClient({
                       <Button
                         size="sm"
                         disabled={isPending}
-                        onClick={() => handleRequestAction(request.id, "accepted")}
+                        onClick={() =>
+                          handleRequestAction(request.id, "accepted")
+                        }
                       >
                         <Check className="h-4 w-4" />
                         Accept
@@ -382,7 +372,9 @@ export default function FriendsClient({
                         size="sm"
                         variant="outline"
                         disabled={isPending}
-                        onClick={() => handleRequestAction(request.id, "declined")}
+                        onClick={() =>
+                          handleRequestAction(request.id, "declined")
+                        }
                         className="border-border/50"
                       >
                         <X className="h-4 w-4" />
@@ -410,7 +402,6 @@ export default function FriendsClient({
               </div>
               <CardTitle className="text-lg">Your Friends</CardTitle>
             </div>
-            <p className="text-sm text-muted-foreground">{friendCountLabel}</p>
           </CardHeader>
           <CardContent className="space-y-3">
             {friends.length === 0 ? (
@@ -439,31 +430,44 @@ export default function FriendsClient({
                             </div>
                             <div>
                               <div className="flex items-center gap-2">
-                                <p className="font-semibold text-base">{friend.username}</p>
+                                <p className="font-semibold text-base">
+                                  {friend.username}
+                                </p>
                                 <span
                                   className={`h-2.5 w-2.5 rounded-full ${
-                                    isOnline ? "bg-emerald-500 shadow-sm shadow-emerald-500/50" : "bg-muted-foreground/40"
+                                    isOnline
+                                      ? "bg-emerald-500 shadow-sm shadow-emerald-500/50"
+                                      : "bg-muted-foreground/40"
                                   }`}
                                 />
-                                <span className={`text-xs ${isOnline ? "text-emerald-500" : "text-muted-foreground"}`}>
+                                <span
+                                  className={`text-xs ${isOnline ? "text-emerald-500" : "text-muted-foreground"}`}
+                                >
                                   {isOnline ? "Online" : "Offline"}
                                 </span>
                               </div>
-                              <p className="text-xs text-muted-foreground">Level {friend.level}</p>
+                              <p className="text-xs text-muted-foreground">
+                                Level {friend.level}
+                              </p>
                             </div>
                           </div>
 
                           <div className="flex items-center gap-3">
                             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50">
                               <RankIcon rank={friend.rank_tier} size={18} />
-                              <span className="text-xs font-medium">{friend.rank_tier ?? "Unranked"}</span>
+                              <span className="text-xs font-medium">
+                                {friend.rank_tier ?? "Unranked"}
+                              </span>
                             </div>
                             <Button
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8 text-muted-foreground hover:text-destructive"
                               onClick={() =>
-                                setRemoveTarget({ id: friend.id, username: friend.username })
+                                setRemoveTarget({
+                                  id: friend.id,
+                                  username: friend.username,
+                                })
                               }
                               aria-label={`Remove ${friend.username}`}
                               title="Remove friend"
@@ -477,26 +481,42 @@ export default function FriendsClient({
                         <div className="grid grid-cols-2 gap-3">
                           <div className="rounded-xl border border-border/30 bg-background/60 p-3">
                             <div className="flex items-center justify-between mb-2">
-                              <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Ranked</span>
+                              <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                                Ranked
+                              </span>
                             </div>
                             <div className="flex items-baseline gap-1">
-                              <span className="text-lg font-bold text-emerald-500">{friend.record.ranked.wins}</span>
+                              <span className="text-lg font-bold text-emerald-500">
+                                {friend.record.ranked.wins}
+                              </span>
                               <span className="text-muted-foreground">-</span>
-                              <span className="text-lg font-bold text-rose-500">{friend.record.ranked.losses}</span>
+                              <span className="text-lg font-bold text-rose-500">
+                                {friend.record.ranked.losses}
+                              </span>
                               <span className="text-muted-foreground">-</span>
-                              <span className="text-lg font-bold text-muted-foreground">{friend.record.ranked.draws}</span>
+                              <span className="text-lg font-bold text-muted-foreground">
+                                {friend.record.ranked.draws}
+                              </span>
                             </div>
                           </div>
                           <div className="rounded-xl border border-border/30 bg-background/60 p-3">
                             <div className="flex items-center justify-between mb-2">
-                              <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Unranked</span>
+                              <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                                Unranked
+                              </span>
                             </div>
                             <div className="flex items-baseline gap-1">
-                              <span className="text-lg font-bold text-emerald-500">{friend.record.unranked.wins}</span>
+                              <span className="text-lg font-bold text-emerald-500">
+                                {friend.record.unranked.wins}
+                              </span>
                               <span className="text-muted-foreground">-</span>
-                              <span className="text-lg font-bold text-rose-500">{friend.record.unranked.losses}</span>
+                              <span className="text-lg font-bold text-rose-500">
+                                {friend.record.unranked.losses}
+                              </span>
                               <span className="text-muted-foreground">-</span>
-                              <span className="text-lg font-bold text-muted-foreground">{friend.record.unranked.draws}</span>
+                              <span className="text-lg font-bold text-muted-foreground">
+                                {friend.record.unranked.draws}
+                              </span>
                             </div>
                           </div>
                         </div>
