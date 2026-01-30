@@ -1,7 +1,7 @@
 "use client";
 
 import { signOut, saveTestResult, respondToFriendRequest } from "@/app/actions";
-import toast from "react-hot-toast";
+import toast, { type Toast } from "react-hot-toast";
 import { createClient } from "@/utils/supabase/client";
 import { UserWithProfile } from "@/types/auth.types";
 import {
@@ -199,7 +199,7 @@ export default function Nav() {
           const senderName = senderProfile?.username || "Someone";
 
           toast.custom(
-            (t) => (
+            (t: Toast) => (
               <div className="w-72 rounded-lg border border-border bg-background p-4 shadow-lg">
                 <p className="font-semibold">Friend request</p>
                 <p className="text-sm text-muted-foreground">
