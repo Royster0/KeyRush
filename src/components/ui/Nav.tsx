@@ -29,12 +29,14 @@ import { useGameContext } from "@/contexts/GameContext";
 import { ThemeModal } from "../ThemeModal";
 import { XpBar } from "./XpBar";
 import { getLevelProgress } from "@/lib/xp";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Nav() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<UserWithProfile | null>(null);
+  const [xpGainedDisplay, setXpGainedDisplay] = useState<number | null>(null);
   const { isGameActive } = useGameContext();
 
   // Fetch user function
@@ -90,7 +92,7 @@ export default function Nav() {
   // Listen for XP updates from game completion
   useEffect(() => {
     const handleXpUpdate = (
-      event: CustomEvent<{ totalXp: number; level: number }>,
+      event: CustomEvent<{ totalXp: number; level: number; xpGained?: number }>,
     ) => {
       setUser((prev) => {
         if (!prev?.profile) return prev;
@@ -103,6 +105,13 @@ export default function Nav() {
           },
         };
       });
+
+      // Show XP gained animation
+      if (event.detail.xpGained && event.detail.xpGained > 0) {
+        setXpGainedDisplay(event.detail.xpGained);
+        // Clear after animation completes
+        setTimeout(() => setXpGainedDisplay(null), 2000);
+      }
     };
 
     window.addEventListener("xp-updated", handleXpUpdate as EventListener);
@@ -361,6 +370,19 @@ export default function Nav() {
                       <div className="flex items-center gap-2">
                         <User2 className="size-5" />
                         {user.profile?.username}
+                        <AnimatePresence>
+                          {xpGainedDisplay && (
+                            <motion.span
+                              initial={{ opacity: 0, y: 10, scale: 0.8 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: -10, scale: 0.8 }}
+                              transition={{ duration: 0.3, ease: "easeOut" }}
+                              className="text-xs font-semibold text-primary"
+                            >
+                              +{xpGainedDisplay} XP
+                            </motion.span>
+                          )}
+                        </AnimatePresence>
                       </div>
                       {user.profile && (() => {
                         const xpProgress = getLevelProgress(user.profile.total_xp ?? 0);
@@ -480,6 +502,19 @@ export default function Nav() {
                             <div className="flex items-center gap-2">
                               <User2 className="h-4 w-4" />
                               {user.profile?.username || "Profile"}
+                              <AnimatePresence>
+                                {xpGainedDisplay && (
+                                  <motion.span
+                                    initial={{ opacity: 0, y: 10, scale: 0.8 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: -10, scale: 0.8 }}
+                                    transition={{ duration: 0.3, ease: "easeOut" }}
+                                    className="text-xs font-semibold text-primary"
+                                  >
+                                    +{xpGainedDisplay} XP
+                                  </motion.span>
+                                )}
+                              </AnimatePresence>
                             </div>
                             {user.profile && (() => {
                               const xpProgress = getLevelProgress(user.profile.total_xp ?? 0);

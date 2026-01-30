@@ -290,6 +290,7 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
             detail: {
               totalXp: xpResult.newXp,
               level: xpResult.newLevel,
+              xpGained: xpResult.xpGained,
             }
           }));
 
