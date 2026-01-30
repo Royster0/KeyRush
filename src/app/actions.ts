@@ -6,7 +6,9 @@ import * as leaderboardServices from "@/lib/services/leaderboard";
 import * as achievementServices from "@/lib/services/achievements";
 import * as xpServices from "@/lib/services/xp";
 import * as friendServices from "@/lib/services/friends";
+import * as badgeServices from "@/lib/services/badges";
 import { TestResults } from "@/types/game.types";
+import { BadgeContext } from "@/types/badges.types";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
@@ -132,5 +134,34 @@ export async function removeFriend(friendId: string) {
     revalidatePath("/friends");
   }
   return result;
+}
+
+// Badge actions
+export async function getUserBadges(userId?: string) {
+  return badgeServices.getUserBadges(userId);
+}
+
+export async function getBadgesWithStatus(userId?: string) {
+  return badgeServices.getBadgesWithStatus(userId);
+}
+
+export async function checkAndAwardBadges(context: Omit<BadgeContext, 'userId'>) {
+  const user = await userServices.getUser();
+  if (!user) {
+    return [];
+  }
+  return badgeServices.checkAndAwardBadges({ ...context, userId: user.id });
+}
+
+export async function getUserBadgeCount(userId?: string) {
+  return badgeServices.getUserBadgeCount(userId);
+}
+
+export async function getUserStatsForBadges() {
+  const user = await userServices.getUser();
+  if (!user) {
+    return null;
+  }
+  return badgeServices.getUserStatsForBadges();
 }
 
