@@ -3,11 +3,19 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { Check, Copy, UserPlus, X } from "lucide-react";
+import { Check, Copy, Trash2, UserPlus, X } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
-import { sendFriendRequest, respondToFriendRequest } from "@/app/actions";
+import { sendFriendRequest, respondToFriendRequest, removeFriend } from "@/app/actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { RankIcon } from "@/components/RankIcon";
 import { formatDate } from "@/lib/utils";
@@ -44,6 +52,10 @@ export default function FriendsClient({
   const [friends, setFriends] = useState<FriendSummary[]>(initialFriends);
   const [isPending, startTransition] = useTransition();
   const [onlineIds, setOnlineIds] = useState<Set<string>>(new Set());
+  const [removeTarget, setRemoveTarget] = useState<{
+    id: string;
+    username: string;
+  } | null>(null);
 
   useEffect(() => {
     setRequests(initialRequests);
@@ -131,6 +143,20 @@ export default function FriendsClient({
     });
   };
 
+  const handleRemoveFriend = (friendId: string, friendName: string) => {
+    startTransition(async () => {
+      const result = await removeFriend(friendId);
+      if (!result.ok) {
+        toast.error(result.error);
+        return;
+      }
+      setFriends((prev) => prev.filter((friend) => friend.id !== friendId));
+      toast.success(`${friendName} removed.`);
+      router.refresh();
+      setRemoveTarget(null);
+    });
+  };
+
   const handleCopyFriendCode = async () => {
     if (!friendCode) {
       toast.error("No friend code available yet.");
@@ -151,11 +177,47 @@ export default function FriendsClient({
         <p className="text-muted-foreground">Build your crew and track your head-to-head record.</p>
       </header>
 
+      <Dialog
+        open={Boolean(removeTarget)}
+        onOpenChange={(open) => {
+          if (!open) setRemoveTarget(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove friend</DialogTitle>
+            <DialogDescription>
+              {removeTarget
+                ? `Remove ${removeTarget.username} from your friends? This will remove the connection for both of you.`
+                : "Remove this friend from your list?"}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setRemoveTarget(null)}
+              disabled={isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() =>
+                removeTarget && handleRemoveFriend(removeTarget.id, removeTarget.username)
+              }
+              disabled={!removeTarget || isPending}
+            >
+              Remove
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Card className="border-border/60">
         <CardHeader className="space-y-1 pb-3">
           <CardTitle className="text-lg">Invite friends</CardTitle>
           <p className="text-sm text-muted-foreground">
-            Share your code or invite by username.
+            Share your code or invite by username or friend code.
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -180,7 +242,7 @@ export default function FriendsClient({
             </div>
             <form onSubmit={handleInviteSubmit} className="flex gap-3">
               <Input
-                placeholder="Username"
+                placeholder="Username or friend code"
                 value={inviteName}
                 onChange={(event) => setInviteName(event.target.value)}
                 autoComplete="off"
@@ -295,6 +357,19 @@ export default function FriendsClient({
                       <div className="flex items-center gap-3 text-xs text-muted-foreground">
                         <RankIcon rank={friend.rank_tier} size={20} />
                         <span>{friend.rank_tier ?? "Unranked"}</span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() =>
+                            setRemoveTarget({ id: friend.id, username: friend.username })
+                          }
+                          aria-label={`Remove ${friend.username}`}
+                          title="Remove friend"
+                          disabled={isPending}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
 

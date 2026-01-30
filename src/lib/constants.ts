@@ -292,6 +292,7 @@ export const TITLE_GRADIENTS: Record<string, Theme> = {
 
 export const STORAGE_KEY_TIME_SELECTION = "typing-test-duration";
 export const STORAGE_KEY_CARET_SPEED = "caret-speed";
+export const STORAGE_KEY_SHOW_OPPONENT_CARET = "show-opponent-caret";
 export const STORAGE_KEY_SINGLEPLAYER_WIDTH = "singleplayer-test-width";
 export const STORAGE_KEY_MULTIPLAYER_WIDTH = "multiplayer-test-width";
 

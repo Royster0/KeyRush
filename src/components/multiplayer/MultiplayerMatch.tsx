@@ -44,7 +44,7 @@ const MultiplayerMatch = ({
 
   const textRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { caretSpeed, multiplayerWidth } = useSettings();
+  const { caretSpeed, multiplayerWidth, showOpponentCaret } = useSettings();
 
   const {
     typed,
@@ -206,7 +206,7 @@ const MultiplayerMatch = ({
                 key={charIndex}
                 char={char}
                 isCurrent={absoluteIndex === typed.length}
-                isOpponentCurrent={absoluteIndex === opponentProgress}
+                isOpponentCurrent={showOpponentCaret && absoluteIndex === opponentProgress}
                 opponentCaretClassName="bg-sky-400"
                 isTyped={absoluteIndex < typed.length}
                 isCorrect={typed[absoluteIndex] === char}

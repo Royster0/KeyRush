@@ -126,3 +126,11 @@ export async function respondToFriendRequest(
   return result;
 }
 
+export async function removeFriend(friendId: string) {
+  const result = await friendServices.removeFriend(friendId);
+  if (result.ok) {
+    revalidatePath("/friends");
+  }
+  return result;
+}
+

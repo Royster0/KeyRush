@@ -199,14 +199,24 @@ export async function sendFriendRequest(username: string): Promise<SendFriendReq
     return { ok: false, error: "Enter a username to send an invite." };
   }
 
-  const { data: receiver, error: receiverError } = await supabase
+  const { data: receiverByCode } = await supabase
     .from("profiles")
-    .select("id, username")
-    .ilike("username", cleaned)
+    .select("id, username, friend_code")
+    .ilike("friend_code", cleaned)
     .single();
 
-  if (receiverError || !receiver) {
-    return { ok: false, error: "User not found." };
+  const receiver =
+    receiverByCode ??
+    (
+      await supabase
+        .from("profiles")
+        .select("id, username, friend_code")
+        .ilike("username", cleaned)
+        .single()
+    ).data;
+
+  if (!receiver) {
+    return { ok: false, error: "User not found. Check the username or friend code." };
   }
 
   if (receiver.id === user.id) {
@@ -329,6 +339,34 @@ export async function respondToFriendRequest(
 
   if (updateError) {
     return { ok: false, error: "Could not accept the request." };
+  }
+
+  return { ok: true };
+}
+
+export async function removeFriend(friendId: string): Promise<FriendActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { ok: false, error: "You must be logged in to remove friends." };
+  }
+
+  if (!friendId) {
+    return { ok: false, error: "Missing friend id." };
+  }
+
+  const { error } = await supabase
+    .from("friendships")
+    .delete()
+    .or(
+      `and(user_id.eq.${user.id},friend_id.eq.${friendId}),and(user_id.eq.${friendId},friend_id.eq.${user.id})`
+    );
+
+  if (error) {
+    return { ok: false, error: "Could not remove friend. Please try again." };
   }
 
   return { ok: true };
