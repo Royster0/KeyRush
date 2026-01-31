@@ -139,7 +139,8 @@ export async function getUserBestScores(): Promise<BestScore[]> {
     const bestByDuration = new Map<number, BestScore>();
 
     for (const row of multiplayerData) {
-      const duration = (row.matches as { duration: number }).duration;
+      const matches = row.matches as unknown as { duration: number };
+      const duration = matches.duration;
       const score: BestScore = {
         id: row.id,
         user_id: row.user_id,
