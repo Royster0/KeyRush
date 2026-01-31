@@ -7,6 +7,7 @@ import * as achievementServices from "@/lib/services/achievements";
 import * as xpServices from "@/lib/services/xp";
 import * as friendServices from "@/lib/services/friends";
 import * as badgeServices from "@/lib/services/badges";
+import * as matchHistoryServices from "@/lib/services/match-history";
 import { TestResults } from "@/types/game.types";
 import { BadgeContext } from "@/types/badges.types";
 import { redirect } from "next/navigation";
@@ -179,5 +180,10 @@ export async function getUserStatsForBadges() {
     return null;
   }
   return badgeServices.getUserStatsForBadges();
+}
+
+// Match history actions
+export async function getMatchHistory(page: number = 0) {
+  return matchHistoryServices.getMatchHistory(page);
 }
 
