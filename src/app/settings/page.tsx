@@ -1,31 +1,44 @@
+"use client";
+
+import { motion } from "motion/react";
+import { Settings } from "lucide-react";
 import { ThemeManager } from "@/components/settings/ThemeManager";
 import { CaretSettings } from "@/components/settings/CaretSettings";
 import { WidthSettings } from "@/components/settings/WidthSettings";
-import type { Metadata } from "next";
-import { buildMetadata } from "@/lib/seo";
-
-export const metadata: Metadata = buildMetadata({
-  title: "Settings | KeyRush",
-  description: "Manage your KeyRush settings and themes.",
-  path: "/settings",
-  noIndex: true,
-});
 
 export default function SettingsPage() {
-    return (
-        <div className="container mx-auto max-w-4xl py-10">
-            <div className="space-y-6">
-                <div>
-                    <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
-                    <p className="text-muted-foreground">
-                        Manage your settings and themes.
-                    </p>
-                </div>
-                <div className="my-6 border-t" />
-                <CaretSettings />
-                <WidthSettings />
-                <ThemeManager />
-            </div>
+  return (
+    <div className="min-h-screen">
+      <div className="container mx-auto max-w-4xl px-4 py-12 space-y-10">
+        {/* Header */}
+        <motion.header
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="relative text-center space-y-4"
+        >
+          {/* Background glow */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div className="absolute left-1/2 top-0 -translate-x-1/2 h-[200px] w-[400px] rounded-full bg-primary/8 blur-[80px]" />
+          </div>
+
+          <div className="relative z-10">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
+              Settings
+            </h1>
+            <p className="text-muted-foreground max-w-md mx-auto mt-4">
+              Customize your typing experience.
+            </p>
+          </div>
+        </motion.header>
+
+        {/* Settings Sections */}
+        <div className="space-y-8">
+          <CaretSettings />
+          <WidthSettings />
+          <ThemeManager />
         </div>
-    );
+      </div>
+    </div>
+  );
 }
