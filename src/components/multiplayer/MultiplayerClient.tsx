@@ -26,7 +26,7 @@ import { BadgeNotification } from "@/components/BadgeNotification";
 import { LevelUpModal, type LevelUpData } from "@/components/LevelUpModal";
 import type { AchievementData } from "@/lib/services/achievements";
 import type { BadgeNotification as BadgeNotificationData } from "@/types/badges.types";
-import { checkAchievements, getPreSaveState } from "@/app/actions";
+import { checkAchievements, getPreSaveState, getUserXpProgress } from "@/app/actions";
 
 type MultiplayerClientProps = {
   user?: UserWithProfile | null;
@@ -538,6 +538,21 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
           // Handle badges from server response
           if (data.badges && data.badges.length > 0) {
             setBadgeQueue(data.badges);
+
+            // If badges awarded XP, refresh the XP bar
+            const totalBadgeXp = data.badges.reduce((sum: number, b: BadgeNotificationData) => sum + (b.xpAwarded || 0), 0);
+            if (totalBadgeXp > 0) {
+              const xpProgress = await getUserXpProgress();
+              if (xpProgress) {
+                window.dispatchEvent(new CustomEvent("xp-updated", {
+                  detail: {
+                    totalXp: xpProgress.totalXp,
+                    level: xpProgress.level,
+                    xpGained: totalBadgeXp,
+                  }
+                }));
+              }
+            }
           }
 
           // Check for achievements by comparing pre-save state with new result

@@ -14,7 +14,7 @@ import { useSettings } from "@/hooks/useSettings";
 import GameStats from "./GameStats";
 import { AnimatePresence, motion } from "framer-motion";
 import Character from "./Character";
-import { saveTestResult, checkAchievements, getPreSaveState, awardXp, checkAndAwardBadges, getUserStatsForBadges } from "@/app/actions";
+import { saveTestResult, checkAchievements, getPreSaveState, awardXp, checkAndAwardBadges, getUserStatsForBadges, getUserXpProgress } from "@/app/actions";
 import toast from "react-hot-toast";
 import { CongratsModal } from "@/components/CongratsModal";
 import { LevelUpModal, type LevelUpData } from "@/components/LevelUpModal";
@@ -317,6 +317,21 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
             });
             if (badges.length > 0) {
               setBadgeQueue(badges);
+
+              // If badges awarded XP, refresh the XP bar
+              const totalBadgeXp = badges.reduce((sum, b) => sum + (b.xpAwarded || 0), 0);
+              if (totalBadgeXp > 0) {
+                const xpProgress = await getUserXpProgress();
+                if (xpProgress) {
+                  window.dispatchEvent(new CustomEvent("xp-updated", {
+                    detail: {
+                      totalXp: xpProgress.totalXp,
+                      level: xpProgress.level,
+                      xpGained: totalBadgeXp,
+                    }
+                  }));
+                }
+              }
             }
           }
         }
