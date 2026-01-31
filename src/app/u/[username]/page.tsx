@@ -16,27 +16,13 @@ import LoadingProfile from "@/components/profile/LoadingProfile";
 import RankedStatsCard from "@/components/profile/RankedStatsCard";
 import LeaderboardRankings from "@/components/profile/LeaderboardRankings";
 import { formatDate } from "@/lib/utils";
+import { buildMetadata } from "@/lib/seo";
 
 type PublicProfilePageProps = {
   params: Promise<{
     username: string;
   }>;
 };
-
-function getSiteUrl() {
-  let siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-  if (!siteUrl && process.env.NEXT_PUBLIC_VERCEL_URL) {
-    siteUrl = `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`;
-  } else if (!siteUrl && process.env.VERCEL_URL) {
-    siteUrl = `https://${process.env.VERCEL_URL}`;
-  }
-
-  if (!siteUrl) {
-    siteUrl = "http://localhost:3000";
-  }
-
-  return siteUrl;
-}
 
 export async function generateMetadata({
   params,
@@ -48,31 +34,23 @@ export async function generateMetadata({
     return {
       title: "Profile Not Found | KeyRush",
       description: "This user profile does not exist.",
+      robots: { index: false, follow: false },
     };
   }
 
   const displayName = profile.username || username;
+  const canonicalUsername = profile.username || username;
   const rankTier = profile.rank_tier ?? "Unranked";
   const level = profile.level ?? 1;
   const title = `${displayName} | KeyRush`;
   const description = `View ${displayName}'s typing stats. Level ${level}, ${rankTier}.`;
-  const url = `${getSiteUrl()}/u/${encodeURIComponent(displayName)}`;
 
-  return {
+  return buildMetadata({
     title,
     description,
-    openGraph: {
-      title,
-      description,
-      type: "profile",
-      url,
-    },
-    twitter: {
-      card: "summary",
-      title,
-      description,
-    },
-  };
+    path: `/u/${encodeURIComponent(canonicalUsername)}`,
+    type: "profile",
+  });
 }
 
 const PublicProfileContent = async ({ username }: { username: string }) => {

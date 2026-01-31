@@ -97,13 +97,17 @@ export async function POST(request: Request) {
   // For ranked matches, calculate Elo server-side
   let eloResult: EloUpdateResult | null = null;
   if (isRanked && opponentId && result !== undefined) {
+    const playerWpm = Number.isFinite(stats.wpm) ? Math.round(stats.wpm) : 0;
+    const opponentWpm = Number.isFinite(stats.opponentWpm)
+      ? Math.round(stats.opponentWpm)
+      : 0;
     const { data, error: eloError } = await supabase.rpc("calculate_elo_update", {
       p_user_id: user.id,
       p_opponent_id: opponentId,
       p_match_id: matchRow.id,
       p_result: result,
-      p_player_wpm: stats.wpm,
-      p_opponent_wpm: stats.opponentWpm ?? 0,
+      p_player_wpm: playerWpm,
+      p_opponent_wpm: opponentWpm,
     });
 
     if (eloError) {

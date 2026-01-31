@@ -14,6 +14,16 @@ import RankedStatsCard from "@/components/profile/RankedStatsCard";
 import XpProgressCard from "@/components/profile/XpProgressCard";
 import LeaderboardRankings from "@/components/profile/LeaderboardRankings";
 import { formatDate } from "@/lib/utils";
+import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Your Profile | KeyRush",
+  description:
+    "An overview of your typing stats, rank, and leaderboard status.",
+  path: "/profile",
+  noIndex: true,
+});
 
 const ProfileContent = async () => {
   const user = await getUser();

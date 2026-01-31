@@ -1,13 +1,15 @@
-import { Metadata } from "next";
 import { ThemeManager } from "@/components/settings/ThemeManager";
 import { CaretSettings } from "@/components/settings/CaretSettings";
 import { WidthSettings } from "@/components/settings/WidthSettings";
+import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/seo";
 
-
-export const metadata: Metadata = {
-    title: "Settings | KeyRush",
-    description: "Manage your KeyRush settings and themes.",
-};
+export const metadata: Metadata = buildMetadata({
+  title: "Settings | KeyRush",
+  description: "Manage your KeyRush settings and themes.",
+  path: "/settings",
+  noIndex: true,
+});
 
 export default function SettingsPage() {
     return (
