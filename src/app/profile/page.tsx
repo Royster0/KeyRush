@@ -31,8 +31,7 @@ const ProfileContent = async () => {
         <ProfileOverview
           username={user?.profile?.username || "User"}
           joinDate={joinDate}
-          testsCompleted={testResults.length}
-          leaderboardRankings={leaderboardRankings}
+          totalXp={user?.profile?.total_xp ?? 0}
         />
 
         <RankedStatsCard profile={user?.profile ?? null} />
