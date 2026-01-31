@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
-  title: "KeyRush | Typing with Ranked Multiplayer",
+  title: "KeyRush | Competitive Typing",
   description:
     "KeyRush is a modern typing test with multiplayer races, ranked play, and deep stats.",
   path: "/",

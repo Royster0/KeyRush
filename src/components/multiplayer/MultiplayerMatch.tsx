@@ -59,7 +59,9 @@ const MultiplayerMatch = ({
   const calculatedStats = useCalculateTypingStats(
     startTime,
     totalKeystrokes,
-    correctKeystrokes
+    correctKeystrokes,
+    typed,
+    text
   );
 
   const resetState = useCallback(() => {

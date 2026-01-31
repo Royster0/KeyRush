@@ -66,7 +66,7 @@ export default function About() {
               WPM
             </code>
             <span className="text-muted-foreground">
-              (correct keystrokes ÷ 5) ÷ time in minutes
+              (correct word chars + correct spaces ÷ 5) ÷ time in minutes
             </span>
           </div>
           <div className="flex items-center gap-4">
@@ -74,7 +74,7 @@ export default function About() {
               Raw
             </code>
             <span className="text-muted-foreground">
-              (all keystrokes ÷ 5) ÷ time in minutes
+              (all keystrokes, incl. mistakes + corrected chars, ÷ 5) ÷ time in minutes
             </span>
           </div>
           <div className="flex items-center gap-4">
@@ -85,6 +85,13 @@ export default function About() {
               correct keystrokes ÷ total keystrokes × 100
             </span>
           </div>
+          <p className="text-muted-foreground">
+            Words only count when fully correct, and only the space after a correct
+            word counts toward WPM.
+          </p>
+          <p className="text-muted-foreground">
+            Backspacing does not reduce keystroke counts; it only edits what you see.
+          </p>
         </div>
       </section>
 

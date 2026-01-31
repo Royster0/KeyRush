@@ -89,6 +89,8 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
     startTime,
     totalKeystrokes,
     correctKeystrokes,
+    typed,
+    text,
   );
 
   const restartTest = useCallback(() => {

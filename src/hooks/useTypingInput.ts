@@ -77,12 +77,7 @@ export function useTypingInput({
           if (wordIsCorrect) return;
         }
 
-        const wasCorrect = typed[lastIndex] === text[lastIndex];
-        setTotalKeystrokes((prev) => Math.max(0, prev - 1));
-
-        if (wasCorrect) {
-          setCorrectKeystrokes((prev) => Math.max(0, prev - 1));
-        }
+        // Do not decrement keystroke counts on backspace; counts reflect all typed characters.
 
         const newTyped = typed.slice(0, -1);
         setTypedInternal(newTyped);

@@ -1,10 +1,13 @@
 import { useCallback } from "react";
+import { countCorrectWordChars } from "@/lib/wordWpm";
 
 // Calculates typing speed
 export const useCalculateTypingStats = (
   startTime: number | null,
   totalKeystrokes: number,
-  correctKeystrokes: number
+  correctKeystrokes: number,
+  typed: string,
+  text: string
 ) => {
   return useCallback(() => {
     if (!startTime) {
@@ -29,9 +32,11 @@ export const useCalculateTypingStats = (
         : 100;
 
     // Calculate wpm
+    const { correctWordChars, correctSpaces } = countCorrectWordChars(typed, text);
+    const wpmChars = correctWordChars + correctSpaces;
     const calculatedWpm =
       elapsedTime > 0
-        ? parseFloat((correctKeystrokes / (5 * elapsedTime)).toFixed(2))
+        ? parseFloat(((wpmChars / 5) / elapsedTime).toFixed(2))
         : 0;
 
     return {
@@ -39,5 +44,5 @@ export const useCalculateTypingStats = (
       rawWpm: calculatedRaw,
       accuracy: calculatedAccuracy,
     };
-  }, [startTime, totalKeystrokes, correctKeystrokes]);
+  }, [startTime, totalKeystrokes, correctKeystrokes, typed, text]);
 };
