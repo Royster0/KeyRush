@@ -100,8 +100,7 @@ const PublicProfileContent = async ({ username }: { username: string }) => {
         <ProfileOverview
           username={profile.username || "User"}
           joinDate={joinDate}
-          testsCompleted={testResults.length}
-          leaderboardRankings={leaderboardRankings}
+          totalXp={profile.total_xp ?? 0}
           isOwnProfile={isOwnProfile}
         />
 
