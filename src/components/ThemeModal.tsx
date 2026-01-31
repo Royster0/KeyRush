@@ -75,13 +75,16 @@ export function ThemeModal() {
                 <Button
                     variant="outline"
                     size="icon"
-                    className="fixed bottom-8 right-8 h-12 w-12 rounded-full shadow-lg backdrop-blur-sm bg-background/80 hover:bg-background transition-all duration-300 hover:scale-110 border-border/50"
+                    className="fixed bottom-8 right-8 z-[70] h-12 w-12 rounded-full shadow-lg backdrop-blur-sm bg-background/80 hover:bg-background transition-all duration-300 hover:scale-110 border-border/50"
                 >
                     <Palette className="h-6 w-6" />
                     <span className="sr-only">Open theme selector</span>
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto" overlayClassName="bg-black/0 backdrop-blur-none">
+            <DialogContent
+                className="z-[80] sm:max-w-md max-h-[80vh] overflow-y-auto"
+                overlayClassName="z-[70] bg-black/0 backdrop-blur-none"
+            >
                 <DialogHeader>
                     <DialogTitle>Select Theme</DialogTitle>
                 </DialogHeader>

@@ -14,6 +14,7 @@ import ActivityGraph from "@/components/profile/ActivityGraph";
 import WpmChart from "@/components/profile/WpmChart";
 import LoadingProfile from "@/components/profile/LoadingProfile";
 import RankedStatsCard from "@/components/profile/RankedStatsCard";
+import LeaderboardRankings from "@/components/profile/LeaderboardRankings";
 import { formatDate } from "@/lib/utils";
 
 type PublicProfilePageProps = {
@@ -37,9 +38,9 @@ function getSiteUrl() {
   return siteUrl;
 }
 
-export async function generateMetadata(
-  { params }: PublicProfilePageProps
-): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PublicProfilePageProps): Promise<Metadata> {
   const { username } = await params;
   const profile = await getPublicProfile(username);
 
@@ -94,23 +95,26 @@ const PublicProfileContent = async ({ username }: { username: string }) => {
   const isOwnProfile = currentUser?.id === profile.id;
 
   return (
-    <div className="container mx-auto max-w-6xl px-4 py-8 space-y-6">
-      <ProfileOverview
-        username={profile.username || "User"}
-        joinDate={joinDate}
-        testsCompleted={testResults.length}
-        leaderboardRankings={leaderboardRankings}
-        isOwnProfile={isOwnProfile}
-      />
+    <div className="relative py-10 overflow-x-hidden">
+      <div className="container relative z-10 mx-auto max-w-6xl px-4 space-y-0">
+        <ProfileOverview
+          username={profile.username || "User"}
+          joinDate={joinDate}
+          testsCompleted={testResults.length}
+          leaderboardRankings={leaderboardRankings}
+          isOwnProfile={isOwnProfile}
+        />
 
-      <RankedStatsCard profile={profile} />
+        <RankedStatsCard profile={profile} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <BestScores bestScores={bestScores} />
-        <ActivityGraph testResults={testResults} />
-      </div>
 
-      <WpmChart testResults={testResults} />
+        <LeaderboardRankings leaderboardRankings={leaderboardRankings} />
+
+        <ActivityGraph testResults={testResults} />
+
+        <WpmChart testResults={testResults} />
+      </div>
     </div>
   );
 };

@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { Activity, Calendar } from "lucide-react";
 import { Chart, registerables } from "chart.js";
 import { formatDate } from "@/lib/utils";
-import { useThemeColors } from "@/hooks/useCustomTheme";
+import { DEFAULT_THEME_COLORS, useThemeColors } from "@/hooks/useCustomTheme";
 import { motion } from "motion/react";
 
 Chart.register(...registerables);
@@ -28,7 +28,7 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
   const chartInstanceRef = useRef<Chart | null>(null);
   const colors = useThemeColors();
 
-  useEffect(() => {
+  const buildChart = useCallback(() => {
     if (globalChartInstance) {
       globalChartInstance.destroy();
       globalChartInstance = null;
@@ -48,7 +48,12 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
 
     const canvasContext = chartRef.current.getContext("2d");
     if (canvasContext) {
-      canvasContext.clearRect(0, 0, chartRef.current.width, chartRef.current.height);
+      canvasContext.clearRect(
+        0,
+        0,
+        chartRef.current.width,
+        chartRef.current.height,
+      );
     }
 
     const today = new Date();
@@ -91,7 +96,13 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
 
     const ctx = chartRef.current.getContext("2d");
     if (ctx) {
-      const primaryColor = `hsl(${colors.primary})`;
+      const rootStyles = getComputedStyle(document.documentElement);
+      const chartColor = rootStyles.getPropertyValue("--chart-1").trim();
+      const baseColor =
+        colors.primary !== DEFAULT_THEME_COLORS.primary
+          ? colors.primary
+          : chartColor || colors.primary;
+      const barColor = `hsl(${baseColor} / 0.55)`;
 
       const newChartInstance = new Chart(ctx, {
         type: "bar",
@@ -101,8 +112,8 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
             {
               label: "Tests",
               data: dataPoints,
-              backgroundColor: primaryColor,
-              borderColor: primaryColor,
+              backgroundColor: barColor,
+              borderColor: barColor,
               borderWidth: 0,
               borderRadius: 4,
             },
@@ -159,20 +170,10 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
       chartInstanceRef.current = newChartInstance;
       globalChartInstance = newChartInstance;
     }
-
-    return () => {
-      if (chartInstanceRef.current) {
-        chartInstanceRef.current.destroy();
-        chartInstanceRef.current = null;
-      }
-      if (globalChartInstance) {
-        globalChartInstance.destroy();
-        globalChartInstance = null;
-      }
-    };
   }, [testResults, colors]);
 
   useEffect(() => {
+    buildChart();
     return () => {
       if (chartInstanceRef.current) {
         chartInstanceRef.current.destroy();
@@ -187,7 +188,7 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
         existingChart.destroy();
       }
     };
-  }, []);
+  }, [buildChart]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -200,6 +201,8 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
           globalChartInstance.destroy();
           globalChartInstance = null;
         }
+      } else {
+        buildChart();
       }
     };
 
@@ -207,27 +210,31 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, []);
+  }, [buildChart]);
 
   return (
-    <motion.div
+    <motion.section
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: 0.45 }}
-      className="h-full rounded-2xl bg-muted/30 border border-border/30 p-6"
+      transition={{ duration: 0.45, delay: 0.35 }}
+      className="relative border-b border-primary/40 py-10"
     >
-      <div className="flex items-center gap-2 mb-5">
-        <div className="p-2 rounded-xl bg-primary/10">
-          <Activity className="h-5 w-5 text-primary" />
+      <div className="relative z-10 flex flex-wrap items-center gap-3">
+        <Activity className="h-5 w-5 text-primary" />
+        <div>
+          <h3 className="text-2xl font-mono uppercase tracking-[0.2em]">
+            Activity
+          </h3>
         </div>
-        <h3 className="text-lg font-semibold">Activity</h3>
-        <span className="text-xs text-muted-foreground ml-auto">Last 2 months</span>
+        <span className="ml-auto text-xs text-muted-foreground">
+          Last 2 months
+        </span>
       </div>
 
-      <div className="h-[320px]">
+      <div className="relative z-10 mt-6 h-[320px] rounded-[28px] bg-[linear-gradient(180deg,_hsl(var(--background)/0.6),_hsl(var(--background)/0.3))] p-3">
         {testResults.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+            <div className="w-12 h-12 rounded-full border border-border/60 flex items-center justify-center mb-4">
               <Calendar className="h-6 w-6 text-muted-foreground" />
             </div>
             <p className="text-muted-foreground">No activity data yet</p>
@@ -239,14 +246,14 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.6 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
             className="w-full h-full"
           >
             <canvas id="activity-chart-canvas" ref={chartRef} />
           </motion.div>
         )}
       </div>
-    </motion.div>
+    </motion.section>
   );
 };
 
