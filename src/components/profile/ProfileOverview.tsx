@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { User, Calendar, Zap, Trophy, TrendingUp } from "lucide-react";
+import { Calendar, Trophy } from "lucide-react";
 import { formatDuration } from "@/lib/utils";
 import { motion } from "motion/react";
 
@@ -14,45 +14,15 @@ interface ProfileOverviewProps {
     rank: number | string;
     totalUsers: number;
   }>;
+  isOwnProfile?: boolean;
 }
-
-const StatCard = ({
-  icon: Icon,
-  label,
-  value,
-  delay,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: string | number;
-  delay: number;
-}) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.4, delay }}
-    className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-muted/60 to-muted/30 p-5 border border-border/30"
-  >
-    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-    <div className="relative z-10">
-      <div className="flex items-center gap-3 mb-3">
-        <div className="p-2 rounded-xl bg-primary/10">
-          <Icon className="h-4 w-4 text-primary" />
-        </div>
-        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-          {label}
-        </span>
-      </div>
-      <p className="text-2xl font-bold tracking-tight">{value}</p>
-    </div>
-  </motion.div>
-);
 
 const ProfileOverview: React.FC<ProfileOverviewProps> = ({
   username,
   joinDate,
   testsCompleted,
   leaderboardRankings,
+  isOwnProfile = false,
 }) => {
   const bestRanking = leaderboardRankings.reduce(
     (best, current) => {
@@ -92,14 +62,26 @@ const ProfileOverview: React.FC<ProfileOverviewProps> = ({
 
           {/* Info */}
           <div className="flex-1">
-            <motion.h1
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4, delay: 0.3 }}
-              className="text-3xl font-bold tracking-tight mb-1"
-            >
-              {username}
-            </motion.h1>
+            <div className="flex items-center gap-2 mb-1">
+              <motion.h1
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.4, delay: 0.3 }}
+                className="text-3xl font-bold tracking-tight"
+              >
+                {username}
+              </motion.h1>
+              {isOwnProfile && (
+                <motion.span
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.35 }}
+                  className="inline-flex items-center rounded-full bg-primary/10 text-primary text-xs font-semibold px-2 py-1"
+                >
+                  This is you
+                </motion.span>
+              )}
+            </div>
             <motion.p
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -131,19 +113,6 @@ const ProfileOverview: React.FC<ProfileOverviewProps> = ({
           </motion.div>
         </div>
       </motion.div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard icon={User} label="Username" value={username} delay={0.1} />
-        <StatCard icon={Calendar} label="Member Since" value={joinDate} delay={0.15} />
-        <StatCard icon={Zap} label="Tests Completed" value={testsCompleted} delay={0.2} />
-        <StatCard
-          icon={TrendingUp}
-          label="Leaderboards"
-          value={leaderboardRankings.filter((r) => typeof r.rank === "number").length}
-          delay={0.25}
-        />
-      </div>
 
       {/* Leaderboard Rankings */}
       {leaderboardRankings.length > 0 && (

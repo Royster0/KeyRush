@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { RankedPlayer } from "@/lib/services/leaderboard";
 import { getRankLabel } from "@/lib/multiplayer";
 import { RankIcon } from "@/components/RankIcon";
+import UserLink from "@/components/ui/UserLink";
 
 interface RankedLeaderboardTableProps {
   data: RankedPlayer[];
@@ -78,7 +79,9 @@ export default function RankedLeaderboardTable({ data, currentUserId }: RankedLe
                       title={rankTier}
                     />
                   </TableCell>
-                  <TableCell className="font-medium">{player.username}</TableCell>
+                  <TableCell className="font-medium">
+                    <UserLink username={player.username} />
+                  </TableCell>
                   <TableCell className="text-right font-mono font-semibold">
                     {Math.round(player.elo)}
                   </TableCell>

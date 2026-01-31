@@ -54,6 +54,35 @@ export async function getUserLeaderboardRankings(): Promise<LeaderboardRanking[]
   }));
 }
 
+export async function getLeaderboardRankingsByUserId(
+  userId: string
+): Promise<LeaderboardRanking[]> {
+  const supabase = await createClient();
+
+  if (!userId) {
+    return [];
+  }
+
+  const { data, error } = await supabase.rpc("get_user_rankings", {
+    target_user_id: userId,
+  });
+
+  if (error || !data) {
+    return [];
+  }
+
+  const parsed = z.array(UserRankingRowSchema).safeParse(data);
+  if (!parsed.success) {
+    return [];
+  }
+
+  return parsed.data.map((row) => ({
+    duration: row.duration,
+    rank: row.rank ? Number(row.rank) : "N/A",
+    totalUsers: Number(row.total_users),
+  }));
+}
+
 export async function getLeaderboardData(
   duration: number,
   timeframe: LeaderboardTimeframe

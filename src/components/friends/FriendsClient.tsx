@@ -33,6 +33,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { RankIcon } from "@/components/RankIcon";
 import { formatDate } from "@/lib/utils";
+import UserLink from "@/components/ui/UserLink";
 import type { FriendRequest, FriendSummary } from "@/types/friends.types";
 
 type FriendsClientProps = {
@@ -347,9 +348,10 @@ export default function FriendsClient({
                         {getInitials(request.sender.username)}
                       </div>
                       <div>
-                        <p className="font-semibold">
-                          {request.sender.username}
-                        </p>
+                        <UserLink
+                          username={request.sender.username}
+                          className="font-semibold"
+                        />
                         <p className="text-xs text-muted-foreground">
                           Level {request.sender.level} ·{" "}
                           {request.sender.rank_tier ?? "Unranked"} ·{" "}
@@ -430,9 +432,10 @@ export default function FriendsClient({
                             </div>
                             <div>
                               <div className="flex items-center gap-2">
-                                <p className="font-semibold text-base">
-                                  {friend.username}
-                                </p>
+                                <UserLink
+                                  username={friend.username}
+                                  className="font-semibold text-base"
+                                />
                                 <span
                                   className={`h-2.5 w-2.5 rounded-full ${
                                     isOnline

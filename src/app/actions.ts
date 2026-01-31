@@ -24,6 +24,10 @@ export async function getUser() {
   return userServices.getUser();
 }
 
+export async function getPublicProfile(username: string) {
+  return userServices.getProfileByUsername(username);
+}
+
 export async function getUserTestResults() {
   const user = await userServices.getUser();
   if (!user) {
@@ -32,12 +36,20 @@ export async function getUserTestResults() {
   return testResultServices.getUserTestResults();
 }
 
+export async function getPublicTestResults(userId: string) {
+  return testResultServices.getTestResultsByUserId(userId);
+}
+
 export async function getUserBestScores() {
   const user = await userServices.getUser();
   if (!user) {
     redirect("/auth/login");
   }
   return testResultServices.getUserBestScores();
+}
+
+export async function getPublicBestScores(userId: string) {
+  return testResultServices.getBestScoresByUserId(userId);
 }
 
 export async function getBestScoresSafe() {
@@ -50,6 +62,10 @@ export async function getUserLeaderboardRankings() {
     redirect("/auth/login");
   }
   return leaderboardServices.getUserLeaderboardRankings();
+}
+
+export async function getPublicLeaderboardRankings(userId: string) {
+  return leaderboardServices.getLeaderboardRankingsByUserId(userId);
 }
 
 export async function getPreSaveState() {

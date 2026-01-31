@@ -138,22 +138,6 @@ const RankedStatsCard: React.FC<RankedStatsCardProps> = ({ profile }) => {
         </motion.div>
       </div>
 
-      {/* Coming Soon Modes */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.4, delay: 0.6 }}
-        className="mt-4 flex gap-3"
-      >
-        <div className="flex-1 rounded-xl bg-muted/30 border border-border/30 p-4 text-center">
-          <p className="text-xs font-medium text-muted-foreground">3-Way Mode</p>
-          <p className="text-sm text-muted-foreground/60 mt-1">Coming soon</p>
-        </div>
-        <div className="flex-1 rounded-xl bg-muted/30 border border-border/30 p-4 text-center">
-          <p className="text-xs font-medium text-muted-foreground">4-Way Mode</p>
-          <p className="text-sm text-muted-foreground/60 mt-1">Coming soon</p>
-        </div>
-      </motion.div>
     </motion.div>
   );
 };

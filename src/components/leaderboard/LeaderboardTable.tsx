@@ -14,6 +14,7 @@ import { formatDate } from "@/lib/utils";
 import { LeaderboardEntry } from "@/app/leaderboard/actions";
 import { Badge } from "@/components/ui/badge";
 import { Users, User } from "lucide-react";
+import UserLink from "@/components/ui/UserLink";
 
 interface LeaderboardTableProps {
   data: LeaderboardEntry[];
@@ -51,7 +52,9 @@ export default function LeaderboardTable({ data, duration }: LeaderboardTablePro
                     index + 1
                   )}
                 </TableCell>
-                <TableCell>{entry.username}</TableCell>
+                <TableCell>
+                  <UserLink username={entry.username} />
+                </TableCell>
                 <TableCell className="text-right font-semibold">{Number(entry.wpm).toFixed(2)}</TableCell>
                 <TableCell className="text-right">{typeof entry.accuracy === 'number' ? entry.accuracy.toFixed(1) : '0.0'}%</TableCell>
                 {showSource && (

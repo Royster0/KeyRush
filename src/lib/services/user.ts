@@ -27,3 +27,45 @@ export async function getUser() {
       
   return { ...user, profile };
 }
+
+export type PublicProfile = {
+  id: string;
+  username: string;
+  created_at: string;
+  elo?: number | null;
+  rank_tier?: string | null;
+  matches_played?: number | null;
+  wins?: number | null;
+  losses?: number | null;
+  total_xp?: number | null;
+  level?: number | null;
+};
+
+export async function getProfileByUsername(
+  username: string
+): Promise<PublicProfile | null> {
+  const supabase = await createClient();
+  if (!username) {
+    return null;
+  }
+
+  const cleanedUsername = username.trim();
+
+  if (!cleanedUsername) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select(
+      "id, username, created_at, elo, rank_tier, matches_played, wins, losses, total_xp, level"
+    )
+    .ilike("username", cleanedUsername)
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return data as PublicProfile;
+}
