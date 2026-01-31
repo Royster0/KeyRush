@@ -217,21 +217,23 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay: 0.35 }}
-      className="relative border-b border-primary/40 py-10"
+      className="relative border-b border-primary/30 py-10"
     >
-      <div className="relative z-10 flex flex-wrap items-center gap-3">
-        <Activity className="h-5 w-5 text-primary" />
-        <div>
-          <h3 className="text-2xl font-mono uppercase tracking-[0.2em]">
+      <div className="relative z-10 flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
+            <Activity className="h-4 w-4 text-primary" />
+          </div>
+          <h3 className="text-xl font-mono uppercase tracking-[0.15em]">
             Activity
           </h3>
         </div>
-        <span className="ml-auto text-xs text-muted-foreground">
-          Last 2 months
+        <span className="text-xs text-muted-foreground font-mono">
+          Last 60 days
         </span>
       </div>
 
-      <div className="relative z-10 mt-6 h-[320px] rounded-[28px] bg-[linear-gradient(180deg,_hsl(var(--background)/0.6),_hsl(var(--background)/0.3))] p-3">
+      <div className="relative z-10 h-[280px] rounded-2xl border border-border/40 bg-muted/20 p-4">
         {testResults.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <div className="w-12 h-12 rounded-full border border-border/60 flex items-center justify-center mb-4">

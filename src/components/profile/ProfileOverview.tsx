@@ -25,8 +25,13 @@ const ProfileOverview: React.FC<ProfileOverviewProps> = ({
       initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="relative py-10"
+      className="relative py-16"
     >
+      {/* Background glow */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute left-1/2 top-0 -translate-x-1/2 h-[300px] w-[600px] rounded-full bg-primary/8 blur-[100px]" />
+      </div>
+
       <div className="relative z-10 flex flex-col items-center text-center">
         {/* Avatar */}
         <motion.div
@@ -38,17 +43,24 @@ const ProfileOverview: React.FC<ProfileOverviewProps> = ({
             damping: 20,
             delay: 0.1,
           }}
-          className="relative mb-5"
+          className="relative mb-6"
         >
-          <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-primary via-primary/80 to-primary/60 flex items-center justify-center shadow-xl shadow-primary/10">
-            <span className="text-4xl font-black text-primary-foreground">
+          {/* Outer ring */}
+          <div className="absolute -inset-1.5 rounded-[22px] bg-gradient-to-br from-primary/40 via-primary/20 to-transparent" />
+          <div className="relative w-28 h-28 rounded-2xl bg-gradient-to-br from-primary via-primary/85 to-primary/70 flex items-center justify-center shadow-2xl shadow-primary/20">
+            <span className="text-5xl font-black text-primary-foreground drop-shadow-sm">
               {username.charAt(0).toUpperCase()}
             </span>
           </div>
           {/* Level badge */}
-          <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-lg bg-background border-2 border-primary/50 flex items-center justify-center text-xs font-bold text-primary">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 15, delay: 0.3 }}
+            className="absolute -bottom-2 -right-2 w-10 h-10 rounded-xl bg-background border-2 border-primary/60 flex items-center justify-center text-sm font-bold text-primary shadow-lg"
+          >
             {level}
-          </div>
+          </motion.div>
         </motion.div>
 
         {/* Username & Meta */}
@@ -56,19 +68,20 @@ const ProfileOverview: React.FC<ProfileOverviewProps> = ({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.2 }}
+          className="space-y-2"
         >
-          <div className="flex items-center gap-2 justify-center mb-1">
-            <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+          <div className="flex items-center gap-3 justify-center">
+            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl bg-gradient-to-b from-foreground to-foreground/70 bg-clip-text text-transparent">
               {username}
             </h1>
             {isOwnProfile && (
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground bg-muted px-2 py-0.5 rounded">
+              <span className="text-[10px] uppercase tracking-widest text-primary bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full font-medium">
                 You
               </span>
             )}
           </div>
-          <p className="text-sm text-muted-foreground flex items-center justify-center gap-1.5">
-            <Calendar className="h-3 w-3" />
+          <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
+            <Calendar className="h-3.5 w-3.5" />
             Joined {joinDate}
           </p>
         </motion.div>
