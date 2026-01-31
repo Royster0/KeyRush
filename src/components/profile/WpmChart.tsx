@@ -5,7 +5,7 @@ import { TrendingUp, BarChart3 } from "lucide-react";
 import { Chart, registerables } from "chart.js";
 import { TestResults } from "@/types/game.types";
 import { formatDate } from "@/lib/utils";
-import { useThemeColors } from "@/hooks/useCustomTheme";
+import { DEFAULT_THEME_COLORS, useThemeColors } from "@/hooks/useCustomTheme";
 import { motion } from "motion/react";
 
 Chart.register(...registerables);
@@ -91,13 +91,19 @@ const WpmChart: React.FC<WpmChartProps> = ({ testResults }) => {
       });
 
     const labels = filteredResults.map((result) =>
-      formatDate(new Date(result.created_at!))
+      formatDate(new Date(result.created_at!)),
     );
     const data = filteredResults.map((result) => result.wpm);
 
     const ctx = chartRef.current.getContext("2d");
     if (ctx) {
-      const lineColor = `hsl(${colors.primary} / 0.65)`;
+      const rootStyles = getComputedStyle(document.documentElement);
+      const chartColor = rootStyles.getPropertyValue("--chart-2").trim();
+      const baseColor =
+        colors.primary !== DEFAULT_THEME_COLORS.primary
+          ? colors.primary
+          : chartColor || colors.primary;
+      const lineColor = `hsl(${baseColor} / 0.6)`;
 
       const newChartInstance = new Chart(ctx, {
         type: "line",
@@ -177,31 +183,37 @@ const WpmChart: React.FC<WpmChartProps> = ({ testResults }) => {
   }, [testResults, timeCategory, timePeriod, colors]);
 
   return (
-    <motion.div
+    <motion.section
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: 0.5 }}
-      className="rounded-2xl bg-muted/30 border border-border/30 p-6"
+      transition={{ duration: 0.45, delay: 0.45 }}
+      className="relative border-b border-border/70 py-10"
     >
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div className="flex items-center gap-2">
-          <div className="p-2 rounded-xl bg-primary/10">
-            <TrendingUp className="h-5 w-5 text-primary" />
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-16 right-[-5%] h-52 w-52 rounded-full bg-primary/12 blur-3xl" />
+      </div>
+
+      <div className="relative z-10 flex flex-col gap-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <TrendingUp className="h-5 w-5 text-primary" />
+          <div>
+            <h3 className="text-2xl font-mono uppercase tracking-[0.2em]">
+              WPM History
+            </h3>
           </div>
-          <h3 className="text-lg font-semibold">WPM History</h3>
         </div>
 
         {/* Filters */}
         <div className="flex flex-wrap gap-2">
           {/* Time Category */}
-          <div className="inline-flex items-center rounded-lg bg-background/60 border border-border/50 p-1">
+          <div className="inline-flex items-center rounded-full border border-border/60 bg-background/70 p-1">
             {TIME_CATEGORIES.map((cat) => (
               <button
                 key={cat.value}
                 onClick={() => setTimeCategory(cat.value)}
-                className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
+                className={`px-3 py-1 text-[11px] font-mono uppercase tracking-[0.2em] rounded-full transition-colors ${
                   timeCategory === cat.value
-                    ? "bg-primary text-primary-foreground"
+                    ? "bg-primary/20 text-primary"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -211,14 +223,14 @@ const WpmChart: React.FC<WpmChartProps> = ({ testResults }) => {
           </div>
 
           {/* Time Period */}
-          <div className="inline-flex items-center rounded-lg bg-background/60 border border-border/50 p-1">
+          <div className="inline-flex items-center rounded-full border border-border/60 bg-background/70 p-1">
             {TIME_PERIODS.map((period) => (
               <button
                 key={period.value}
                 onClick={() => setTimePeriod(period.value)}
-                className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
+                className={`px-3 py-1 text-[11px] font-mono uppercase tracking-[0.2em] rounded-full transition-colors ${
                   timePeriod === period.value
-                    ? "bg-primary text-primary-foreground"
+                    ? "bg-primary/20 text-primary"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -229,10 +241,10 @@ const WpmChart: React.FC<WpmChartProps> = ({ testResults }) => {
         </div>
       </div>
 
-      <div className="h-[350px]">
+      <div className="relative z-10 mt-6 h-[350px] rounded-[28px] bg-[linear-gradient(180deg,_hsl(var(--background)/0.6),_hsl(var(--background)/0.3))] p-3">
         {testResults.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+            <div className="w-12 h-12 rounded-full border border-border/60 flex items-center justify-center mb-4">
               <BarChart3 className="h-6 w-6 text-muted-foreground" />
             </div>
             <p className="text-muted-foreground">No WPM data yet</p>
@@ -244,14 +256,14 @@ const WpmChart: React.FC<WpmChartProps> = ({ testResults }) => {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.65 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
             className="w-full h-full"
           >
             <canvas id="wpm-chart-canvas" ref={chartRef} />
           </motion.div>
         )}
       </div>
-    </motion.div>
+    </motion.section>
   );
 };
 

@@ -38,9 +38,9 @@ function getSiteUrl() {
   return siteUrl;
 }
 
-export async function generateMetadata(
-  { params }: PublicProfilePageProps
-): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PublicProfilePageProps): Promise<Metadata> {
   const { username } = await params;
   const profile = await getPublicProfile(username);
 
@@ -95,24 +95,26 @@ const PublicProfileContent = async ({ username }: { username: string }) => {
   const isOwnProfile = currentUser?.id === profile.id;
 
   return (
-    <div className="container mx-auto max-w-6xl px-4 py-8 space-y-6">
-      <ProfileOverview
-        username={profile.username || "User"}
-        joinDate={joinDate}
-        testsCompleted={testResults.length}
-        leaderboardRankings={leaderboardRankings}
-        isOwnProfile={isOwnProfile}
-      />
+    <div className="relative py-10 overflow-x-hidden">
+      <div className="container relative z-10 mx-auto max-w-6xl px-4 space-y-0">
+        <ProfileOverview
+          username={profile.username || "User"}
+          joinDate={joinDate}
+          testsCompleted={testResults.length}
+          leaderboardRankings={leaderboardRankings}
+          isOwnProfile={isOwnProfile}
+        />
 
-      <RankedStatsCard profile={profile} />
+        <RankedStatsCard profile={profile} />
 
-      <BestScores bestScores={bestScores} />
+        <BestScores bestScores={bestScores} />
 
-      <LeaderboardRankings leaderboardRankings={leaderboardRankings} />
+        <LeaderboardRankings leaderboardRankings={leaderboardRankings} />
 
-      <ActivityGraph testResults={testResults} />
+        <ActivityGraph testResults={testResults} />
 
-      <WpmChart testResults={testResults} />
+        <WpmChart testResults={testResults} />
+      </div>
     </div>
   );
 };

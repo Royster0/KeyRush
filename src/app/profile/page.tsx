@@ -1,5 +1,10 @@
 import React, { Suspense } from "react";
-import { getUser, getUserTestResults, getUserBestScores, getUserLeaderboardRankings } from "@/app/actions";
+import {
+  getUser,
+  getUserTestResults,
+  getUserBestScores,
+  getUserLeaderboardRankings,
+} from "@/app/actions";
 import ProfileOverview from "@/components/profile/ProfileOverview";
 import BestScores from "@/components/profile/BestScores";
 import ActivityGraph from "@/components/profile/ActivityGraph";
@@ -21,25 +26,27 @@ const ProfileContent = async () => {
     : "N/A";
 
   return (
-    <div className="container mx-auto max-w-6xl px-4 py-8 space-y-6">
-      <ProfileOverview
-        username={user?.profile?.username || "User"}
-        joinDate={joinDate}
-        testsCompleted={testResults.length}
-        leaderboardRankings={leaderboardRankings}
-      />
+    <div className="relative py-10 overflow-x-hidden">
+      <div className="container relative z-10 mx-auto max-w-6xl px-4 space-y-0">
+        <ProfileOverview
+          username={user?.profile?.username || "User"}
+          joinDate={joinDate}
+          testsCompleted={testResults.length}
+          leaderboardRankings={leaderboardRankings}
+        />
 
-      <RankedStatsCard profile={user?.profile ?? null} />
+        <RankedStatsCard profile={user?.profile ?? null} />
 
-      <BestScores bestScores={bestScores} />
+        <BestScores bestScores={bestScores} />
 
-      <LeaderboardRankings leaderboardRankings={leaderboardRankings} />
+        <LeaderboardRankings leaderboardRankings={leaderboardRankings} />
 
-      <XpProgressCard totalXp={user?.profile?.total_xp ?? 0} />
+        <XpProgressCard totalXp={user?.profile?.total_xp ?? 0} />
 
-      <ActivityGraph testResults={testResults} />
+        <ActivityGraph testResults={testResults} />
 
-      <WpmChart testResults={testResults} />
+        <WpmChart testResults={testResults} />
+      </div>
     </div>
   );
 };

@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { Sparkles, TrendingUp, Zap } from "lucide-react";
+import { Sparkles, Zap } from "lucide-react";
 import { motion } from "motion/react";
-import { getLevelProgress, getXpForLevel } from "@/lib/xp";
+import { getLevelProgress } from "@/lib/xp";
 
 interface XpProgressCardProps {
   totalXp: number;
@@ -15,78 +15,82 @@ const XpProgressCard: React.FC<XpProgressCardProps> = ({ totalXp }) => {
   const xpToNextLevel = progress.nextLevelXp - progress.currentLevelXp;
 
   return (
-    <motion.div
+    <motion.section
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: 0.3 }}
-      className="rounded-2xl bg-gradient-to-br from-muted/50 to-muted/20 border border-border/30 p-6"
+      transition={{ duration: 0.45, delay: 0.3 }}
+      className="relative border-b border-primary/40 py-10"
     >
-      <div className="flex items-center gap-2 mb-6">
-        <div className="p-2 rounded-xl bg-primary/10">
-          <Sparkles className="h-5 w-5 text-primary" />
-        </div>
-        <h3 className="text-lg font-semibold">Level Progress</h3>
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-20 right-[-5%] h-44 w-44 rounded-full bg-primary/12 blur-3xl" />
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="relative z-10 flex items-center gap-3">
+        <Sparkles className="h-5 w-5 text-primary" />
+        <div>
+          <h3 className="text-2xl font-mono uppercase tracking-[0.2em]">
+            Level Progress
+          </h3>
+        </div>
+      </div>
+
+      <div className="relative z-10 mt-8 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
         {/* Level Display */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, delay: 0.35 }}
-          className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent p-5 border border-primary/20"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, delay: 0.3 }}
+          className="space-y-2"
         >
-          <div className="absolute top-3 right-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg shadow-primary/20">
-              <Zap className="h-4 w-4 text-primary-foreground" />
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/15">
+              <Zap className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-[11px] font-mono uppercase tracking-[0.35em] text-muted-foreground">
+                Current Level
+              </p>
+              <p className="text-4xl font-semibold text-primary">{level}</p>
             </div>
           </div>
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
-            Current Level
-          </p>
-          <p className="text-4xl font-bold text-primary">
-            {level}
-          </p>
-          <p className="text-xs text-muted-foreground mt-2">
+          <p className="text-xs text-muted-foreground">
             {totalXp.toLocaleString()} total XP
           </p>
         </motion.div>
 
         {/* Progress to Next Level */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, delay: 0.4 }}
-          className="rounded-xl bg-background/40 border border-border/50 p-5 lg:col-span-2"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, delay: 0.35 }}
+          className="space-y-3 md:col-span-1 lg:col-span-2"
         >
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Progress to Level {level + 1}
-            </p>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <span className="font-mono uppercase tracking-[0.3em]">
+              Level {level + 1}
+            </span>
+            <span className="text-lg font-semibold text-foreground">
+              {Math.round(progress.progress)}%
+            </span>
           </div>
-          <div className="flex items-end gap-2 mb-3">
-            <p className="text-3xl font-bold">{Math.round(progress.progress)}%</p>
-            <p className="text-sm text-muted-foreground mb-1">
-              ({Math.round(progress.currentLevelXp).toLocaleString()} / {progress.nextLevelXp.toLocaleString()} XP)
-            </p>
-          </div>
-          <div className="h-3 rounded-full bg-muted overflow-hidden">
+          <div className="h-2 rounded-full bg-muted/60 overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${progress.progress}%` }}
               transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
-              className="h-full rounded-full bg-gradient-to-r from-primary to-primary/60"
+              className="h-full rounded-full bg-gradient-to-r from-primary/80 to-primary/50"
             />
           </div>
-          <p className="text-xs text-muted-foreground mt-2">
+          <p className="text-xs text-muted-foreground">
+            {Math.round(progress.currentLevelXp).toLocaleString()} /{" "}
+            {progress.nextLevelXp.toLocaleString()} XP
+          </p>
+          <p className="text-xs text-muted-foreground">
             {xpToNextLevel.toLocaleString()} XP needed
           </p>
         </motion.div>
-
       </div>
-
-    </motion.div>
+    </motion.section>
   );
 };
 
