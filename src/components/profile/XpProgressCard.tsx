@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Sparkles, TrendingUp, Target, Zap } from "lucide-react";
+import { Sparkles, TrendingUp, Zap } from "lucide-react";
 import { motion } from "motion/react";
 import { getLevelProgress, getXpForLevel } from "@/lib/xp";
 
@@ -28,7 +28,7 @@ const XpProgressCard: React.FC<XpProgressCardProps> = ({ totalXp }) => {
         <h3 className="text-lg font-semibold">Level Progress</h3>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Level Display */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
@@ -84,55 +84,8 @@ const XpProgressCard: React.FC<XpProgressCardProps> = ({ totalXp }) => {
           </p>
         </motion.div>
 
-        {/* XP for Next Level */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, delay: 0.45 }}
-          className="rounded-xl bg-background/40 border border-border/50 p-5"
-        >
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Level {level + 1} Requires
-            </p>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </div>
-          <p className="text-3xl font-bold font-mono">
-            {progress.nextLevelXp.toLocaleString()}
-          </p>
-          <p className="text-xs text-muted-foreground mt-2">
-            XP total for this level
-          </p>
-        </motion.div>
       </div>
 
-      {/* Level Milestones */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.4, delay: 0.55 }}
-        className="mt-4"
-      >
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
-          Upcoming Milestones
-        </p>
-        <div className="flex gap-2 flex-wrap">
-          {[5, 10, 25, 50, 100]
-            .filter((milestone) => milestone > level)
-            .slice(0, 4)
-            .map((milestone) => (
-              <div
-                key={milestone}
-                className="rounded-lg bg-muted/30 border border-border/30 px-3 py-2 text-center"
-              >
-                <p className="text-sm font-bold text-primary">Lv. {milestone}</p>
-                <p className="text-[10px] text-muted-foreground">
-                  {getXpForLevel(milestone).toLocaleString()} XP
-                </p>
-              </div>
-            ))}
-        </div>
-      </motion.div>
     </motion.div>
   );
 };

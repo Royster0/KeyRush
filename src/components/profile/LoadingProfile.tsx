@@ -32,17 +32,52 @@ export default function LoadingProfile() {
         </div>
       </div>
 
-      {/* Stats Grid Skeleton */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="rounded-2xl bg-muted/30 border border-border/30 p-5">
-            <div className="flex items-center gap-3 mb-3">
-              <SkeletonPulse className="w-8 h-8 rounded-xl" />
+      {/* Ranked Stats Skeleton */}
+      <div className="rounded-2xl bg-muted/30 border border-border/30 p-6">
+        <div className="flex items-center gap-2 mb-6">
+          <SkeletonPulse className="w-9 h-9 rounded-xl" />
+          <SkeletonPulse className="h-5 w-32" />
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="rounded-xl bg-background/40 border border-border/50 p-5 space-y-3">
               <SkeletonPulse className="h-3 w-20" />
+              <SkeletonPulse className="h-8 w-24" />
+              <SkeletonPulse className="h-3 w-16" />
             </div>
-            <SkeletonPulse className="h-7 w-24" />
-          </div>
-        ))}
+          ))}
+        </div>
+      </div>
+
+      {/* Best Scores Skeleton */}
+      <div className="rounded-2xl bg-muted/30 border border-border/30 p-6">
+        <div className="flex items-center gap-2 mb-5">
+          <SkeletonPulse className="w-9 h-9 rounded-xl" />
+          <SkeletonPulse className="h-5 w-28" />
+        </div>
+        <div className="grid grid-flow-col auto-cols-[minmax(160px,1fr)] gap-3 overflow-x-auto pb-2">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="rounded-xl bg-background/40 border border-border/50 p-4">
+              <div className="flex items-center gap-3 mb-4">
+                <SkeletonPulse className="w-12 h-12 rounded-xl" />
+                <div className="space-y-2">
+                  <SkeletonPulse className="h-5 w-16" />
+                  <SkeletonPulse className="h-3 w-20" />
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <SkeletonPulse className="h-3 w-14" />
+                  <SkeletonPulse className="h-5 w-12" />
+                </div>
+                <div className="space-y-2">
+                  <SkeletonPulse className="h-3 w-12" />
+                  <SkeletonPulse className="h-3 w-10" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Leaderboard Skeleton */}
@@ -62,52 +97,13 @@ export default function LoadingProfile() {
         </div>
       </div>
 
-      {/* Ranked Stats Skeleton */}
+      {/* Activity Skeleton */}
       <div className="rounded-2xl bg-muted/30 border border-border/30 p-6">
-        <div className="flex items-center gap-2 mb-6">
+        <div className="flex items-center gap-2 mb-5">
           <SkeletonPulse className="w-9 h-9 rounded-xl" />
-          <SkeletonPulse className="h-5 w-32" />
+          <SkeletonPulse className="h-5 w-20" />
         </div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="rounded-xl bg-background/40 border border-border/50 p-5 space-y-3">
-              <SkeletonPulse className="h-3 w-20" />
-              <SkeletonPulse className="h-8 w-24" />
-              <SkeletonPulse className="h-3 w-16" />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Best Scores & Activity Grid Skeleton */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="rounded-2xl bg-muted/30 border border-border/30 p-6">
-          <div className="flex items-center gap-2 mb-5">
-            <SkeletonPulse className="w-9 h-9 rounded-xl" />
-            <SkeletonPulse className="h-5 w-28" />
-          </div>
-          <div className="space-y-3">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="rounded-xl bg-background/40 border border-border/50 p-4">
-                <div className="flex items-center gap-4">
-                  <SkeletonPulse className="w-14 h-14 rounded-xl" />
-                  <div className="space-y-2">
-                    <SkeletonPulse className="h-6 w-20" />
-                    <SkeletonPulse className="h-3 w-16" />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="rounded-2xl bg-muted/30 border border-border/30 p-6">
-          <div className="flex items-center gap-2 mb-5">
-            <SkeletonPulse className="w-9 h-9 rounded-xl" />
-            <SkeletonPulse className="h-5 w-20" />
-          </div>
-          <SkeletonPulse className="h-[320px] w-full rounded-lg" />
-        </div>
+        <SkeletonPulse className="h-[320px] w-full rounded-lg" />
       </div>
 
       {/* WPM Chart Skeleton */}

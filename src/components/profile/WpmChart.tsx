@@ -97,7 +97,7 @@ const WpmChart: React.FC<WpmChartProps> = ({ testResults }) => {
 
     const ctx = chartRef.current.getContext("2d");
     if (ctx) {
-      const primaryColor = `hsl(${colors.primary})`;
+      const lineColor = `hsl(${colors.primary} / 0.65)`;
 
       const newChartInstance = new Chart(ctx, {
         type: "line",
@@ -107,14 +107,13 @@ const WpmChart: React.FC<WpmChartProps> = ({ testResults }) => {
             {
               label: "WPM",
               data,
-              backgroundColor: `hsla(${colors.primary}, 0.1)`,
-              borderColor: primaryColor,
+              borderColor: lineColor,
               borderWidth: 2,
-              pointBackgroundColor: primaryColor,
+              pointBackgroundColor: lineColor,
               pointRadius: 3,
               pointHoverRadius: 6,
               tension: 0.3,
-              fill: true,
+              fill: false,
             },
           ],
         },

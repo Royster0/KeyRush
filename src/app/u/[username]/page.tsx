@@ -14,6 +14,7 @@ import ActivityGraph from "@/components/profile/ActivityGraph";
 import WpmChart from "@/components/profile/WpmChart";
 import LoadingProfile from "@/components/profile/LoadingProfile";
 import RankedStatsCard from "@/components/profile/RankedStatsCard";
+import LeaderboardRankings from "@/components/profile/LeaderboardRankings";
 import { formatDate } from "@/lib/utils";
 
 type PublicProfilePageProps = {
@@ -105,10 +106,11 @@ const PublicProfileContent = async ({ username }: { username: string }) => {
 
       <RankedStatsCard profile={profile} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <BestScores bestScores={bestScores} />
-        <ActivityGraph testResults={testResults} />
-      </div>
+      <BestScores bestScores={bestScores} />
+
+      <LeaderboardRankings leaderboardRankings={leaderboardRankings} />
+
+      <ActivityGraph testResults={testResults} />
 
       <WpmChart testResults={testResults} />
     </div>

@@ -46,67 +46,65 @@ const BestScores: React.FC<BestScoreProps> = ({ bestScores }) => {
           </p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-flow-col auto-cols-[minmax(190px,1fr)] gap-3 overflow-x-auto pb-2">
           {sortedScores.map((score, index) => {
             const rawWpm = score.rawWpm || score.raw_wpm || 0;
             return (
               <motion.div
                 key={score.duration}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: 0.5 + index * 0.05 }}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.4 + index * 0.05 }}
                 className="group relative rounded-xl bg-background/40 border border-border/50 p-4 hover:border-primary/30 transition-all duration-200"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    {/* Duration Badge */}
-                    <div className="w-14 h-14 rounded-xl bg-primary/10 flex flex-col items-center justify-center">
-                      <span className="text-lg font-bold text-primary">{score.duration}</span>
-                      <span className="text-[10px] text-primary/70 -mt-1">sec</span>
-                    </div>
-
-                    {/* WPM */}
-                    <div>
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-2xl font-bold group-hover:text-primary transition-colors">
-                          {Math.round(score.wpm)}
-                        </span>
-                        <span className="text-sm text-muted-foreground">wpm</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        Raw: {Math.round(rawWpm)} wpm
-                      </p>
-                    </div>
+                <div className="flex items-center gap-3">
+                  {/* Duration Badge */}
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex flex-col items-center justify-center">
+                    <span className="text-base font-bold text-primary">{score.duration}</span>
+                    <span className="text-[10px] text-primary/70 -mt-1">sec</span>
                   </div>
 
-                  {/* Stats */}
-                  <div className="flex items-center gap-4">
-                    <div className="text-right hidden sm:block">
-                      <p className="text-lg font-semibold">{Math.round(score.accuracy)}%</p>
-                      <p className="text-xs text-muted-foreground">Accuracy</p>
+                  {/* WPM */}
+                  <div>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-2xl font-bold group-hover:text-primary transition-colors">
+                        {Math.round(score.wpm)}
+                      </span>
+                      <span className="text-sm text-muted-foreground">wpm</span>
                     </div>
-                    <div className="text-right">
-                      <div className="text-xs text-muted-foreground">
-                        {score.created_at
-                          ? new Date(score.created_at).toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                            })
-                          : "—"}
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Raw: {Math.round(rawWpm)} wpm
+                    </p>
+                  </div>
+                </div>
+
+                {/* Stats */}
+                <div className="mt-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Accuracy</p>
+                    <p className="text-lg font-semibold">{Math.round(score.accuracy)}%</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs text-muted-foreground">
+                      {score.created_at
+                        ? new Date(score.created_at).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                          })
+                        : "—"}
+                    </div>
+                    {score.source && (
+                      <div className="flex items-center justify-end gap-1 mt-1">
+                        {score.source === "multiplayer" ? (
+                          <Users className="h-3 w-3 text-muted-foreground" />
+                        ) : (
+                          <User className="h-3 w-3 text-muted-foreground" />
+                        )}
+                        <span className="text-[10px] text-muted-foreground">
+                          {score.source === "multiplayer" ? "Multi" : "Solo"}
+                        </span>
                       </div>
-                      {score.source && (
-                        <div className="flex items-center justify-end gap-1 mt-1">
-                          {score.source === "multiplayer" ? (
-                            <Users className="h-3 w-3 text-muted-foreground" />
-                          ) : (
-                            <User className="h-3 w-3 text-muted-foreground" />
-                          )}
-                          <span className="text-[10px] text-muted-foreground">
-                            {score.source === "multiplayer" ? "Multi" : "Solo"}
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                    )}
                   </div>
                 </div>
 

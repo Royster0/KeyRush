@@ -7,6 +7,7 @@ import WpmChart from "@/components/profile/WpmChart";
 import LoadingProfile from "@/components/profile/LoadingProfile";
 import RankedStatsCard from "@/components/profile/RankedStatsCard";
 import XpProgressCard from "@/components/profile/XpProgressCard";
+import LeaderboardRankings from "@/components/profile/LeaderboardRankings";
 import { formatDate } from "@/lib/utils";
 
 const ProfileContent = async () => {
@@ -28,14 +29,15 @@ const ProfileContent = async () => {
         leaderboardRankings={leaderboardRankings}
       />
 
-      <XpProgressCard totalXp={user?.profile?.total_xp ?? 0} />
-
       <RankedStatsCard profile={user?.profile ?? null} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <BestScores bestScores={bestScores} />
-        <ActivityGraph testResults={testResults} />
-      </div>
+      <BestScores bestScores={bestScores} />
+
+      <LeaderboardRankings leaderboardRankings={leaderboardRankings} />
+
+      <XpProgressCard totalXp={user?.profile?.total_xp ?? 0} />
+
+      <ActivityGraph testResults={testResults} />
 
       <WpmChart testResults={testResults} />
     </div>

@@ -268,6 +268,7 @@ export default function Nav() {
     "/about",
     "/profile",
     "/badges",
+    "/u",
   ].some((path) => pathname === path || pathname.startsWith(`${path}/`));
 
   const navItems = [

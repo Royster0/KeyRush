@@ -23,7 +23,8 @@ const RankedStatsCard: React.FC<RankedStatsCardProps> = ({ profile }) => {
   const matchesPlayed = profile?.matches_played ?? 0;
   const wins = profile?.wins ?? 0;
   const losses = profile?.losses ?? 0;
-  const winRate = wins + losses > 0 ? Math.round((wins / (wins + losses)) * 100) : 0;
+  const winRate =
+    wins + losses > 0 ? Math.round((wins / (wins + losses)) * 100) : 0;
   const rankTier = profile?.rank_tier?.trim()
     ? profile.rank_tier
     : eloValue != null
@@ -50,23 +51,26 @@ const RankedStatsCard: React.FC<RankedStatsCardProps> = ({ profile }) => {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3, delay: 0.4 }}
-          className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent p-5 border border-primary/20"
+          className="relative overflow-hidden rounded-xl bg-gradient-to-br from-background/50 via-background/10 to-background p-5 border border-border/50"
         >
-          <div className="absolute top-3 right-3">
-            <RankIcon
-              rank={rankTier}
-              size={32}
-              className="opacity-80"
-              title={rankTier}
-            />
-          </div>
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
             Current Rank
           </p>
-          <p className="text-2xl font-bold">{rankTier}</p>
-          <p className="text-xs text-muted-foreground mt-2">
-            {eloValue != null ? `${Math.round(eloValue)} Elo` : "No Elo yet"}
-          </p>
+          <div className="flex flex-col items-center text-center gap-3">
+            <div className="rounded-3xl p-2">
+              <RankIcon
+                rank={rankTier}
+                size={72}
+                className="opacity-95"
+                title={rankTier}
+              />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-muted-foreground">
+                {rankTier}
+              </p>
+            </div>
+          </div>
         </motion.div>
 
         {/* Win/Loss */}
@@ -82,7 +86,9 @@ const RankedStatsCard: React.FC<RankedStatsCardProps> = ({ profile }) => {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-emerald-500" />
-              <span className="text-2xl font-bold text-emerald-500">{wins}</span>
+              <span className="text-2xl font-bold text-emerald-500">
+                {wins}
+              </span>
             </div>
             <span className="text-muted-foreground">/</span>
             <div className="flex items-center gap-2">
@@ -132,12 +138,9 @@ const RankedStatsCard: React.FC<RankedStatsCardProps> = ({ profile }) => {
           <p className="text-3xl font-bold font-mono">
             {eloValue != null ? Math.round(eloValue) : "—"}
           </p>
-          <p className="text-xs text-muted-foreground mt-2">
-            Ranked Mode
-          </p>
+          <p className="text-xs text-muted-foreground mt-2">Ranked Mode</p>
         </motion.div>
       </div>
-
     </motion.div>
   );
 };

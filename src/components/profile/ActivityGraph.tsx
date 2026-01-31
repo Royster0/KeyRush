@@ -91,7 +91,7 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
 
     const ctx = chartRef.current.getContext("2d");
     if (ctx) {
-      const primaryColor = `hsl(${colors.primary})`;
+      const barColor = `hsl(${colors.primary} / 0.6)`;
 
       const newChartInstance = new Chart(ctx, {
         type: "bar",
@@ -101,8 +101,8 @@ const ActivityGraph: React.FC<ActivityGraphProps> = ({ testResults }) => {
             {
               label: "Tests",
               data: dataPoints,
-              backgroundColor: primaryColor,
-              borderColor: primaryColor,
+              backgroundColor: barColor,
+              borderColor: barColor,
               borderWidth: 0,
               borderRadius: 4,
             },
