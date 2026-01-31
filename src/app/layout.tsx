@@ -7,10 +7,24 @@ import { Toaster } from "react-hot-toast";
 import Nav from "@/components/ui/Nav";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { DEFAULT_DESCRIPTION, SITE_NAME, getSiteUrl } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "KeyRush",
-  description: "Typing made fun",
+  title: SITE_NAME,
+  description: DEFAULT_DESCRIPTION,
+  metadataBase: new URL(getSiteUrl()),
+  openGraph: {
+    title: SITE_NAME,
+    description: DEFAULT_DESCRIPTION,
+    url: getSiteUrl(),
+    type: "website",
+    siteName: SITE_NAME,
+  },
+  twitter: {
+    card: "summary",
+    title: SITE_NAME,
+    description: DEFAULT_DESCRIPTION,
+  },
 };
 
 export default function RootLayout({

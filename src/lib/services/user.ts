@@ -69,3 +69,39 @@ export async function getProfileByUsername(
 
   return data as PublicProfile;
 }
+
+export async function getPublicProfileUsernames(): Promise<string[]> {
+  const supabase = await createClient();
+  const pageSize = 1000;
+  let from = 0;
+  let to = pageSize - 1;
+  const usernames: string[] = [];
+
+  while (true) {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("username")
+      .not("username", "is", null)
+      .neq("username", "")
+      .range(from, to);
+
+    if (error || !data) {
+      break;
+    }
+
+    for (const row of data) {
+      if (row.username) {
+        usernames.push(row.username);
+      }
+    }
+
+    if (data.length < pageSize) {
+      break;
+    }
+
+    from += pageSize;
+    to += pageSize;
+  }
+
+  return usernames;
+}

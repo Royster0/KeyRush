@@ -1,4 +1,13 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Authentication Error | KeyRush",
+  description: "There was an error signing you in. Please try again.",
+  path: "/auth/auth-code-error",
+  noIndex: true,
+});
 
 export default function AuthCodeError() {
   return (
