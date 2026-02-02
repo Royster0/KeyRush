@@ -98,8 +98,9 @@ export default function About() {
             </div>
             <div className="space-y-2 pt-2 text-sm text-muted-foreground border-l-2 border-border/40 pl-4">
               <p>
-                Words only count when fully correct, and only the space after a
-                correct word counts toward WPM.
+                During the test, only fully completed correct words count toward
+                WPM. When the test ends, if you&apos;re mid-word and all typed
+                characters are correct, those partial characters are included.
               </p>
               <p>
                 Backspacing does not reduce keystroke counts; it only edits what

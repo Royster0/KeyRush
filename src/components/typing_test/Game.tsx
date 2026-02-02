@@ -91,6 +91,15 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
     correctKeystrokes,
     typed,
     text,
+    false, // Live stats: don't include partial words
+  );
+  const calculatedFinalStats = useCalculateTypingStats(
+    startTime,
+    totalKeystrokes,
+    correctKeystrokes,
+    typed,
+    text,
+    true, // Final stats: include partial word if correctly typed
   );
 
   const restartTest = useCallback(() => {
@@ -251,10 +260,21 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
       return;
     }
 
+    // Calculate final stats with partial word credit
+    const finalStats = calculatedFinalStats();
+    const finalWpm = finalStats.wpm;
+    const finalRawWpm = finalStats.rawWpm;
+    const finalAccuracy = finalStats.accuracy;
+
+    // Update displayed stats
+    setWpm(finalWpm);
+    setRawWpm(finalRawWpm);
+    setAccuracy(finalAccuracy);
+
     const resultData = {
-      wpm: wpm,
-      rawWpm: rawWpm,
-      accuracy: accuracy,
+      wpm: finalWpm,
+      rawWpm: finalRawWpm,
+      accuracy: finalAccuracy,
       duration: selectedTime,
     };
 
@@ -271,7 +291,7 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
 
       // Check for achievements by comparing pre-save state with new result
       if (preSaveState) {
-        const achievements = await checkAchievements(wpm, selectedTime, preSaveState);
+        const achievements = await checkAchievements(finalWpm, selectedTime, preSaveState);
         if (achievements.length > 0) {
           setAchievementQueue(achievements);
         }
@@ -282,7 +302,7 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
       if (activeSeconds > 0) {
         const xpResult = await awardXp({
           activeTypingSeconds: activeSeconds,
-          accuracy: accuracy,
+          accuracy: finalAccuracy,
           isMultiplayer: false,
         });
 
@@ -309,8 +329,8 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
           const stats = await getUserStatsForBadges();
           if (stats) {
             const badges = await checkAndAwardBadges({
-              wpm,
-              accuracy,
+              wpm: finalWpm,
+              accuracy: finalAccuracy,
               duration: selectedTime,
               newLevel: xpResult.newLevel,
               previousLevel: xpResult.previousLevel,
@@ -341,7 +361,7 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
     } catch {
       // Test result save failed silently - user can retry
     }
-  }, [wpm, rawWpm, accuracy, selectedTime, isFinished, isAfk, user, getActiveSeconds]);
+  }, [selectedTime, isFinished, isAfk, user, getActiveSeconds, calculatedFinalStats]);
 
   useEffect(() => {
     if (isFinished) {

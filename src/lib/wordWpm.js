@@ -1,6 +1,6 @@
 "use strict";
 
-function countCorrectWordChars(typed, text) {
+function countCorrectWordChars(typed, text, testEnded = false) {
   let correctWordChars = 0;
   let correctSpaces = 0;
   let index = 0;
@@ -10,6 +10,15 @@ function countCorrectWordChars(typed, text) {
     const wordEnd = nextSpace === -1 ? text.length : nextSpace;
 
     if (typed.length < wordEnd) {
+      // User hasn't finished typing this word
+      if (testEnded && typed.length > index) {
+        // Test ended mid-word: count partial chars if they're all correct
+        const partialTyped = typed.slice(index);
+        const expectedPartial = text.slice(index, index + partialTyped.length);
+        if (partialTyped === expectedPartial) {
+          correctWordChars += partialTyped.length;
+        }
+      }
       break;
     }
 

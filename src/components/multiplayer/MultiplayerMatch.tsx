@@ -61,7 +61,16 @@ const MultiplayerMatch = ({
     totalKeystrokes,
     correctKeystrokes,
     typed,
-    text
+    text,
+    false // Live stats: don't include partial words
+  );
+  const calculatedFinalStats = useCalculateTypingStats(
+    startTime,
+    totalKeystrokes,
+    correctKeystrokes,
+    typed,
+    text,
+    true // Final stats: include partial word if correctly typed
   );
 
   const resetState = useCallback(() => {
@@ -164,9 +173,14 @@ const MultiplayerMatch = ({
   useEffect(() => {
     if (isFinished && !hasReportedRef.current) {
       hasReportedRef.current = true;
-      onFinish({ wpm, rawWpm, accuracy, progress: typed.length });
+      // Calculate final stats with partial word credit
+      const finalStats = calculatedFinalStats();
+      setWpm(finalStats.wpm);
+      setRawWpm(finalStats.rawWpm);
+      setAccuracy(finalStats.accuracy);
+      onFinish({ wpm: finalStats.wpm, rawWpm: finalStats.rawWpm, accuracy: finalStats.accuracy, progress: typed.length });
     }
-  }, [isFinished, onFinish, wpm, rawWpm, accuracy, typed.length]);
+  }, [isFinished, onFinish, typed.length, calculatedFinalStats]);
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver(() => {
