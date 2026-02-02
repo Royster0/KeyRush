@@ -22,19 +22,11 @@ const MatchHistoryContent = async () => {
   const { matches, hasMore, total } = await getMatchHistory(0);
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Match History</h1>
-        <p className="text-muted-foreground">
-          Your recent multiplayer matches
-        </p>
-      </div>
-      <MatchHistoryClient
-        initialMatches={matches}
-        initialHasMore={hasMore}
-        initialTotal={total}
-      />
-    </div>
+    <MatchHistoryClient
+      initialMatches={matches}
+      initialHasMore={hasMore}
+      initialTotal={total}
+    />
   );
 };
 
