@@ -9,6 +9,8 @@ export const MatchResultRowSchema = z.object({
   accuracy: z.number(),
   progress: z.number().nullable(),
   left_match: z.boolean().nullable(),
+  elo_before: z.number().nullable(),
+  elo_after: z.number().nullable(),
   created_at: z.string(),
   matches: z.object({
     id: z.string(),
@@ -16,7 +18,7 @@ export const MatchResultRowSchema = z.object({
     player2_id: z.string(),
     winner_id: z.string().nullable(),
     duration: z.number(),
-    mode: z.union([z.string(), z.number()]),
+    is_ranked: z.boolean().nullable(),
     ended_at: z.string().nullable(),
   }),
 });

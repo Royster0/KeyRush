@@ -9,6 +9,7 @@ export type MatchHistoryEntry = {
   userRawWpm: number | null;
   userAccuracy: number;
   userProgress: number | null;
+  eloChange: number | null;
   opponentWpm: number;
   opponentRawWpm: number | null;
   opponentAccuracy: number | null;

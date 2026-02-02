@@ -47,6 +47,8 @@ export async function getMatchHistory(
       accuracy,
       progress,
       left_match,
+      elo_before,
+      elo_after,
       created_at,
       matches!inner (
         id,
@@ -54,7 +56,7 @@ export async function getMatchHistory(
         player2_id,
         winner_id,
         duration,
-        mode,
+        is_ranked,
         ended_at
       )
     `
@@ -131,7 +133,7 @@ export async function getMatchHistory(
       player2_id: string;
       winner_id: string | null;
       duration: number;
-      mode: string | number;
+      is_ranked: boolean | null;
       ended_at: string | null;
     };
 
@@ -152,19 +154,25 @@ export async function getMatchHistory(
       result = "loss";
     }
 
-    // Note: mode in DB stores duration as number, not "ranked"/"unranked"
-    // All multiplayer matches are treated as ranked
+    // Calculate ELO change for ranked matches
+    const eloChange =
+      row.elo_before !== null && row.elo_after !== null
+        ? row.elo_after - row.elo_before
+        : null;
+
     return {
       id: row.id,
       matchId: row.match_id,
       date: matchData.ended_at ?? row.created_at,
       duration: matchData.duration,
-      mode: "ranked" as const,
+      // Default to "ranked" for backward compatibility (old matches have null)
+      mode: matchData.is_ranked === false ? "unranked" : "ranked",
       result,
       userWpm: row.wpm,
       userRawWpm: row.raw_wpm,
       userAccuracy: row.accuracy,
       userProgress: row.progress,
+      eloChange,
       opponentWpm: opponent.wpm,
       opponentRawWpm: opponent.rawWpm,
       opponentAccuracy: opponent.accuracy,

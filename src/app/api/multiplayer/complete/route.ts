@@ -60,7 +60,7 @@ export async function POST(request: Request) {
         player2_id: player2Id,
         winner_id: winnerId,
         duration,
-        mode: duration,
+        is_ranked: isRanked ?? false,
         text,
         started_at: startAt ? new Date(startAt).toISOString() : null,
         ended_at: endAt ? new Date(endAt).toISOString() : null,

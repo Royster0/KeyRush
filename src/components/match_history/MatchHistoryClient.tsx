@@ -15,6 +15,8 @@ import {
   Clock,
   Calendar,
   Swords,
+  TrendingUp,
+  TrendingDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getMatchHistory } from "@/app/actions";
@@ -206,70 +208,88 @@ export default function MatchHistoryClient({
                       {/* Main Row - Clickable */}
                       <button
                         onClick={() => toggleExpand(match.id)}
-                        className="relative z-10 w-full p-5 flex items-center justify-between gap-4 text-left cursor-pointer"
+                        className="relative z-10 w-full p-5 flex items-center gap-4 text-left cursor-pointer"
                       >
-                        <div className="flex items-center gap-5 flex-1 min-w-0">
-                          {/* Result Icon */}
-                          <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${
-                            match.result === "win"
-                              ? "bg-emerald-500/10"
-                              : match.result === "loss"
-                              ? "bg-rose-500/10"
-                              : "bg-muted/30"
-                          }`}>
-                            {getResultIcon(match.result)}
-                          </div>
+                        {/* Result Icon */}
+                        <div className={`shrink-0 h-10 w-10 rounded-xl flex items-center justify-center ${
+                          match.result === "win"
+                            ? "bg-emerald-500/10"
+                            : match.result === "loss"
+                            ? "bg-rose-500/10"
+                            : "bg-muted/30"
+                        }`}>
+                          {getResultIcon(match.result)}
+                        </div>
 
-                          {/* Result and Mode */}
-                          <div className="min-w-[90px]">
-                            {getResultText(match.result)}
-                            <p className="text-xs text-muted-foreground capitalize mt-0.5">
+                        {/* Result and Mode */}
+                        <div className="w-[100px] shrink-0">
+                          {getResultText(match.result)}
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-xs text-muted-foreground capitalize">
                               {match.mode}
-                            </p>
-                          </div>
-
-                          {/* WPM Comparison */}
-                          <div className="flex items-center gap-2 text-sm">
-                            <span
-                              className={`font-mono font-bold text-lg ${
-                                match.userWpm > match.opponentWpm
-                                  ? "text-emerald-500"
-                                  : match.userWpm < match.opponentWpm
-                                  ? "text-rose-500"
-                                  : "text-muted-foreground"
-                              }`}
-                            >
-                              {match.userWpm}
                             </span>
-                            <span className="text-muted-foreground/60">vs</span>
-                            <span className="font-mono font-bold text-lg text-muted-foreground">
-                              {match.opponentWpm}
-                            </span>
-                            <span className="text-muted-foreground/60 text-xs ml-1">WPM</span>
-                          </div>
-
-                          {/* Opponent */}
-                          <div className="hidden sm:flex items-center gap-2 min-w-[100px]">
-                            <span className="text-sm text-muted-foreground">vs</span>
-                            <span className="text-sm font-medium truncate">
-                              {match.opponentName}
-                            </span>
-                          </div>
-
-                          {/* Duration */}
-                          <div className="hidden md:flex items-center gap-1.5 text-sm text-muted-foreground">
-                            <Clock className="h-3.5 w-3.5" />
-                            {match.duration}s
-                          </div>
-
-                          {/* Date */}
-                          <div className="hidden lg:block text-sm text-muted-foreground">
-                            {formatDate(new Date(match.date))}
+                            {match.mode === "ranked" && match.eloChange !== null && (
+                              <span
+                                className={`flex items-center gap-0.5 text-xs font-medium ${
+                                  match.eloChange > 0
+                                    ? "text-emerald-500"
+                                    : match.eloChange < 0
+                                    ? "text-rose-500"
+                                    : "text-muted-foreground"
+                                }`}
+                              >
+                                {match.eloChange > 0 ? (
+                                  <TrendingUp className="h-3 w-3" />
+                                ) : match.eloChange < 0 ? (
+                                  <TrendingDown className="h-3 w-3" />
+                                ) : null}
+                                {match.eloChange > 0 ? "+" : ""}
+                                {match.eloChange}
+                              </span>
+                            )}
                           </div>
                         </div>
 
+                        {/* WPM Comparison */}
+                        <div className="w-[180px] shrink-0 flex items-center justify-center gap-3 text-sm">
+                          <span
+                            className={`font-mono font-bold text-lg w-[60px] text-right ${
+                              match.userWpm > match.opponentWpm
+                                ? "text-emerald-500"
+                                : match.userWpm < match.opponentWpm
+                                ? "text-rose-500"
+                                : "text-muted-foreground"
+                            }`}
+                          >
+                            {match.userWpm}
+                          </span>
+                          <span className="text-muted-foreground/60">vs</span>
+                          <span className="font-mono font-bold text-lg w-[60px] text-muted-foreground">
+                            {match.opponentWpm}
+                          </span>
+                        </div>
+
+                        {/* Opponent */}
+                        <div className="hidden sm:flex items-center gap-2 w-[120px] shrink-0">
+                          <span className="text-sm text-muted-foreground">vs</span>
+                          <span className="text-sm font-medium truncate">
+                            {match.opponentName}
+                          </span>
+                        </div>
+
+                        {/* Duration */}
+                        <div className="hidden md:flex items-center gap-1.5 w-[60px] shrink-0 text-sm text-muted-foreground">
+                          <Clock className="h-3.5 w-3.5" />
+                          {match.duration}s
+                        </div>
+
+                        {/* Date */}
+                        <div className="hidden lg:block flex-1 text-sm text-muted-foreground text-right pr-2">
+                          {formatDate(new Date(match.date))}
+                        </div>
+
                         {/* Expand Icon */}
-                        <div className="text-muted-foreground">
+                        <div className="shrink-0 text-muted-foreground">
                           {isExpanded ? (
                             <ChevronUp className="h-5 w-5" />
                           ) : (
@@ -357,6 +377,30 @@ export default function MatchHistoryClient({
                                   <Calendar className="h-4 w-4" />
                                   <span>{formatDateTime(match.date)}</span>
                                 </div>
+                                {match.mode === "ranked" && match.eloChange !== null && (
+                                  <div className="flex items-center gap-2">
+                                    {match.eloChange >= 0 ? (
+                                      <TrendingUp className="h-4 w-4 text-emerald-500" />
+                                    ) : (
+                                      <TrendingDown className="h-4 w-4 text-rose-500" />
+                                    )}
+                                    <span>
+                                      Elo:{" "}
+                                      <span
+                                        className={`font-semibold ${
+                                          match.eloChange > 0
+                                            ? "text-emerald-500"
+                                            : match.eloChange < 0
+                                            ? "text-rose-500"
+                                            : "text-foreground"
+                                        }`}
+                                      >
+                                        {match.eloChange > 0 ? "+" : ""}
+                                        {match.eloChange}
+                                      </span>
+                                    </span>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </motion.div>
