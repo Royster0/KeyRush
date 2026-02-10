@@ -8,6 +8,7 @@ import Nav from "@/components/ui/Nav";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { DEFAULT_DESCRIPTION, SITE_NAME, getSiteUrl } from "@/lib/seo";
+import { getUser } from "@/lib/services/user";
 
 export const metadata: Metadata = {
   title: SITE_NAME,
@@ -27,11 +28,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await getUser();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`antialiased`}>
@@ -53,7 +56,7 @@ export default function RootLayout({
                   },
                 }}
               />
-              <Nav />
+              <Nav initialUser={user} />
               <main className="pt-20">
                 {children}
                 <Analytics />

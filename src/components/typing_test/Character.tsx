@@ -32,6 +32,7 @@ const Character = memo(
         ${isTyped && isCorrect ? "text-primary" : ""}
         ${isMistake ? "text-destructive" : ""}
         ${!isTyped ? "text-muted-foreground" : ""}
+        ${char === " " && isTyped && !isCorrect ? "bg-destructive/30 rounded-sm" : ""}
         text-3xl relative inline-block
         `}
         layout
