@@ -6,6 +6,7 @@ export const FriendProfileSchema = z.object({
   level: z.number().nullable(),
   rank_tier: z.string().nullable(),
   elo: z.number().nullable(),
+  last_active_at: z.string().nullable().optional(),
 });
 
 export const FriendshipRowSchema = z.object({
@@ -30,7 +31,13 @@ export const FriendMatchRowSchema = z.object({
   winner_id: z.string().nullable(),
 });
 
+export const FriendPresenceRowSchema = z.object({
+  user_id: z.string(),
+  last_active_at: z.string().nullable(),
+});
+
 export type FriendProfileRow = z.infer<typeof FriendProfileSchema>;
 export type FriendshipRow = z.infer<typeof FriendshipRowSchema>;
 export type FriendRequestRow = z.infer<typeof FriendRequestRowSchema>;
 export type FriendMatchRow = z.infer<typeof FriendMatchRowSchema>;
+export type FriendPresenceRow = z.infer<typeof FriendPresenceRowSchema>;

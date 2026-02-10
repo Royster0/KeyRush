@@ -1,6 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import {
   FriendMatchRowSchema,
+  FriendPresenceRowSchema,
   FriendRequestRowSchema,
   FriendshipRowSchema,
 } from "@/lib/schemas/friends";
@@ -76,6 +77,7 @@ export async function getFriendRequests(userId?: string): Promise<FriendRequest[
       level: row.sender.level ?? 1,
       rank_tier: row.sender.rank_tier ?? null,
       elo: row.sender.elo ?? null,
+      last_active_at: null,
     },
   }));
 }
@@ -122,6 +124,7 @@ export async function getFriendsWithRecords(userId?: string): Promise<FriendSumm
     level: row.friend.level ?? 1,
     rank_tier: row.friend.rank_tier ?? null,
     elo: row.friend.elo ?? null,
+    last_active_at: null,
   }));
 
   friends.sort((a, b) => a.username.localeCompare(b.username));
@@ -131,7 +134,23 @@ export async function getFriendsWithRecords(userId?: string): Promise<FriendSumm
   }
 
   const friendIds = friends.map((friend) => friend.id);
-  const friendIdList = friendIds.join(",");
+  const { data: reverseFriendships } = await supabase
+    .from("friendships")
+    .select("user_id")
+    .eq("friend_id", resolvedUserId)
+    .in("user_id", friendIds);
+
+  const mutualFriendIds = new Set(
+    (reverseFriendships ?? []).map((row) => row.user_id as string)
+  );
+  const mutualFriends = friends.filter((friend) => mutualFriendIds.has(friend.id));
+
+  if (mutualFriends.length === 0) {
+    return [];
+  }
+
+  const mutualIdList = mutualFriends.map((friend) => friend.id);
+  const friendIdList = mutualIdList.join(",");
   const { data: matchData } = await supabase
     .from("matches")
     .select("id, party_match_id, player1_id, player2_id, winner_id")
@@ -139,8 +158,21 @@ export async function getFriendsWithRecords(userId?: string): Promise<FriendSumm
       `and(player1_id.eq.${resolvedUserId},player2_id.in.(${friendIdList})),and(player2_id.eq.${resolvedUserId},player1_id.in.(${friendIdList}))`
     );
 
+  const { data: presenceData } = await supabase
+    .from("friend_presence")
+    .select("user_id, last_active_at")
+    .in("user_id", mutualIdList);
+
+  const parsedPresence = FriendPresenceRowSchema.array().safeParse(presenceData ?? []);
+  const lastActiveByFriendId = new Map<string, string | null>();
+  if (parsedPresence.success) {
+    for (const row of parsedPresence.data) {
+      lastActiveByFriendId.set(row.user_id, row.last_active_at);
+    }
+  }
+
   const recordsByFriend = new Map<string, FriendRecord>();
-  for (const friend of friends) {
+  for (const friend of mutualFriends) {
     recordsByFriend.set(friend.id, createEmptyRecord());
   }
 
@@ -178,8 +210,9 @@ export async function getFriendsWithRecords(userId?: string): Promise<FriendSumm
     }
   }
 
-  return friends.map((friend) => ({
+  return mutualFriends.map((friend) => ({
     ...friend,
+    last_active_at: lastActiveByFriendId.get(friend.id) ?? null,
     record: recordsByFriend.get(friend.id) ?? createEmptyRecord(),
   }));
 }
