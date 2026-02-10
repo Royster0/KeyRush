@@ -4,11 +4,13 @@ import PartySocket from "partysocket";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
-import MultiplayerMatch from "./MultiplayerMatch";
+import dynamic from "next/dynamic";
 import { QueueScreen } from "./QueueScreen";
-import { LobbyScreen } from "./LobbyScreen";
-import { ResultsScreen } from "./ResultsScreen";
-import { RankChangeAnimation } from "./RankChangeAnimation";
+
+const MultiplayerMatch = dynamic(() => import("./MultiplayerMatch"), { ssr: false, loading: () => null });
+const LobbyScreen = dynamic(() => import("./LobbyScreen").then(m => m.LobbyScreen), { ssr: false, loading: () => null });
+const ResultsScreen = dynamic(() => import("./ResultsScreen").then(m => m.ResultsScreen), { ssr: false, loading: () => null });
+const RankChangeAnimation = dynamic(() => import("./RankChangeAnimation").then(m => m.RankChangeAnimation), { ssr: false, loading: () => null });
 import { MatchPhase, MatchState, ServerMessage } from "@/types/multiplayer.types";
 import {
   ANON_ID_KEY,
@@ -21,9 +23,11 @@ import {
   parseMatchId,
 } from "@/lib/multiplayer";
 import { UserWithProfile } from "@/types/auth.types";
-import { CongratsModal } from "@/components/CongratsModal";
-import { BadgeNotification } from "@/components/BadgeNotification";
-import { LevelUpModal, type LevelUpData } from "@/components/LevelUpModal";
+import type { LevelUpData } from "@/components/LevelUpModal";
+
+const CongratsModal = dynamic(() => import("@/components/CongratsModal").then(m => m.CongratsModal), { ssr: false, loading: () => null });
+const BadgeNotification = dynamic(() => import("@/components/BadgeNotification").then(m => m.BadgeNotification), { ssr: false, loading: () => null });
+const LevelUpModal = dynamic(() => import("@/components/LevelUpModal").then(m => m.LevelUpModal), { ssr: false, loading: () => null });
 import type { AchievementData } from "@/lib/services/achievements";
 import type { BadgeNotification as BadgeNotificationData } from "@/types/badges.types";
 import { checkAchievements, getPreSaveState, getUserXpProgress } from "@/app/actions";
