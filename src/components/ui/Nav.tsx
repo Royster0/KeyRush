@@ -3,7 +3,7 @@
 import { signOut, saveTestResult, respondToFriendRequest } from "@/app/actions";
 import toast, { type Toast } from "react-hot-toast";
 import { createClient } from "@/utils/supabase/client";
-import { UserWithProfile } from "@/types/auth.types";
+import type { UserWithProfile } from "@/types/auth.types";
 import {
   Award,
   Check,
@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "./button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "./sheet";
 import { AnnouncementBar } from "./AnnouncementBar";
@@ -32,13 +32,14 @@ import { XpBar } from "./XpBar";
 import { getLevelProgress } from "@/lib/xp";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function Nav() {
+export default function Nav({ initialUser = null }: { initialUser?: UserWithProfile | null }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [user, setUser] = useState<UserWithProfile | null>(null);
+  const [user, setUser] = useState<UserWithProfile | null>(initialUser);
   const [xpGainedDisplay, setXpGainedDisplay] = useState<number | null>(null);
   const { isGameActive } = useGameContext();
+  const hasMounted = useRef(false);
 
   // Fetch user function
   const fetchUser = async () => {
@@ -51,27 +52,35 @@ export default function Nav() {
     }
   };
 
-  // Subscribe to auth changes
+  // Subscribe to auth changes (deferred to avoid blocking first paint)
   useEffect(() => {
-    const supabase = createClient();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-        fetchUser();
-      } else if (event === "SIGNED_OUT") {
-        setUser(null);
-      }
+    let subscription: { unsubscribe: () => void } | null = null;
+    const scheduleIdle = window.requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 1));
+    const idleId = scheduleIdle(() => {
+      const supabase = createClient();
+      const { data } = supabase.auth.onAuthStateChange((event) => {
+        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+          fetchUser();
+        } else if (event === "SIGNED_OUT") {
+          setUser(null);
+        }
+      });
+      subscription = data.subscription;
     });
 
     return () => {
-      subscription.unsubscribe();
+      (window.cancelIdleCallback ?? clearTimeout)(idleId);
+      subscription?.unsubscribe();
     };
   }, []);
 
-  // Fetch user on mount and pathname change (handles server action redirects)
+  // Fetch user on pathname change (handles server action redirects)
+  // Skip initial mount since we have the server-provided initialUser
   useEffect(() => {
+    if (!hasMounted.current) {
+      hasMounted.current = true;
+      return;
+    }
     fetchUser();
   }, [pathname]);
 
@@ -154,111 +163,126 @@ export default function Nav() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Track online presence for friends
+  // Track online presence for friends (deferred to avoid blocking first paint)
   useEffect(() => {
     if (!user?.id) return;
-    const supabase = createClient();
-    const channel = supabase.channel("online-users", {
-      config: { presence: { key: user.id } },
-    });
-
-    channel.subscribe((status) => {
-      if (status === "SUBSCRIBED") {
-        channel.track({ user_id: user.id });
-      }
+    let channel: ReturnType<ReturnType<typeof createClient>["channel"]> | null = null;
+    const scheduleIdle = window.requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 1));
+    const idleId = scheduleIdle(() => {
+      const supabase = createClient();
+      channel = supabase.channel("online-users", {
+        config: { presence: { key: user.id } },
+      });
+      channel.subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          channel!.track({ user_id: user.id });
+        }
+      });
     });
 
     return () => {
-      supabase.removeChannel(channel);
+      (window.cancelIdleCallback ?? clearTimeout)(idleId);
+      if (channel) {
+        const supabase = createClient();
+        supabase.removeChannel(channel);
+      }
     };
   }, [user?.id]);
 
-  // Live friend request notifications
+  // Live friend request notifications (deferred to avoid blocking first paint)
   useEffect(() => {
     if (!user?.id) return;
-    const supabase = createClient();
-    const channel = supabase
-      .channel(`friend-requests-${user.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "friend_requests",
-          filter: `receiver_id=eq.${user.id}`,
-        },
-        async (payload) => {
-          const request = payload.new as {
-            id?: string;
-            sender_id?: string;
-            status?: string;
-          };
-          if (
-            !request.id ||
-            !request.sender_id ||
-            (request.status && request.status !== "pending")
-          ) {
-            return;
-          }
+    let channel: ReturnType<ReturnType<typeof createClient>["channel"]> | null = null;
+    const scheduleIdle = window.requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 1));
+    const idleId = scheduleIdle(() => {
+      const supabase = createClient();
+      channel = supabase
+        .channel(`friend-requests-${user.id}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "friend_requests",
+            filter: `receiver_id=eq.${user.id}`,
+          },
+          async (payload) => {
+            const request = payload.new as {
+              id?: string;
+              sender_id?: string;
+              status?: string;
+            };
+            if (
+              !request.id ||
+              !request.sender_id ||
+              (request.status && request.status !== "pending")
+            ) {
+              return;
+            }
 
-          const { data: senderProfile } = await supabase
-            .from("profiles")
-            .select("username")
-            .eq("id", request.sender_id)
-            .single();
+            const { data: senderProfile } = await supabase
+              .from("profiles")
+              .select("username")
+              .eq("id", request.sender_id)
+              .single();
 
-          const senderName = senderProfile?.username || "Someone";
+            const senderName = senderProfile?.username || "Someone";
 
-          toast.custom(
-            (t: Toast) => (
-              <div className="w-72 rounded-lg border border-border bg-background p-4 shadow-lg">
-                <p className="font-semibold">Friend request</p>
-                <p className="text-sm text-muted-foreground">
-                  {senderName} wants to add you.
-                </p>
-                <div className="mt-3 flex gap-2">
-                  <Button
-                    size="sm"
-                    onClick={async () => {
-                      const ok = await handleFriendRequestAction(
-                        request.id!,
-                        "accepted",
-                      );
-                      if (ok) {
-                        toast.dismiss(t.id);
-                      }
-                    }}
-                  >
-                    <Check className="h-4 w-4" />
-                    Accept
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={async () => {
-                      const ok = await handleFriendRequestAction(
-                        request.id!,
-                        "declined",
-                      );
-                      if (ok) {
-                        toast.dismiss(t.id);
-                      }
-                    }}
-                  >
-                    <X className="h-4 w-4" />
-                    Decline
-                  </Button>
+            toast.custom(
+              (t: Toast) => (
+                <div className="w-72 rounded-lg border border-border bg-background p-4 shadow-lg">
+                  <p className="font-semibold">Friend request</p>
+                  <p className="text-sm text-muted-foreground">
+                    {senderName} wants to add you.
+                  </p>
+                  <div className="mt-3 flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={async () => {
+                        const ok = await handleFriendRequestAction(
+                          request.id!,
+                          "accepted",
+                        );
+                        if (ok) {
+                          toast.dismiss(t.id);
+                        }
+                      }}
+                    >
+                      <Check className="h-4 w-4" />
+                      Accept
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={async () => {
+                        const ok = await handleFriendRequestAction(
+                          request.id!,
+                          "declined",
+                        );
+                        if (ok) {
+                          toast.dismiss(t.id);
+                        }
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                      Decline
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            ),
-            { duration: 10000 },
-          );
-        },
-      )
-      .subscribe();
+              ),
+              { duration: 10000 },
+            );
+          },
+        )
+        .subscribe();
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      (window.cancelIdleCallback ?? clearTimeout)(idleId);
+      if (channel) {
+        const supabase = createClient();
+        supabase.removeChannel(channel);
+      }
     };
   }, [user?.id]);
 

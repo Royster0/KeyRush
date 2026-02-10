@@ -1,5 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 
 export async function signOut() {
   const supabase = await createClient();
@@ -7,26 +8,26 @@ export async function signOut() {
   redirect("/auth/login");
 }
 
-export async function getUser() {
+export const getUser = cache(async () => {
   const supabase = await createClient();
   const {
     data: { user },
     error,
   } = await supabase.auth.getUser();
-  
+
   if (error || !user) {
     return null;
   }
-  
+
   // Get user profile with username
   const { data: profile } = await supabase
     .from("profiles")
     .select("username, created_at, elo, rank_tier, matches_played, wins, losses, total_xp, level, friend_code")
     .eq("id", user.id)
     .single();
-      
+
   return { ...user, profile };
-}
+});
 
 export type PublicProfile = {
   id: string;

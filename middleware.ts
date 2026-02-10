@@ -1,7 +1,14 @@
 import { updateSession } from "@/utils/supabase/middleware";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function middleware(request: NextRequest) {
+  if (
+    request.nextUrl.pathname === "/" &&
+    !request.cookies.getAll().some((c) => c.name.startsWith("sb-"))
+  ) {
+    return NextResponse.next();
+  }
+
   return await updateSession(request);
 }
 
