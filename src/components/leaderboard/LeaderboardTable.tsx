@@ -25,7 +25,7 @@ export default function LeaderboardTable({ data, duration }: LeaderboardTablePro
   const showSource = duration === 30 || duration === 60;
 
   return (
-    <div className="rounded-lg border">
+    <div className="rounded-2xl border border-border/40 bg-muted/20 overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow>

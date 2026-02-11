@@ -20,5 +20,7 @@ export type UserWithProfile = User & {
     total_xp?: number | null;
     level?: number | null;
     friend_code?: string | null;
+    active_banner_slot?: number | null;
+    peak_rank_tier?: string | null;
   } | null;
 };

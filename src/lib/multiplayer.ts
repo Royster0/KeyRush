@@ -23,6 +23,7 @@ const RANK_TIERS: RankTier[] = [
   { name: "Diamond", min: 1500 },
   { name: "Sonic", min: 1700 },
   { name: "Mach", min: 1900 },
+  { name: "Tachyon", min: 2100 },
 ];
 
 export function getRankLabel(elo: number, matchesPlayed: number) {

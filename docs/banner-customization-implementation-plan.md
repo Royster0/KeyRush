@@ -1,4 +1,4 @@
-# Banner Customization Implementation Plan (v3)
+# Banner Customization Implementation Plan (v4)
 
 ## Status
 - Planning complete.
@@ -21,23 +21,24 @@
   - Allowed characters: alphanumeric, spaces, `_`, `-`
   - Default names: `Preset 1`, `Preset 2`, `Preset 3`
   - Users can rename presets
-- Include a **Tachyon** rank border now for future progression.
+- Include a **Tachyon** rank tier (Elo 2100+) and border now.
 
 ## Implementation Scope
-1. Add banner domain model/types.
-2. Add DB schema for banner presets + active preset + peak rank tracking.
-3. Add server-side banner services/actions with strict validation.
-4. Keep `peak_rank_tier` updated from ranked progression events.
-5. Build private `/banner` customization page.
-6. Add nav entry + robots updates.
-7. Render active banners in profile, friends, and multiplayer lobby.
-8. Verify behavior manually + lint.
+1. Add Tachyon to `RANK_TIERS` in `src/lib/multiplayer.ts` (min: 2100).
+2. Add banner domain model/types.
+3. Add DB schema for banner presets + active preset + peak rank tracking.
+4. Add server-side banner services/actions with strict validation.
+5. Update `calculate_elo_update` Supabase RPC to maintain `peak_rank_tier` atomically.
+6. Build private `/banner` customization page.
+7. Add nav entry + robots + theme modal path updates.
+8. Render active banners in profile, friends, and multiplayer lobby.
+9. Verify behavior manually + lint.
 
 ## Data Model and Migration
 
 ### New Table: `public.banner_presets`
 - `id uuid primary key default gen_random_uuid()`
-- `user_id uuid not null` (FK -> `profiles.id` or `auth.users.id`, consistent with existing app conventions)
+- `user_id uuid not null` (FK -> `profiles.id` ON DELETE CASCADE, consistent with `friend_presence` convention)
 - `slot smallint not null` (values `1`, `2`, `3`)
 - `name varchar(24) not null`
 - `background_id text not null`
@@ -59,18 +60,35 @@
 ### Backfill
 - `update profiles set peak_rank_tier = rank_tier where peak_rank_tier is null and rank_tier is not null;`
 
-### Seed Defaults
-- Insert 3 default preset rows per existing user (`slot` 1..3) with:
+### Preset Initialization (Lazy)
+- **No bulk seed migration.** Default presets are created lazily on first access.
+- The banner service checks if presets exist for the user; if not, inserts 3 defaults:
   - Names: `Preset 1`, `Preset 2`, `Preset 3`
   - Default components: `bg_starter_fade`, `border_clean`, `title_rookie`
+- This handles both existing users and future signups with no migration or signup-flow changes.
+- The insert uses `ON CONFLICT (user_id, slot) DO NOTHING` for idempotency.
 
 ### RLS Policies
 - Enable RLS on `banner_presets`.
-- Owner-only access policies:
+- **Owner mutation policies:**
   - `select` own rows
   - `insert` own rows
   - `update` own rows
-  - (optional) disallow delete in v1 unless explicitly needed
+  - No `delete` policy — presets are fixed-slot and always present.
+- **Public read policy (active preset only):**
+  - Any authenticated user can `select` another user's banner preset row where `slot` matches that user's `profiles.active_banner_slot`. This enables rendering banners on profile pages, friends list, and multiplayer lobby.
+  - Implementation: `USING (user_id = auth.uid() OR slot = (SELECT active_banner_slot FROM profiles WHERE id = banner_presets.user_id))`
+
+### `updated_at` Trigger
+- Add a `moddatetime` trigger on `banner_presets` to auto-update `updated_at` on row changes.
+- Alternatively, set `updated_at = now()` explicitly in the service layer UPDATE queries.
+
+### Existing SELECT Query Updates
+The following queries read from `profiles` with explicit column lists and must be updated to include `active_banner_slot` and/or `peak_rank_tier` where needed:
+- `src/lib/services/user.ts` → `getUser()` — add `active_banner_slot`, `peak_rank_tier`
+- `src/lib/services/user.ts` → `getProfileByUsername()` — add `active_banner_slot`, `peak_rank_tier`
+- `src/lib/services/friends.ts` → friend request/friendship joins on profiles — add `active_banner_slot` for banner rendering on friends page
+- `src/types/auth.types.ts` → `UserWithProfile` profile shape — add optional fields
 
 ### Migration Artifacts
 - Apply through Supabase tooling.
@@ -81,9 +99,10 @@
 ### New Type File
 - `src/types/banner.types.ts`
 - Define:
-  - `BannerSlot = "background" | "border" | "title"`
-  - `BannerComponentType = "background" | "border" | "title"`
-  - `UnlockRequirement` union (`badge`, `level`, `peak_rank`, `default`)
+  - `BannerComponentType = "background" | "border" | "title"` (the three component categories)
+  - `PresetSlot = 1 | 2 | 3` (the three preset slots)
+  - `UnlockRequirement` union (`badge`, `peak_rank`, `default`)
+    - **Note:** No `level` variant. Level-based unlocks use the corresponding badge (e.g. `level_5` badge). Single source of truth.
   - `BannerComponentDefinition`
   - `BannerPreset`
   - `ResolvedBannerPreset` / `UnlockedBannerState`
@@ -91,16 +110,18 @@
 ### New Config File
 - `src/lib/banners.ts`
 - Contains:
-  - Component catalog
-  - Unlock mappings
-  - Rank order constants including `Tachyon`
-  - Utility helpers for unlock checks / rank comparisons
+  - Component catalog (all backgrounds, borders, titles with their IDs and unlock requirements)
+  - Unlock resolution logic: checks `user_badges` for badge-based unlocks, `peak_rank_tier` for rank-based unlocks
+  - Rank order constant: `["Bronze", "Silver", "Gold", "Platinum", "Diamond", "Sonic", "Mach", "Tachyon"]`
+  - `isRankAtLeast(userPeakRank, requiredRank)` helper for rank comparisons
+  - `getUnlockedComponents(userBadges, peakRankTier)` returns set of unlocked component IDs
+  - Default preset constants for lazy initialization
 
 ## Starter Catalog / Unlock Mapping (V1)
 
 ### Backgrounds
 - `bg_starter_fade` (default)
-- `bg_arcade_grid` (level 5)
+- `bg_arcade_grid` (`level_5` badge)
 - `bg_neon_drift` (`first_multiplayer` badge)
 - `bg_velocity_lines` (`wpm_100` badge)
 - `bg_precision_wave` (`perfect_accuracy` badge)
@@ -143,25 +164,33 @@
 ### New Service
 - `src/lib/services/banners.ts`
 - Responsibilities:
-  - Load user presets and active slot
+  - Load user presets and active slot (with lazy initialization if presets don't exist)
   - Resolve unlocked components from:
-    - `user_badges`
-    - `profiles.level`
+    - `user_badges` (covers both badge-based and level-based unlocks — level unlocks use their corresponding badge)
     - `profiles.peak_rank_tier`
   - Validate and persist preset updates
   - Validate and set active preset
   - Rename preset with server-side sanitization
+- **New Zod schema file:** `src/lib/schemas/banners.ts`
+  - `BannerPresetRowSchema` for DB response validation
+  - `mapDbBannerPresetToModel()` mapping function
+  - Follow existing pattern from `src/lib/schemas/badges.ts`
 
 ### `src/app/actions.ts`
 - Add actions for:
-  - `getBannerCustomizationState()`
-  - `updateBannerPreset(...)`
-  - `setActiveBannerPreset(slot)`
-  - `renameBannerPreset(slot, name)`
+  - `getBannerCustomizationState()` — loads own presets, active slot, and resolved unlock state
+  - `getActiveBanner(userId)` — loads another user's active preset for display (profile/friends/lobby)
+  - `updateBannerPreset(...)` — equip components to a preset slot
+  - `setActiveBannerPreset(slot)` — change which preset is active
+  - `renameBannerPreset(slot, name)` — rename a preset with validation
 
 ## Peak Rank Tracking Logic
-- Update ranked completion path (`src/app/api/multiplayer/complete/route.ts`) to maintain `profiles.peak_rank_tier`.
-- Use rank-order comparison helper (including `Tachyon`) and only update when new rank is higher than stored peak.
+- **Primary change:** Modify the `calculate_elo_update` Supabase RPC to atomically compare and update `profiles.peak_rank_tier` alongside the Elo/rank update. This keeps the logic server-side and avoids race conditions.
+  - The RPC already writes `rank_tier` — add logic: if new `rank_tier` is higher than current `peak_rank_tier` (or peak is null), set `peak_rank_tier = rank_tier`.
+  - Rank order for comparison: Bronze < Silver < Gold < Platinum < Diamond < Sonic < Mach < Tachyon.
+  - Return `peak_rank_tier` in the RPC result alongside existing fields.
+- **TypeScript side:** Update `EloUpdateResult` type in `src/app/api/multiplayer/complete/route.ts` to include `peak_rank_tier: string`.
+- Add `Tachyon` (min: 2100) to `RANK_TIERS` in `src/lib/multiplayer.ts`.
 - Unlock checks always use `peak_rank_tier` (never current rank alone).
 
 ## UI Implementation
@@ -183,9 +212,9 @@
 
 ### Nav + Robots
 - Update `src/components/ui/Nav.tsx`:
-  - Add `Banner` in desktop hover menu
-  - Add `Banner` in mobile sheet menu
-  - Include `/banner` in theme modal path list if needed
+  - Add `Banner` in desktop hover menu (between Badges and Match History)
+  - Add `Banner` in mobile sheet menu (between Badges and Match History)
+  - Add `/banner` to the `showThemeModal` path list (currently: `/multiplayer`, `/leaderboard`, `/about`, `/profile`, `/badges`, `/u`)
 - Update `src/app/robots.ts` disallow list to include `/banner`.
 
 ## Banner Rendering Targets
@@ -214,22 +243,30 @@
 
 ## Testing / Verification Plan
 - Run `npm run lint`.
+- Run `npx tsc --noEmit` (main codebase) and `npx tsc -p tsconfig.party.json --noEmit` (PartyKit).
 - Manual checks:
-  - Default presets exist for new/existing users
-  - Rename validation (length + charset)
-  - Lock states display correctly
-  - Unlock progression works for badge/level/peak-rank paths
-  - Deranking does not remove rank unlocks
+  - Default presets are lazily created on first `/banner` visit for new and existing users
+  - Rename validation (length + charset) rejects invalid names
+  - Lock states display correctly with requirement labels
+  - Unlock progression works for badge-based and peak-rank paths
+  - Deranking does not remove rank unlocks (peak_rank_tier is monotonically increasing)
   - Active preset persists and renders correctly on:
-    - profile pages
+    - own profile page (`/profile`)
+    - public profile page (`/u/[username]`)
     - friends page headers
     - multiplayer ready-up lobby
-  - Unauthorized mutation attempts fail
+  - Other users can only see your active preset, not all 3
+  - Unauthorized mutation attempts fail (equipping locked components, editing others' presets)
+  - Tachyon rank tier is reachable at Elo 2100+
 
 ## Acceptance Criteria
 - Users can manage 3 presets, rename them, and set an active preset.
-- Unlock system is enforced server-side and reflects badge/level/peak-rank state.
-- Rank unlocks are permanent via `peak_rank_tier`.
-- Banner appears in all requested surfaces.
+- Unlock system is enforced server-side and resolves from `user_badges` + `peak_rank_tier`.
+- Level-based unlocks use their corresponding badge (e.g. `level_5`).
+- Rank unlocks are permanent via `peak_rank_tier`, updated atomically in the `calculate_elo_update` RPC.
+- Tachyon is a real rank tier (Elo 2100+) with a corresponding border.
+- Banner active preset is visible to other users on profile/friends/lobby surfaces.
+- Non-active presets are private (RLS enforced).
 - `/banner` is private and `noindex`.
 - Migration is applied in Supabase and mirrored in local docs SQL file.
+- Lazy preset initialization works correctly — no bulk seed migration needed.

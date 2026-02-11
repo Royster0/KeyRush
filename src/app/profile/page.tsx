@@ -4,6 +4,7 @@ import {
   getUserTestResults,
   getUserBestScores,
   getUserLeaderboardRankings,
+  getActiveBanner,
 } from "@/app/actions";
 import ProfileOverview from "@/components/profile/ProfileOverview";
 import BestScores from "@/components/profile/BestScores";
@@ -27,9 +28,12 @@ export const metadata: Metadata = buildMetadata({
 
 const ProfileContent = async () => {
   const user = await getUser();
-  const testResults = await getUserTestResults();
-  const bestScores = await getUserBestScores();
-  const leaderboardRankings = await getUserLeaderboardRankings();
+  const [testResults, bestScores, leaderboardRankings] = await Promise.all([
+    getUserTestResults(),
+    getUserBestScores(),
+    getUserLeaderboardRankings(),
+  ]);
+  const banner = user ? await getActiveBanner(user.id) : null;
 
   const joinDate = user?.profile?.created_at
     ? formatDate(new Date(user.profile.created_at))
@@ -42,6 +46,8 @@ const ProfileContent = async () => {
           username={user?.profile?.username || "User"}
           joinDate={joinDate}
           totalXp={user?.profile?.total_xp ?? 0}
+          banner={banner}
+          rankTier={user?.profile?.rank_tier ?? null}
         />
 
         <RankedStatsCard profile={user?.profile ?? null} />

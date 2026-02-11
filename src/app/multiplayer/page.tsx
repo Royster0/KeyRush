@@ -1,4 +1,4 @@
-import { getUser } from "@/app/actions";
+import { getUser, getActiveBanner } from "@/app/actions";
 import MultiplayerClient from "@/components/multiplayer/MultiplayerClient";
 import type { Metadata } from "next";
 import { buildMetadata } from "@/lib/seo";
@@ -11,5 +11,6 @@ export const metadata: Metadata = buildMetadata({
 
 export default async function MultiplayerPage() {
   const user = await getUser();
-  return <MultiplayerClient user={user} />;
+  const userBanner = user ? await getActiveBanner(user.id) : null;
+  return <MultiplayerClient user={user} userBanner={userBanner} />;
 }

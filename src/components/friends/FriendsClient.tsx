@@ -33,12 +33,15 @@ import { Input } from "@/components/ui/input";
 import { RankIcon } from "@/components/RankIcon";
 import UserLink from "@/components/ui/UserLink";
 import type { FriendRequest, FriendSummary } from "@/types/friends.types";
+import type { ActiveBanner } from "@/types/banner.types";
+import BannerDisplay from "@/components/banner/BannerDisplay";
 
 type FriendsClientProps = {
   currentUserId: string;
   friendCode?: string | null;
   initialFriends: FriendSummary[];
   initialRequests: FriendRequest[];
+  friendBanners?: Record<string, ActiveBanner | null>;
 };
 
 function getInitials(name: string) {
@@ -90,6 +93,7 @@ export default function FriendsClient({
   friendCode,
   initialFriends,
   initialRequests,
+  friendBanners = {},
 }: FriendsClientProps) {
   const router = useRouter();
   const [inviteName, setInviteName] = useState("");
@@ -464,53 +468,89 @@ export default function FriendsClient({
                     >
                       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
+                      {/* Friend banner header */}
+                      {friendBanners[friend.id] && (
+                        <BannerDisplay
+                          banner={friendBanners[friend.id]!}
+                          size="sm"
+                          username={friend.username}
+                          rank={friend.rank_tier}
+                          level={friend.level}
+                          className="rounded-b-none -mx-5 -mt-5 mb-3 rounded-t-2xl"
+                        />
+                      )}
+
                       <div className="relative z-10 flex flex-col gap-4">
                         <div className="flex items-center justify-between gap-4">
                           <div className="flex items-center gap-3">
-                            <div className="relative">
-                              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center font-bold text-lg text-primary">
-                                {getInitials(friend.username)}
+                            {!friendBanners[friend.id] && (
+                              <div className="relative">
+                                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center font-bold text-lg text-primary">
+                                  {getInitials(friend.username)}
+                                </div>
+                                <span
+                                  className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-card ${
+                                    isOnline
+                                      ? "bg-emerald-500 shadow-sm shadow-emerald-500/50"
+                                      : "bg-muted-foreground/40"
+                                  }`}
+                                />
                               </div>
-                              {/* Online indicator dot */}
-                              <span
-                                className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-card ${
-                                  isOnline
-                                    ? "bg-emerald-500 shadow-sm shadow-emerald-500/50"
-                                    : "bg-muted-foreground/40"
-                                }`}
-                              />
-                            </div>
-                            <div>
+                            )}
+                            {friendBanners[friend.id] ? (
                               <div className="flex items-center gap-2">
-                                <UserLink
-                                  username={friend.username}
-                                  className="font-semibold text-base"
+                                <span
+                                  className={`h-2 w-2 rounded-full ${
+                                    isOnline
+                                      ? "bg-emerald-500 shadow-sm shadow-emerald-500/50"
+                                      : "bg-muted-foreground/40"
+                                  }`}
                                 />
                                 <span
                                   className={`text-xs ${isOnline ? "text-emerald-500" : "text-muted-foreground"}`}
                                 >
                                   {isOnline ? "Online" : "Offline"}
                                 </span>
-                              </div>
-                              <p className="text-xs text-muted-foreground">
-                                Level {friend.level}
                                 {!isOnline && (
-                                  <>
-                                    {" "}
-                                    • {formatLastOnline(friend.last_active_at)}
-                                  </>
+                                  <span className="text-xs text-muted-foreground">
+                                    · {formatLastOnline(friend.last_active_at)}
+                                  </span>
                                 )}
-                              </p>
-                            </div>
+                              </div>
+                            ) : (
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <UserLink
+                                    username={friend.username}
+                                    className="font-semibold text-base"
+                                  />
+                                  <span
+                                    className={`text-xs ${isOnline ? "text-emerald-500" : "text-muted-foreground"}`}
+                                  >
+                                    {isOnline ? "Online" : "Offline"}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                  Level {friend.level}
+                                  {!isOnline && (
+                                    <>
+                                      {" "}• {formatLastOnline(friend.last_active_at)}
+                                    </>
+                                  )}
+                                </p>
+                              </div>
+                            )}
                           </div>
 
                           <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/30 border border-border/30">
-                              <RankIcon rank={friend.rank_tier} size={18} />
-                              <span className="text-xs font-medium">
-                                {friend.rank_tier ?? "Unranked"}
-                              </span>
-                            </div>
+                            {!friendBanners[friend.id] && (
+                              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/30 border border-border/30">
+                                <RankIcon rank={friend.rank_tier} size={18} />
+                                <span className="text-xs font-medium">
+                                  {friend.rank_tier ?? "Unranked"}
+                                </span>
+                              </div>
+                            )}
                             <Button
                               variant="ghost"
                               size="icon"

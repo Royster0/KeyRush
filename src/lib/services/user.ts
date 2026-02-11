@@ -22,7 +22,7 @@ export const getUser = cache(async () => {
   // Get user profile with username
   const { data: profile } = await supabase
     .from("profiles")
-    .select("username, created_at, elo, rank_tier, matches_played, wins, losses, total_xp, level, friend_code")
+    .select("username, created_at, elo, rank_tier, matches_played, wins, losses, total_xp, level, friend_code, active_banner_slot, peak_rank_tier")
     .eq("id", user.id)
     .single();
 
@@ -40,6 +40,8 @@ export type PublicProfile = {
   losses?: number | null;
   total_xp?: number | null;
   level?: number | null;
+  active_banner_slot?: number | null;
+  peak_rank_tier?: string | null;
 };
 
 export async function getProfileByUsername(
@@ -59,7 +61,7 @@ export async function getProfileByUsername(
   const { data, error } = await supabase
     .from("profiles")
     .select(
-      "id, username, created_at, elo, rank_tier, matches_played, wins, losses, total_xp, level"
+      "id, username, created_at, elo, rank_tier, matches_played, wins, losses, total_xp, level, active_banner_slot, peak_rank_tier"
     )
     .ilike("username", cleanedUsername)
     .maybeSingle();

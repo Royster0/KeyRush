@@ -7,6 +7,7 @@ export const FriendProfileSchema = z.object({
   rank_tier: z.string().nullable(),
   elo: z.number().nullable(),
   last_active_at: z.string().nullable().optional(),
+  active_banner_slot: z.number().nullable().optional(),
 });
 
 export const FriendshipRowSchema = z.object({

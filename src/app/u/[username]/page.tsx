@@ -7,6 +7,7 @@ import {
   getPublicBestScores,
   getPublicLeaderboardRankings,
   getUser,
+  getActiveBanner,
 } from "@/app/actions";
 import ProfileOverview from "@/components/profile/ProfileOverview";
 import BestScores from "@/components/profile/BestScores";
@@ -59,12 +60,13 @@ const PublicProfileContent = async ({ username }: { username: string }) => {
     notFound();
   }
 
-  const [testResults, bestScores, leaderboardRankings, currentUser] =
+  const [testResults, bestScores, leaderboardRankings, currentUser, banner] =
     await Promise.all([
       getPublicTestResults(profile.id),
       getPublicBestScores(profile.id),
       getPublicLeaderboardRankings(profile.id),
       getUser(),
+      getActiveBanner(profile.id),
     ]);
 
   const joinDate = profile.created_at
@@ -80,6 +82,8 @@ const PublicProfileContent = async ({ username }: { username: string }) => {
           joinDate={joinDate}
           totalXp={profile.total_xp ?? 0}
           isOwnProfile={isOwnProfile}
+          banner={banner}
+          rankTier={profile.rank_tier ?? null}
         />
 
         <RankedStatsCard profile={profile} />

@@ -13,6 +13,7 @@ import {
   LogIn,
   LogOut,
   Menu,
+  Paintbrush,
   Settings,
   Trophy,
   User2,
@@ -338,6 +339,7 @@ export default function Nav({ initialUser = null }: { initialUser?: UserWithProf
     "/about",
     "/profile",
     "/badges",
+    "/banner",
     "/u",
   ].some((path) => pathname === path || pathname.startsWith(`${path}/`));
 
@@ -489,6 +491,13 @@ export default function Nav({ initialUser = null }: { initialUser?: UserWithProf
                           Badges
                         </Link>
                         <Link
+                          href="/banner"
+                          className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted"
+                        >
+                          <Paintbrush className="h-4 w-4" />
+                          Banner
+                        </Link>
+                        <Link
                           href="/match-history"
                           className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted"
                         >
@@ -565,6 +574,21 @@ export default function Nav({ initialUser = null }: { initialUser?: UserWithProf
                             <div className="flex items-center gap-2">
                               <Award className="h-4 w-4" />
                               Badges
+                            </div>
+                          </Link>
+                          <Link
+                            href="/banner"
+                            className={`flex flex-col gap-1 px-4 py-2 rounded-md transition-colors
+                              ${
+                                isActive("/banner")
+                                  ? "bg-primary text-primary-foreground"
+                                  : "hover:bg-muted"
+                              }`}
+                            onClick={() => setIsOpen(false)}
+                          >
+                            <div className="flex items-center gap-2">
+                              <Paintbrush className="h-4 w-4" />
+                              Banner
                             </div>
                           </Link>
                           <Link

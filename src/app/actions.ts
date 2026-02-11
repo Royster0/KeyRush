@@ -8,6 +8,7 @@ import * as xpServices from "@/lib/services/xp";
 import * as friendServices from "@/lib/services/friends";
 import * as badgeServices from "@/lib/services/badges";
 import * as matchHistoryServices from "@/lib/services/match-history";
+import * as bannerServices from "@/lib/services/banners";
 import { TestResults } from "@/types/game.types";
 import { BadgeContext } from "@/types/badges.types";
 import { redirect } from "next/navigation";
@@ -185,5 +186,43 @@ export async function getUserStatsForBadges() {
 // Match history actions
 export async function getMatchHistory(page: number = 0) {
   return matchHistoryServices.getMatchHistory(page);
+}
+
+// Banner actions
+export async function getBannerCustomizationState() {
+  return bannerServices.getBannerCustomizationState();
+}
+
+export async function getActiveBanner(userId: string) {
+  return bannerServices.getActiveBanner(userId);
+}
+
+export async function updateBannerPreset(
+  slot: 1 | 2 | 3,
+  backgroundId: string,
+  borderId: string,
+  titleId: string
+) {
+  const result = await bannerServices.updateBannerPreset(slot, backgroundId, borderId, titleId);
+  if (result.ok) {
+    revalidatePath("/banner");
+  }
+  return result;
+}
+
+export async function setActiveBannerPreset(slot: 1 | 2 | 3) {
+  const result = await bannerServices.setActiveBannerPreset(slot);
+  if (result.ok) {
+    revalidatePath("/banner");
+  }
+  return result;
+}
+
+export async function renameBannerPreset(slot: 1 | 2 | 3, name: string) {
+  const result = await bannerServices.renameBannerPreset(slot, name);
+  if (result.ok) {
+    revalidatePath("/banner");
+  }
+  return result;
 }
 
