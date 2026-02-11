@@ -22,7 +22,20 @@ function createEmptyRecord(): FriendRecord {
   return { ranked: createRecordSegment(), unranked: createRecordSegment() };
 }
 
-function isUnrankedMatch(partyMatchId?: string | null) {
+function isUnrankedMatch({
+  isRanked,
+  partyMatchId,
+}: {
+  isRanked?: boolean | null;
+  partyMatchId?: string | null;
+}) {
+  // Prefer authoritative DB column. Fall back to legacy match id parsing.
+  if (isRanked === false) {
+    return true;
+  }
+  if (isRanked === true) {
+    return false;
+  }
   return Boolean(partyMatchId && partyMatchId.includes("-unranked-"));
 }
 
@@ -153,7 +166,7 @@ export async function getFriendsWithRecords(userId?: string): Promise<FriendSumm
   const friendIdList = mutualIdList.join(",");
   const { data: matchData } = await supabase
     .from("matches")
-    .select("id, party_match_id, player1_id, player2_id, winner_id")
+    .select("id, party_match_id, is_ranked, player1_id, player2_id, winner_id")
     .or(
       `and(player1_id.eq.${resolvedUserId},player2_id.in.(${friendIdList})),and(player2_id.eq.${resolvedUserId},player1_id.in.(${friendIdList}))`
     );
@@ -188,7 +201,10 @@ export async function getFriendsWithRecords(userId?: string): Promise<FriendSumm
         if (!recordsByFriend.has(friendId)) continue;
 
         const record = recordsByFriend.get(friendId)!;
-        const bucket = isUnrankedMatch(match.party_match_id)
+        const bucket = isUnrankedMatch({
+          isRanked: match.is_ranked ?? null,
+          partyMatchId: match.party_match_id,
+        })
           ? record.unranked
           : record.ranked;
 

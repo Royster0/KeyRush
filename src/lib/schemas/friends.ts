@@ -26,6 +26,7 @@ export const FriendRequestRowSchema = z.object({
 export const FriendMatchRowSchema = z.object({
   id: z.string(),
   party_match_id: z.string().nullable(),
+  is_ranked: z.boolean().nullable().optional(),
   player1_id: z.string().nullable(),
   player2_id: z.string().nullable(),
   winner_id: z.string().nullable(),
