@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useLeaderboard } from "@/hooks/useLeaderboard";
 import { useRankedLeaderboard } from "@/hooks/useRankedLeaderboard";
 import { LeaderboardTimeframe } from "@/app/leaderboard/actions";
@@ -10,10 +10,7 @@ import { TIME_OPTIONS } from "@/lib/constants";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Zap, Clock, CalendarDays, Infinity as InfinityIcon } from "lucide-react";
 import { RankIcon } from "@/components/RankIcon";
-
-interface LeaderboardClientProps {
-  userId?: string;
-}
+import { createClient } from "@/utils/supabase/client";
 
 type MainTab = "rankings" | "wpm";
 
@@ -23,10 +20,18 @@ const timeframeOptions = [
   { id: "all" as const, label: "All-Time", icon: InfinityIcon },
 ];
 
-export default function LeaderboardClient({ userId }: LeaderboardClientProps) {
+export default function LeaderboardClient() {
   const [mainTab, setMainTab] = useState<MainTab>("rankings");
   const [timeframe, setTimeframe] = useState<LeaderboardTimeframe>("all");
   const [selectedDuration, setSelectedDuration] = useState<(typeof TIME_OPTIONS)[number]>(TIME_OPTIONS[2]);
+  const [userId, setUserId] = useState<string | undefined>();
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setUserId(user.id);
+    });
+  }, []);
 
   const { data: leaderboardData = [], isLoading: isLoadingWpm } = useLeaderboard(timeframe);
   const { data: rankedData = [], isLoading: isLoadingRanked } = useRankedLeaderboard();

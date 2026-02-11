@@ -1,5 +1,4 @@
 import LeaderboardClient from "@/components/leaderboard/LeaderboardClient";
-import { getUser } from "@/app/actions";
 import type { Metadata } from "next";
 import { buildMetadata } from "@/lib/seo";
 
@@ -10,7 +9,6 @@ export const metadata: Metadata = buildMetadata({
   path: "/leaderboard",
 });
 
-export default async function LeaderboardPage() {
-  const user = await getUser();
-  return <LeaderboardClient userId={user?.id} />;
+export default function LeaderboardPage() {
+  return <LeaderboardClient />;
 }

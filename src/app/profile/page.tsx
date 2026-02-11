@@ -28,12 +28,12 @@ export const metadata: Metadata = buildMetadata({
 
 const ProfileContent = async () => {
   const user = await getUser();
-  const [testResults, bestScores, leaderboardRankings] = await Promise.all([
+  const [testResults, bestScores, leaderboardRankings, banner] = await Promise.all([
     getUserTestResults(),
     getUserBestScores(),
     getUserLeaderboardRankings(),
+    user ? getActiveBanner(user.id) : Promise.resolve(null),
   ]);
-  const banner = user ? await getActiveBanner(user.id) : null;
 
   const joinDate = user?.profile?.created_at
     ? formatDate(new Date(user.profile.created_at))

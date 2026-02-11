@@ -1,5 +1,7 @@
-import { getUser, getActiveBanner } from "@/app/actions";
+import { Suspense } from "react";
+import { getUser } from "@/app/actions";
 import MultiplayerClient from "@/components/multiplayer/MultiplayerClient";
+import LoadingMultiplayer from "@/components/multiplayer/LoadingMultiplayer";
 import type { Metadata } from "next";
 import { buildMetadata } from "@/lib/seo";
 
@@ -9,8 +11,15 @@ export const metadata: Metadata = buildMetadata({
   path: "/multiplayer",
 });
 
-export default async function MultiplayerPage() {
+const MultiplayerContent = async () => {
   const user = await getUser();
-  const userBanner = user ? await getActiveBanner(user.id) : null;
-  return <MultiplayerClient user={user} userBanner={userBanner} />;
+  return <MultiplayerClient user={user} />;
+};
+
+export default function MultiplayerPage() {
+  return (
+    <Suspense fallback={<LoadingMultiplayer />}>
+      <MultiplayerContent />
+    </Suspense>
+  );
 }

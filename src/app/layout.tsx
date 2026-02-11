@@ -4,11 +4,12 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { GameProvider } from "@/contexts/GameContext";
 import { Toaster } from "react-hot-toast";
-import Nav from "@/components/ui/Nav";
+import NavWrapper from "@/components/ui/NavWrapper";
+import { NavSkeleton } from "@/components/skeletons/NavSkeleton";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { DEFAULT_DESCRIPTION, SITE_NAME, getSiteUrl } from "@/lib/seo";
-import { getUser } from "@/lib/services/user";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: SITE_NAME,
@@ -28,13 +29,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const user = await getUser();
-
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`antialiased`}>
@@ -56,7 +55,9 @@ export default async function RootLayout({
                   },
                 }}
               />
-              <Nav initialUser={user} />
+              <Suspense fallback={<NavSkeleton />}>
+                <NavWrapper />
+              </Suspense>
               <main className="pt-20">
                 {children}
                 <Analytics />

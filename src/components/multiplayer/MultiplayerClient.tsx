@@ -35,7 +35,6 @@ import { checkAchievements, getPreSaveState, getUserXpProgress, getActiveBanner 
 
 type MultiplayerClientProps = {
   user?: UserWithProfile | null;
-  userBanner?: ActiveBanner | null;
 };
 
 type QueuePhase = "idle" | "queue";
@@ -45,7 +44,7 @@ const PARTYKIT_HOST =
   process.env.NEXT_PUBLIC_PARTYKIT_HOST || "localhost:1999";
 const INVITE_TTL_MS = 10 * 60 * 1000;
 
-const MultiplayerClient = ({ user, userBanner }: MultiplayerClientProps) => {
+const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
   const [duration, setDuration] = useState<30 | 60>(30);
   const [queueMode, setQueueMode] = useState<QueueMode>("ranked");
   const [queuePhase, setQueuePhase] = useState<QueuePhase>("idle");
@@ -73,6 +72,7 @@ const MultiplayerClient = ({ user, userBanner }: MultiplayerClientProps) => {
     isRankUp: boolean;
   } | null>(null);
 
+  const [userBanner, setUserBanner] = useState<ActiveBanner | null>(null);
   const [opponentBanner, setOpponentBanner] = useState<ActiveBanner | null>(null);
 
   const queueSocketRef = useRef<PartySocket | null>(null);
@@ -614,6 +614,18 @@ const MultiplayerClient = ({ user, userBanner }: MultiplayerClientProps) => {
 
     opponentIdRef.current = opponent?.id ?? null;
   }, [matchState, opponent]);
+
+  // Fetch user banner when entering the lobby (deferred from SSR)
+  useEffect(() => {
+    if (!user?.id || matchState?.phase !== "lobby") {
+      return;
+    }
+    let cancelled = false;
+    getActiveBanner(user.id).then((banner) => {
+      if (!cancelled) setUserBanner(banner);
+    });
+    return () => { cancelled = true; };
+  }, [user?.id, matchState?.phase]);
 
   // Fetch opponent banner when they join the lobby
   useEffect(() => {

@@ -127,9 +127,29 @@ export async function getUserBestScores(): Promise<BestScore[]> {
     return [];
   }
 
-  // Fetch singleplayer best scores
-  const { data: singleplayerData, error: singleplayerError } = await supabase
-    .rpc('get_user_best_scores_full', { target_user_id: user.id });
+  // Fetch singleplayer and multiplayer best scores in parallel
+  const [
+    { data: singleplayerData, error: singleplayerError },
+    { data: multiplayerData, error: multiplayerError },
+  ] = await Promise.all([
+    supabase.rpc('get_user_best_scores_full', { target_user_id: user.id }),
+    supabase
+      .from("match_results")
+      .select(`
+        id,
+        user_id,
+        wpm,
+        raw_wpm,
+        accuracy,
+        created_at,
+        matches!inner (
+          duration
+        )
+      `)
+      .eq("user_id", user.id)
+      .eq("left_match", false)
+      .order("wpm", { ascending: false }),
+  ]);
 
   let singleplayerScores: BestScore[] = [];
   if (!singleplayerError && singleplayerData) {
@@ -141,24 +161,6 @@ export async function getUserBestScores(): Promise<BestScore[]> {
       }));
     }
   }
-
-  // Fetch multiplayer best scores (join with matches to get duration)
-  const { data: multiplayerData, error: multiplayerError } = await supabase
-    .from("match_results")
-    .select(`
-      id,
-      user_id,
-      wpm,
-      raw_wpm,
-      accuracy,
-      created_at,
-      matches!inner (
-        duration
-      )
-    `)
-    .eq("user_id", user.id)
-    .eq("left_match", false)
-    .order("wpm", { ascending: false });
 
   let multiplayerScores: BestScore[] = [];
   if (!multiplayerError && multiplayerData) {
@@ -211,9 +213,31 @@ export async function getBestScoresByUserId(
     return [];
   }
 
-  // Fetch singleplayer best scores
-  const { data: singleplayerData, error: singleplayerError } = await supabase
-    .rpc("get_user_best_scores_full", { target_user_id: userId });
+  // Fetch singleplayer and multiplayer best scores in parallel
+  const [
+    { data: singleplayerData, error: singleplayerError },
+    { data: multiplayerData, error: multiplayerError },
+  ] = await Promise.all([
+    supabase.rpc("get_user_best_scores_full", { target_user_id: userId }),
+    supabase
+      .from("match_results")
+      .select(
+        `
+        id,
+        user_id,
+        wpm,
+        raw_wpm,
+        accuracy,
+        created_at,
+        matches!inner (
+          duration
+        )
+      `
+      )
+      .eq("user_id", userId)
+      .eq("left_match", false)
+      .order("wpm", { ascending: false }),
+  ]);
 
   let singleplayerScores: BestScore[] = [];
   if (!singleplayerError && singleplayerData) {
@@ -225,26 +249,6 @@ export async function getBestScoresByUserId(
       }));
     }
   }
-
-  // Fetch multiplayer best scores (join with matches to get duration)
-  const { data: multiplayerData, error: multiplayerError } = await supabase
-    .from("match_results")
-    .select(
-      `
-      id,
-      user_id,
-      wpm,
-      raw_wpm,
-      accuracy,
-      created_at,
-      matches!inner (
-        duration
-      )
-    `
-    )
-    .eq("user_id", userId)
-    .eq("left_match", false)
-    .order("wpm", { ascending: false });
 
   let multiplayerScores: BestScore[] = [];
   if (!multiplayerError && multiplayerData) {
