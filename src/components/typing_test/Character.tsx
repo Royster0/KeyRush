@@ -14,41 +14,39 @@ type CharacterProps = {
   opponentCaretClassName?: string;
 };
 
-const Character = memo(
-  function Character({
-    char,
-    isCurrent,
-    isTyped,
-    isCorrect,
-    isMistake,
-    caretSpeed,
-    isOpponentCurrent = false,
-    opponentCaretClassName,
-  }: CharacterProps) {
-    return (
-      <motion.span
-        className={`
+const Character = memo(function Character({
+  char,
+  isCurrent,
+  isTyped,
+  isCorrect,
+  isMistake,
+  caretSpeed,
+  isOpponentCurrent = false,
+  opponentCaretClassName,
+}: CharacterProps) {
+  return (
+    <motion.span
+      className={`
         ${isTyped && !isCorrect ? "text-destructive" : ""}
         ${isTyped && isCorrect ? "text-primary" : ""}
         ${isMistake ? "text-destructive" : ""}
         ${!isTyped ? "text-muted-foreground" : ""}
-        ${char === " " && isTyped && !isCorrect ? "bg-destructive/30 rounded-sm" : ""}
+        ${char === " " && isTyped && !isCorrect ? "border-b-2 border-destructive" : ""}
         text-3xl relative inline-block
         `}
-        layout
-      >
-        {isCurrent && <Caret speed={caretSpeed} layoutId="caret" />}
-        {isOpponentCurrent && (
-          <Caret
-            className={opponentCaretClassName}
-            speed={caretSpeed}
-            layoutId="opponent-caret"
-          />
-        )}
-        {char}
-      </motion.span>
-    );
-  }
-);
+      layout
+    >
+      {isCurrent && <Caret speed={caretSpeed} layoutId="caret" />}
+      {isOpponentCurrent && (
+        <Caret
+          className={opponentCaretClassName}
+          speed={caretSpeed}
+          layoutId="opponent-caret"
+        />
+      )}
+      {char}
+    </motion.span>
+  );
+});
 
 export default Character;
