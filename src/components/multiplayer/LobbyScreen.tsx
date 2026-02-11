@@ -4,10 +4,10 @@ import { motion } from "framer-motion";
 import { Users, Swords, Zap, Link2, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { getRankColor } from "./multiplayer-utils";
 import { InviteLinkDetails } from "./InviteLinkDetails";
 import { MatchState } from "@/types/multiplayer.types";
-import { RankIcon } from "@/components/RankIcon";
+import BannerDisplay from "@/components/banner/BannerDisplay";
+import type { ActiveBanner } from "@/types/banner.types";
 
 type PlayerInfo = {
   id: string;
@@ -23,10 +23,49 @@ type LobbyScreenProps = {
   rankLabel: string;
   inviteLink: string | null;
   inviteExpiresAt: number | null;
+  playerBanner?: ActiveBanner | null;
+  opponentBanner?: ActiveBanner | null;
   onReady: (ready: boolean) => void;
   onLeave: () => void;
   onCopyInvite: () => void;
 };
+
+function ReadyBadge({ ready }: { ready: boolean }) {
+  return ready ? (
+    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-500 text-sm font-medium">
+      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+      Ready
+    </span>
+  ) : (
+    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-muted-foreground text-sm">
+      Not Ready
+    </span>
+  );
+}
+
+function FallbackPlayerCard({ name, rank }: { name: string; rank?: string }) {
+  return (
+    <div className="rounded-xl border border-zinc-700/50 bg-gradient-to-br from-zinc-800/80 to-zinc-900/80 overflow-hidden">
+      <div className="flex items-center text-left py-5 px-5 gap-3.5">
+        <div className="relative flex-shrink-0">
+          <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-white/20 to-white/5 border border-white/15 flex items-center justify-center">
+            <span className="text-2xl font-black text-white drop-shadow-sm">
+              {name.charAt(0).toUpperCase()}
+            </span>
+          </div>
+        </div>
+        <div className="flex flex-col min-w-0">
+          <span className="text-lg font-bold text-white drop-shadow-md truncate leading-tight">
+            {name}
+          </span>
+          {rank && (
+            <span className="text-xs font-medium text-white/40">{rank}</span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function LobbyScreen({
   matchState,
@@ -35,6 +74,8 @@ export function LobbyScreen({
   rankLabel,
   inviteLink,
   inviteExpiresAt,
+  playerBanner,
+  opponentBanner,
   onReady,
   onLeave,
   onCopyInvite,
@@ -58,44 +99,29 @@ export function LobbyScreen({
 
       {/* VS Layout */}
       <div className="grid gap-4 md:grid-cols-[1fr,auto,1fr] items-center">
-        {/* Player Card */}
+        {/* Player */}
         <motion.div
           initial={{ x: -50, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.1 }}
+          className="flex flex-col items-center gap-3"
         >
-          <Card className={`border-2 transition-all ${player?.ready ? "border-emerald-500 bg-emerald-500/5" : "border-border"}`}>
-            <CardContent className="p-6 text-center">
-              <div className="h-16 w-16 mx-auto rounded-full bg-primary/20 flex items-center justify-center mb-4">
-                <span className="text-2xl font-bold">{(player?.name ?? "You").charAt(0).toUpperCase()}</span>
-              </div>
-              <p className="font-bold text-lg">{player?.name ?? "You"}</p>
-              {matchState.mode === "ranked" && (
-                <div className="flex items-center justify-center gap-1 text-sm">
-                  <RankIcon
-                    rank={player?.rank ?? rankLabel}
-                    size={16}
-                    title={player?.rank ?? rankLabel}
-                  />
-                  <span className={getRankColor(player?.rank ?? rankLabel)}>
-                    {player?.rank ?? rankLabel}
-                  </span>
-                </div>
-              )}
-              <div className="mt-4">
-                {player?.ready ? (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-500 text-sm font-medium">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                    Ready
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-muted-foreground text-sm">
-                    Not Ready
-                  </span>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <div className={`w-full rounded-xl transition-all ${player?.ready ? "ring-2 ring-emerald-500 ring-offset-2 ring-offset-background" : ""}`}>
+            {playerBanner ? (
+              <BannerDisplay
+                banner={playerBanner}
+                size="md"
+                username={player?.name ?? "You"}
+                rank={matchState.mode === "ranked" ? (player?.rank ?? rankLabel) : undefined}
+              />
+            ) : (
+              <FallbackPlayerCard
+                name={player?.name ?? "You"}
+                rank={matchState.mode === "ranked" ? (player?.rank ?? rankLabel) : undefined}
+              />
+            )}
+          </div>
+          <ReadyBadge ready={player?.ready ?? false} />
         </motion.div>
 
         {/* VS Divider */}
@@ -111,59 +137,42 @@ export function LobbyScreen({
           <span className="text-2xl font-bold text-muted-foreground">VS</span>
         </motion.div>
 
-        {/* Opponent Card */}
+        {/* Opponent */}
         <motion.div
           initial={{ x: 50, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.1 }}
+          className="flex flex-col items-center gap-3"
         >
-          <Card className={`border-2 transition-all ${opponent?.ready ? "border-emerald-500 bg-emerald-500/5" : "border-border"}`}>
-            <CardContent className="p-6 text-center">
-              {opponent ? (
-                <>
-                  <div className="h-16 w-16 mx-auto rounded-full bg-sky-500/20 flex items-center justify-center mb-4">
-                    <span className="text-2xl font-bold text-sky-500">{opponent.name.charAt(0).toUpperCase()}</span>
-                  </div>
-                  <p className="font-bold text-lg">{opponent.name}</p>
-                  {matchState.mode === "ranked" && (
-                    <div className="flex items-center justify-center gap-1 text-sm">
-                      <RankIcon
-                        rank={opponent.rank ?? "Placement"}
-                        size={16}
-                        title={opponent.rank ?? "Placement"}
-                      />
-                      <span className={getRankColor(opponent.rank ?? "Placement")}>
-                        {opponent.rank ?? "Placement"}
-                      </span>
-                    </div>
-                  )}
-                  <div className="mt-4">
-                    {opponent.ready ? (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-500 text-sm font-medium">
-                        <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                        Ready
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-muted-foreground text-sm">
-                        Not Ready
-                      </span>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="h-16 w-16 mx-auto rounded-full bg-muted flex items-center justify-center mb-4">
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                      className="h-8 w-8 rounded-full border-2 border-transparent border-t-muted-foreground"
-                    />
-                  </div>
-                  <p className="font-medium text-muted-foreground">Waiting for opponent...</p>
-                </>
-              )}
-            </CardContent>
-          </Card>
+          {opponent ? (
+            <>
+              <div className={`w-full rounded-xl transition-all ${opponent.ready ? "ring-2 ring-emerald-500 ring-offset-2 ring-offset-background" : ""}`}>
+                {opponentBanner ? (
+                  <BannerDisplay
+                    banner={opponentBanner}
+                    size="md"
+                    username={opponent.name}
+                    rank={matchState.mode === "ranked" ? (opponent.rank ?? "Placement") : undefined}
+                  />
+                ) : (
+                  <FallbackPlayerCard
+                    name={opponent.name}
+                    rank={matchState.mode === "ranked" ? (opponent.rank ?? "Placement") : undefined}
+                  />
+                )}
+              </div>
+              <ReadyBadge ready={opponent.ready} />
+            </>
+          ) : (
+            <div className="w-full rounded-xl border border-dashed border-muted-foreground/30 bg-muted/10 py-10 flex flex-col items-center gap-3">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                className="h-8 w-8 rounded-full border-2 border-transparent border-t-muted-foreground"
+              />
+              <p className="font-medium text-muted-foreground text-sm">Waiting for opponent...</p>
+            </div>
+          )}
         </motion.div>
       </div>
 

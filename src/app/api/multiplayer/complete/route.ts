@@ -14,6 +14,7 @@ type EloUpdateResult = {
   k_factor: number;
   expected_score: number;
   margin_bonus: number;
+  peak_rank_tier: string;
 };
 
 export async function POST(request: Request) {

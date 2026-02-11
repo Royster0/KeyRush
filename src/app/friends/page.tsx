@@ -4,6 +4,7 @@ import {
   getUser,
   getFriendsWithRecords,
   getFriendRequests,
+  getActiveBanner,
 } from "@/app/actions";
 import FriendsClient from "@/components/friends/FriendsClient";
 import LoadingFriends from "@/components/friends/LoadingFriends";
@@ -28,12 +29,23 @@ const FriendsContent = async () => {
     getFriendRequests(),
   ]);
 
+  // Fetch active banners for all friends in parallel
+  const bannerEntries = await Promise.all(
+    friends.map(async (f) => {
+      const banner = await getActiveBanner(f.id);
+      return [f.id, banner] as const;
+    })
+  );
+  const friendBanners: Record<string, { backgroundId: string; borderId: string; titleId: string } | null> =
+    Object.fromEntries(bannerEntries);
+
   return (
     <FriendsClient
       currentUserId={user.id}
       friendCode={user.profile?.friend_code ?? null}
       initialFriends={friends}
       initialRequests={requests}
+      friendBanners={friendBanners}
     />
   );
 };

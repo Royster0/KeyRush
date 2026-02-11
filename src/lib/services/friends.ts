@@ -64,7 +64,8 @@ export async function getFriendRequests(userId?: string): Promise<FriendRequest[
           username,
           level,
           rank_tier,
-          elo
+          elo,
+          active_banner_slot
         )
       `
     )
@@ -91,6 +92,7 @@ export async function getFriendRequests(userId?: string): Promise<FriendRequest[
       rank_tier: row.sender.rank_tier ?? null,
       elo: row.sender.elo ?? null,
       last_active_at: null,
+      active_banner_slot: row.sender.active_banner_slot ?? null,
     },
   }));
 }
@@ -116,7 +118,8 @@ export async function getFriendsWithRecords(userId?: string): Promise<FriendSumm
           username,
           level,
           rank_tier,
-          elo
+          elo,
+          active_banner_slot
         )
       `
     )
@@ -138,6 +141,7 @@ export async function getFriendsWithRecords(userId?: string): Promise<FriendSumm
     rank_tier: row.friend.rank_tier ?? null,
     elo: row.friend.elo ?? null,
     last_active_at: null,
+    active_banner_slot: row.friend.active_banner_slot ?? null,
   }));
 
   friends.sort((a, b) => a.username.localeCompare(b.username));

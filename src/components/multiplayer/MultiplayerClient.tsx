@@ -24,16 +24,18 @@ import {
 } from "@/lib/multiplayer";
 import { UserWithProfile } from "@/types/auth.types";
 import type { LevelUpData } from "@/components/LevelUpModal";
+import type { ActiveBanner } from "@/types/banner.types";
 
 const CongratsModal = dynamic(() => import("@/components/CongratsModal").then(m => m.CongratsModal), { ssr: false, loading: () => null });
 const BadgeNotification = dynamic(() => import("@/components/BadgeNotification").then(m => m.BadgeNotification), { ssr: false, loading: () => null });
 const LevelUpModal = dynamic(() => import("@/components/LevelUpModal").then(m => m.LevelUpModal), { ssr: false, loading: () => null });
 import type { AchievementData } from "@/lib/services/achievements";
 import type { BadgeNotification as BadgeNotificationData } from "@/types/badges.types";
-import { checkAchievements, getPreSaveState, getUserXpProgress } from "@/app/actions";
+import { checkAchievements, getPreSaveState, getUserXpProgress, getActiveBanner } from "@/app/actions";
 
 type MultiplayerClientProps = {
   user?: UserWithProfile | null;
+  userBanner?: ActiveBanner | null;
 };
 
 type QueuePhase = "idle" | "queue";
@@ -43,7 +45,7 @@ const PARTYKIT_HOST =
   process.env.NEXT_PUBLIC_PARTYKIT_HOST || "localhost:1999";
 const INVITE_TTL_MS = 10 * 60 * 1000;
 
-const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
+const MultiplayerClient = ({ user, userBanner }: MultiplayerClientProps) => {
   const [duration, setDuration] = useState<30 | 60>(30);
   const [queueMode, setQueueMode] = useState<QueueMode>("ranked");
   const [queuePhase, setQueuePhase] = useState<QueuePhase>("idle");
@@ -70,6 +72,8 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
     newRank: string;
     isRankUp: boolean;
   } | null>(null);
+
+  const [opponentBanner, setOpponentBanner] = useState<ActiveBanner | null>(null);
 
   const queueSocketRef = useRef<PartySocket | null>(null);
   const matchSocketRef = useRef<PartySocket | null>(null);
@@ -149,6 +153,7 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
     setAchievementQueue([]);
     setBadgeQueue([]);
     setRankChange(null);
+    setOpponentBanner(null);
     hasUpdatedEloRef.current = false;
     lastPlayerSecondRef.current = null;
     lastOpponentSecondRef.current = null;
@@ -610,6 +615,18 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
     opponentIdRef.current = opponent?.id ?? null;
   }, [matchState, opponent]);
 
+  // Fetch opponent banner when they join the lobby
+  useEffect(() => {
+    if (!opponent?.id || matchState?.phase !== "lobby") {
+      return;
+    }
+    let cancelled = false;
+    getActiveBanner(opponent.id).then((banner) => {
+      if (!cancelled) setOpponentBanner(banner);
+    });
+    return () => { cancelled = true; };
+  }, [opponent?.id, matchState?.phase]);
+
   // Cleanup sockets on unmount
   useEffect(() => {
     return () => cleanSockets();
@@ -673,6 +690,8 @@ const MultiplayerClient = ({ user }: MultiplayerClientProps) => {
             rankLabel={rankLabel}
             inviteLink={inviteLink}
             inviteExpiresAt={inviteExpiresAt}
+            playerBanner={userBanner ?? null}
+            opponentBanner={opponentBanner}
             onReady={handleReady}
             onLeave={handleLeave}
             onCopyInvite={handleCopyInvite}
