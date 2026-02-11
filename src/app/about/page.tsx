@@ -1,22 +1,40 @@
 "use client";
 
-import { Github, Keyboard, Trophy, BarChart3, Zap } from "lucide-react";
+import {
+  Github,
+  Keyboard,
+  Trophy,
+  BarChart3,
+  Zap,
+  Info,
+  ListChecks,
+  Calculator,
+  Wrench,
+  Award,
+  Users,
+  Flag,
+  Sparkles,
+  Palette,
+  Swords,
+} from "lucide-react";
 import Link from "next/link";
 import { motion } from "motion/react";
 
 export default function About() {
   return (
     <div className="min-h-screen">
-      <div className="max-w-2xl mx-auto px-4 py-16 space-y-16">
-        {/* Intro */}
-        <motion.section
-          initial={{ opacity: 0, y: 12 }}
+      <div className="container mx-auto max-w-5xl px-4 py-12 space-y-0">
+        {/* Header */}
+        <motion.header
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="space-y-5"
+          className="text-center space-y-4 pb-10"
         >
-          <h1 className="text-3xl font-bold tracking-tight">About KeyRush</h1>
-          <p className="text-muted-foreground leading-relaxed text-lg">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
+            About KeyRush
+          </h1>
+          <p className="text-muted-foreground max-w-lg mx-auto leading-relaxed">
             KeyRush is a typing test website heavily inspired by{" "}
             <a
               href="https://monkeytype.com"
@@ -29,95 +47,165 @@ export default function About() {
             . It started as a way to learn web development and grew into
             something I use daily to practice typing.
           </p>
-        </motion.section>
+        </motion.header>
 
-        {/* What's here */}
+        {/* What you can do */}
         <motion.section
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="space-y-5"
+          transition={{ duration: 0.45, delay: 0.1 }}
+          className="relative border-b border-primary/30 py-10"
         >
-          <h2 className="text-xl font-semibold">What you can do</h2>
-          <ul className="space-y-3 text-muted-foreground">
-            <li className="flex gap-4 items-start">
-              <Keyboard className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-              <span>Take typing tests (5s, 15s, 30s, 60s, 120s)</span>
-            </li>
-            <li className="flex gap-4 items-start">
-              <Zap className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-              <span>Race against others in real-time 1v1 matches</span>
-            </li>
-            <li className="flex gap-4 items-start">
-              <Trophy className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-              <span>Climb ranked with an Elo system (Bronze to Mach)</span>
-            </li>
-            <li className="flex gap-4 items-start">
-              <BarChart3 className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-              <span>Track your progress with stats and charts</span>
-            </li>
-            <li className="flex gap-4 items-start">
-              <Trophy className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-              <span>Compete on daily, weekly, and all-time leaderboards</span>
-            </li>
-          </ul>
-        </motion.section>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
+              <ListChecks className="h-4 w-4 text-primary" />
+            </div>
+            <h3 className="text-xl font-mono uppercase tracking-[0.15em]">
+              Features
+            </h3>
+          </div>
 
-        {/* How stats work */}
-        <motion.section
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="space-y-5"
-        >
-          <h2 className="text-xl font-semibold">How WPM is calculated</h2>
-          <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5">
-              <code className="px-3 py-1.5 rounded-lg bg-muted/50 border border-border/40 font-mono text-primary text-sm shrink-0">
-                WPM
-              </code>
-              <span className="text-muted-foreground text-sm">
-                (correct word chars + correct spaces / 5) / time in minutes
-              </span>
-            </div>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5">
-              <code className="px-3 py-1.5 rounded-lg bg-muted/50 border border-border/40 font-mono text-primary text-sm shrink-0">
-                Raw
-              </code>
-              <span className="text-muted-foreground text-sm">
-                (all keystrokes, incl. mistakes + corrected chars, / 5) / time in minutes
-              </span>
-            </div>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5">
-              <code className="px-3 py-1.5 rounded-lg bg-muted/50 border border-border/40 font-mono text-primary text-sm shrink-0">
-                Acc
-              </code>
-              <span className="text-muted-foreground text-sm">
-                correct keystrokes / total keystrokes * 100
-              </span>
-            </div>
-            <div className="space-y-2 pt-2 text-sm text-muted-foreground border-l-2 border-border/40 pl-4">
-              <p>
-                During the test, only fully completed correct words count toward
-                WPM. When the test ends, if you&apos;re mid-word and all typed
-                characters are correct, those partial characters are included.
-              </p>
-              <p>
-                Backspacing does not reduce keystroke counts; it only edits what
-                you see.
-              </p>
-            </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {[
+              {
+                icon: Keyboard,
+                text: "Take typing tests across 5 durations (5s to 120s)",
+              },
+              {
+                icon: Swords,
+                text: "Race against others in real-time 1v1 multiplayer",
+              },
+              {
+                icon: Trophy,
+                text: "Climb ranked with Elo ratings (Bronze to Mach)",
+              },
+              {
+                icon: BarChart3,
+                text: "Track WPM history, activity, and personal bests",
+              },
+              {
+                icon: Zap,
+                text: "Earn XP from typing and level up over time",
+              },
+              {
+                icon: Award,
+                text: "Unlock badges for achievements and milestones",
+              },
+              {
+                icon: Users,
+                text: "Add friends and see their stats and online status",
+              },
+              {
+                icon: Flag,
+                text: "Compete on daily, weekly, and all-time leaderboards",
+              },
+              {
+                icon: Sparkles,
+                text: "Customize your banner with backgrounds, borders, and titles",
+              },
+              {
+                icon: Palette,
+                text: "Choose from multiple themes or create your own",
+              },
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.15 + i * 0.05 }}
+                className="flex items-start gap-3.5 rounded-xl border border-border/40 bg-muted/20 px-4 py-3.5"
+              >
+                <item.icon className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                <span className="text-sm text-muted-foreground">
+                  {item.text}
+                </span>
+              </motion.div>
+            ))}
           </div>
         </motion.section>
 
-        {/* Tech */}
+        {/* How WPM is calculated */}
         <motion.section
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="space-y-5"
+          transition={{ duration: 0.45, delay: 0.2 }}
+          className="relative border-b border-primary/30 py-10"
         >
-          <h2 className="text-xl font-semibold">Built with</h2>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
+              <Calculator className="h-4 w-4 text-primary" />
+            </div>
+            <h3 className="text-xl font-mono uppercase tracking-[0.15em]">
+              How WPM is Calculated
+            </h3>
+          </div>
+
+          <div className="space-y-3">
+            {[
+              {
+                label: "WPM",
+                desc: "(correct word chars + correct spaces / 5) / time in minutes",
+              },
+              {
+                label: "Raw",
+                desc: "(all keystrokes, incl. mistakes + corrected chars, / 5) / time in minutes",
+              },
+              {
+                label: "Acc",
+                desc: "correct keystrokes / total keystrokes × 100",
+              },
+            ].map((item, i) => (
+              <motion.div
+                key={item.label}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: 0.25 + i * 0.05 }}
+                className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 rounded-xl border border-border/40 bg-muted/20 px-4 py-3.5"
+              >
+                <code className="px-3 py-1 rounded-lg bg-primary/10 border border-primary/20 font-mono text-primary text-sm font-semibold shrink-0 w-fit">
+                  {item.label}
+                </code>
+                <span className="text-sm text-muted-foreground">
+                  {item.desc}
+                </span>
+              </motion.div>
+            ))}
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4, delay: 0.4 }}
+            className="mt-4 space-y-2 text-sm text-muted-foreground border-l-2 border-primary/20 pl-4"
+          >
+            <p>
+              During the test, only fully completed correct words count toward
+              WPM. When the test ends, if you&apos;re mid-word and all typed
+              characters are correct, those partial characters are included.
+            </p>
+            <p>
+              Backspacing does not reduce keystroke counts; it only edits what
+              you see.
+            </p>
+          </motion.div>
+        </motion.section>
+
+        {/* Built with */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.3 }}
+          className="relative border-b border-primary/30 py-10"
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
+              <Wrench className="h-4 w-4 text-primary" />
+            </div>
+            <h3 className="text-xl font-mono uppercase tracking-[0.15em]">
+              Built With
+            </h3>
+          </div>
+
           <div className="flex flex-wrap gap-2">
             {[
               "Next.js",
@@ -127,13 +215,13 @@ export default function About() {
               "Supabase",
               "PartyKit",
               "Chart.js",
-            ].map((tech, index) => (
+            ].map((tech, i) => (
               <motion.span
                 key={tech}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: 0.35 + index * 0.03 }}
-                className="px-3 py-1.5 rounded-lg bg-muted/30 border border-border/40 text-sm text-muted-foreground"
+                transition={{ duration: 0.3, delay: 0.35 + i * 0.03 }}
+                className="px-3.5 py-1.5 rounded-full bg-muted/30 border border-border/40 text-sm text-muted-foreground font-mono"
               >
                 {tech}
               </motion.span>
@@ -141,13 +229,22 @@ export default function About() {
           </div>
         </motion.section>
 
-        {/* Links */}
+        {/* Footer */}
         <motion.section
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="space-y-5 pt-6 border-t border-border/50"
+          transition={{ duration: 0.45, delay: 0.4 }}
+          className="py-10"
         >
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
+              <Info className="h-4 w-4 text-primary" />
+            </div>
+            <h3 className="text-xl font-mono uppercase tracking-[0.15em]">
+              Links
+            </h3>
+          </div>
+
           <div className="flex flex-wrap gap-6 text-sm">
             <a
               href="https://github.com/Royster0/KeyRush"
@@ -165,7 +262,7 @@ export default function About() {
               Start typing &rarr;
             </Link>
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground mt-4">
             Made by{" "}
             <a
               href="https://github.com/Royster0"
