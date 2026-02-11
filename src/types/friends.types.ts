@@ -16,6 +16,7 @@ export type FriendProfile = {
   level: number;
   rank_tier: string | null;
   elo: number | null;
+  last_active_at: string | null;
 };
 
 export type FriendSummary = FriendProfile & {

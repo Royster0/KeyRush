@@ -31,7 +31,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { RankIcon } from "@/components/RankIcon";
-import { formatDate } from "@/lib/utils";
 import UserLink from "@/components/ui/UserLink";
 import type { FriendRequest, FriendSummary } from "@/types/friends.types";
 
@@ -44,6 +43,46 @@ type FriendsClientProps = {
 
 function getInitials(name: string) {
   return name?.trim().charAt(0).toUpperCase() || "?";
+}
+
+function formatLastOnline(lastActiveAt: string | null): string {
+  if (!lastActiveAt) {
+    return "Last online unknown";
+  }
+
+  const timestamp = new Date(lastActiveAt).getTime();
+  if (!Number.isFinite(timestamp)) {
+    return "Last online unknown";
+  }
+
+  const diffMs = Math.max(0, Date.now() - timestamp);
+  const minutes = Math.max(1, Math.floor(diffMs / 60_000));
+  if (minutes < 60) {
+    return `Last online ${minutes} minute${minutes === 1 ? "" : "s"} ago`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    return `Last online ${hours} hour${hours === 1 ? "" : "s"} ago`;
+  }
+
+  const days = Math.floor(hours / 24);
+  if (days < 7) {
+    return `Last online ${days} day${days === 1 ? "" : "s"} ago`;
+  }
+
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) {
+    return `Last online ${weeks} week${weeks === 1 ? "" : "s"} ago`;
+  }
+
+  const months = Math.floor(days / 30);
+  if (months < 12) {
+    return `Last online ${months} month${months === 1 ? "" : "s"} ago`;
+  }
+
+  const years = Math.floor(days / 365);
+  return `Last online ${years} year${years === 1 ? "" : "s"} ago`;
 }
 
 export default function FriendsClient({
@@ -322,7 +361,8 @@ export default function FriendsClient({
                       animate={{ opacity: 1 }}
                       className="rounded-xl border border-dashed border-border/50 bg-background/30 p-6 text-sm text-muted-foreground text-center"
                     >
-                      Requests will appear here when someone sends you an invite.
+                      Requests will appear here when someone sends you an
+                      invite.
                     </motion.div>
                   ) : (
                     requests.map((request, index) => (
@@ -454,6 +494,12 @@ export default function FriendsClient({
                               </div>
                               <p className="text-xs text-muted-foreground">
                                 Level {friend.level}
+                                {!isOnline && (
+                                  <>
+                                    {" "}
+                                    • {formatLastOnline(friend.last_active_at)}
+                                  </>
+                                )}
                               </p>
                             </div>
                           </div>
@@ -495,11 +541,15 @@ export default function FriendsClient({
                               <span className="text-xl font-bold tabular-nums text-emerald-500">
                                 {friend.record.ranked.wins}
                               </span>
-                              <span className="text-muted-foreground/60">-</span>
+                              <span className="text-muted-foreground/60">
+                                -
+                              </span>
                               <span className="text-xl font-bold tabular-nums text-rose-500">
                                 {friend.record.ranked.losses}
                               </span>
-                              <span className="text-muted-foreground/60">-</span>
+                              <span className="text-muted-foreground/60">
+                                -
+                              </span>
                               <span className="text-xl font-bold tabular-nums text-muted-foreground">
                                 {friend.record.ranked.draws}
                               </span>
@@ -515,11 +565,15 @@ export default function FriendsClient({
                               <span className="text-xl font-bold tabular-nums text-emerald-500">
                                 {friend.record.unranked.wins}
                               </span>
-                              <span className="text-muted-foreground/60">-</span>
+                              <span className="text-muted-foreground/60">
+                                -
+                              </span>
                               <span className="text-xl font-bold tabular-nums text-rose-500">
                                 {friend.record.unranked.losses}
                               </span>
-                              <span className="text-muted-foreground/60">-</span>
+                              <span className="text-muted-foreground/60">
+                                -
+                              </span>
                               <span className="text-xl font-bold tabular-nums text-muted-foreground">
                                 {friend.record.unranked.draws}
                               </span>

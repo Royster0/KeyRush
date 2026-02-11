@@ -24,7 +24,6 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "./button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "./sheet";
-import { AnnouncementBar } from "./AnnouncementBar";
 import { KeyRushLogo } from "./KeyRushLogo";
 import { useGameContext } from "@/contexts/GameContext";
 import { ThemeModal } from "../ThemeModal";
@@ -162,6 +161,52 @@ export default function Nav({ initialUser = null }: { initialUser?: UserWithProf
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Update last active timestamp for friends "last online" display
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const supabase = createClient();
+    const updateLastActive = async () => {
+      const timestamp = new Date().toISOString();
+      await supabase.from("friend_presence").upsert(
+        {
+          user_id: user.id,
+          last_active_at: timestamp,
+          updated_at: timestamp,
+        },
+        { onConflict: "user_id" },
+      );
+    };
+
+    const scheduleIdle = window.requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 1));
+    const idleId = scheduleIdle(() => {
+      void updateLastActive();
+    });
+
+    const intervalId = window.setInterval(() => {
+      void updateLastActive();
+    }, 60_000);
+
+    const handleFocus = () => {
+      void updateLastActive();
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        void updateLastActive();
+      }
+    };
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      (window.cancelIdleCallback ?? clearTimeout)(idleId);
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [user?.id]);
 
   // Track online presence for friends (deferred to avoid blocking first paint)
   useEffect(() => {
