@@ -30,7 +30,7 @@ function getPositionSuffix(position: number): string {
 
 export default function RankedLeaderboardTable({ data, currentUserId }: RankedLeaderboardTableProps) {
   return (
-    <div className="rounded-lg border">
+    <div className="rounded-2xl border border-border/40 bg-muted/20 overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow>
