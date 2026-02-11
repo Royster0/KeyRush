@@ -197,6 +197,10 @@ export async function getActiveBanner(userId: string) {
   return bannerServices.getActiveBanner(userId);
 }
 
+export async function getActiveBanners(userIds: string[]) {
+  return bannerServices.getActiveBanners(userIds);
+}
+
 export async function updateBannerPreset(
   slot: 1 | 2 | 3,
   backgroundId: string,

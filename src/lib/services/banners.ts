@@ -141,6 +141,62 @@ export async function getActiveBanner(userId: string): Promise<ActiveBanner | nu
 }
 
 /**
+ * Batch-fetch active banners for multiple users in 2 queries instead of 2N.
+ */
+export async function getActiveBanners(
+  userIds: string[]
+): Promise<Record<string, ActiveBanner | null>> {
+  if (userIds.length === 0) return {};
+
+  const supabase = await createClient();
+
+  // 1. Fetch active slots for all users in one query
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, active_banner_slot")
+    .in("id", userIds);
+
+  if (!profiles || profiles.length === 0) {
+    return Object.fromEntries(userIds.map((id) => [id, null]));
+  }
+
+  const slotByUser = new Map<string, number>();
+  for (const p of profiles) {
+    slotByUser.set(p.id, p.active_banner_slot as number);
+  }
+
+  // 2. Fetch all banner presets for these users in one query
+  const { data: presets } = await supabase
+    .from("banner_presets")
+    .select("user_id, slot, background_id, border_id, title_id")
+    .in("user_id", userIds);
+
+  // Build lookup: user_id -> ActiveBanner
+  const result: Record<string, ActiveBanner | null> = {};
+  for (const userId of userIds) {
+    const activeSlot = slotByUser.get(userId);
+    if (activeSlot == null) {
+      result[userId] = null;
+      continue;
+    }
+
+    const preset = presets?.find(
+      (p) => p.user_id === userId && p.slot === activeSlot
+    );
+
+    result[userId] = preset
+      ? {
+          backgroundId: preset.background_id,
+          borderId: preset.border_id,
+          titleId: preset.title_id,
+        }
+      : DEFAULT_ACTIVE_BANNER;
+  }
+
+  return result;
+}
+
+/**
  * Update a banner preset's components.
  */
 export async function updateBannerPreset(

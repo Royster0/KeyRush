@@ -2,10 +2,8 @@ import { updateSession } from "@/utils/supabase/middleware";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function middleware(request: NextRequest) {
-  if (
-    request.nextUrl.pathname === "/" &&
-    !request.cookies.getAll().some((c) => c.name.startsWith("sb-"))
-  ) {
+  // No Supabase cookies → no session to refresh, skip the auth round-trip
+  if (!request.cookies.getAll().some((c) => c.name.startsWith("sb-"))) {
     return NextResponse.next();
   }
 
