@@ -9,6 +9,18 @@ export const metadata: Metadata = buildMetadata({
   noIndex: true,
 });
 
-export default function AuthPage() {
-  return <AuthPageClient />;
+type LoginPageSearchParams = {
+  mode?: string | string[] | undefined;
+};
+
+export default async function AuthPage({
+  searchParams,
+}: {
+  searchParams: Promise<LoginPageSearchParams>;
+}) {
+  const params = await searchParams;
+  const mode = Array.isArray(params.mode) ? params.mode[0] : params.mode;
+  const initialMode = mode === "signup" ? "signup" : "login";
+
+  return <AuthPageClient initialMode={initialMode} />;
 }

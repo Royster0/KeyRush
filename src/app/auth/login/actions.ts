@@ -88,7 +88,7 @@ export async function signInWithGoogle() {
   });
 
   if (error) {
-    redirect("/error");
+    redirect("/auth/auth-code-error");
   }
 
   if (data.url) {

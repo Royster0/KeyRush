@@ -9,6 +9,8 @@ import { login, signup, signInWithGoogle } from "./actions";
 import { useActionState, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
+type AuthMode = "login" | "signup";
+
 function SubmitButton({ children }: { children: React.ReactNode }) {
   const { pending } = useFormStatus();
 
@@ -25,10 +27,18 @@ function SubmitButton({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function AuthPageClient() {
-  const [isLogin, setIsLogin] = useState(true);
+export default function AuthPageClient({
+  initialMode = "login",
+}: {
+  initialMode?: AuthMode;
+}) {
+  const [isLogin, setIsLogin] = useState(() => initialMode === "login");
   const [loginState, loginAction] = useActionState(login, null);
   const [signupState, signupAction] = useActionState(signup, null);
+
+  useEffect(() => {
+    setIsLogin(initialMode === "login");
+  }, [initialMode]);
 
   useEffect(() => {
     if (loginState?.error) {

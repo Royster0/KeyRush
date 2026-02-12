@@ -672,7 +672,7 @@ export default function Nav({ initialUser = null }: { initialUser?: UserWithProf
                             </Button>
                           </Link>
                           <Link
-                            href="/auth/register"
+                            href="/auth/login?mode=signup"
                             onClick={() => setIsOpen(false)}
                           >
                             <Button className="w-full">Register</Button>
