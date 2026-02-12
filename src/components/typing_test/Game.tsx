@@ -303,6 +303,7 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
         const xpResult = await awardXp({
           activeTypingSeconds: activeSeconds,
           accuracy: finalAccuracy,
+          wpm: finalWpm,
           isMultiplayer: false,
         });
 

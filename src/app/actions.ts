@@ -93,6 +93,7 @@ export async function checkAchievements(
 export async function awardXp(params: {
   activeTypingSeconds: number;
   accuracy: number;
+  wpm?: number;
   isMultiplayer?: boolean;
   wpmMargin?: number;
 }) {

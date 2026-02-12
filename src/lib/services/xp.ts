@@ -14,17 +14,20 @@ import {
  *
  * @param activeTypingSeconds - Actual seconds spent typing (excluding AFK time)
  * @param accuracy - Accuracy percentage (0-100)
+ * @param wpm - Final WPM for the test/match
  * @param isMultiplayer - Whether this is from a multiplayer match
  * @param wpmMargin - WPM margin over opponent (for multiplayer wins)
  */
 export async function awardXp({
   activeTypingSeconds,
   accuracy,
+  wpm = 0,
   isMultiplayer = false,
   wpmMargin = 0,
 }: {
   activeTypingSeconds: number;
   accuracy: number;
+  wpm?: number;
   isMultiplayer?: boolean;
   wpmMargin?: number;
 }): Promise<XpAwardResult | null> {
@@ -42,6 +45,7 @@ export async function awardXp({
   const xpAmount = calculateXpGain({
     activeTypingSeconds,
     accuracy,
+    wpm,
     isMultiplayer,
     wpmMargin,
   });

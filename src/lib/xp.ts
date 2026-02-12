@@ -3,6 +3,7 @@
  *
  * XP Formula:
  * - Base: 2.5 XP per active typing second × accuracy%
+ * - WPM bonus: +1% per 10 WPM above 40 (max +12%)
  * - Multiplayer bonus: +5% of base
  * - WPM margin bonus: +1% per 5 WPM margin (max +10%)
  *
@@ -17,18 +18,26 @@
 export function calculateXpGain({
   activeTypingSeconds,
   accuracy,
+  wpm = 0,
   isMultiplayer = false,
   wpmMargin = 0,
 }: {
   activeTypingSeconds: number;
   accuracy: number;
+  wpm?: number;
   isMultiplayer?: boolean;
   wpmMargin?: number;
 }): number {
-  // Base XP: 2 × active seconds × accuracy%
+  // Base XP: 2.5 × active seconds × accuracy%
   const baseXp = 2.5 * activeTypingSeconds * (accuracy / 100);
 
   let totalXp = baseXp;
+
+  // WPM performance bonus: +1% per 10 WPM above 40 (max +12%)
+  if (Number.isFinite(wpm) && wpm > 40) {
+    const wpmBonusPercent = Math.min(0.12, Math.floor((wpm - 40) / 10) * 0.01);
+    totalXp += baseXp * wpmBonusPercent;
+  }
 
   if (isMultiplayer) {
     // Multiplayer base bonus: +5%

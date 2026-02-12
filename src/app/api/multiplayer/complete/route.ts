@@ -95,20 +95,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: resultError.message }, { status: 500 });
   }
 
+  const parsedPlayerWpm = Number(stats.wpm);
+  const parsedOpponentWpm = Number(stats.opponentWpm);
+  const playerWpm = Number.isFinite(parsedPlayerWpm) ? Math.max(0, parsedPlayerWpm) : 0;
+  const opponentWpm = Number.isFinite(parsedOpponentWpm)
+    ? Math.max(0, parsedOpponentWpm)
+    : 0;
+
   // For ranked matches, calculate Elo server-side
   let eloResult: EloUpdateResult | null = null;
   if (isRanked && opponentId && result !== undefined) {
-    const playerWpm = Number.isFinite(stats.wpm) ? Math.round(stats.wpm) : 0;
-    const opponentWpm = Number.isFinite(stats.opponentWpm)
-      ? Math.round(stats.opponentWpm)
-      : 0;
     const { data, error: eloError } = await supabase.rpc("calculate_elo_update", {
       p_user_id: user.id,
       p_opponent_id: opponentId,
       p_match_id: matchRow.id,
       p_result: result,
-      p_player_wpm: playerWpm,
-      p_opponent_wpm: opponentWpm,
+      p_player_wpm: Math.round(playerWpm),
+      p_opponent_wpm: Math.round(opponentWpm),
     });
 
     if (eloError) {
@@ -122,13 +125,14 @@ export async function POST(request: Request) {
   // Award XP for the match
   let xpResult: XpAwardResult | null = null;
   const activeTypingSeconds = (duration || 30) * (stats.accuracy / 100);
-  const wpmMargin = result === 1 && stats.opponentWpm
-    ? Math.max(0, stats.wpm - stats.opponentWpm)
+  const wpmMargin = result === 1 && opponentWpm > 0
+    ? Math.max(0, playerWpm - opponentWpm)
     : 0;
 
   const xpAmount = calculateXpGain({
     activeTypingSeconds,
     accuracy: stats.accuracy,
+    wpm: playerWpm,
     isMultiplayer: true,
     wpmMargin,
   });
