@@ -12,14 +12,14 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - images - .svg, .png, .jpg, .jpeg, .gif, .webp
-     * Feel free to modify this pattern to include more paths.
-     */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // Protected/private routes
+    "/profile/:path*",
+    "/settings/:path*",
+    "/friends/:path*",
+    "/badges/:path*",
+    "/banner/:path*",
+    "/match-history/:path*",
+    // Auth routes
+    "/auth/:path*",
   ],
 };

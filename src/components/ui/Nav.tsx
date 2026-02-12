@@ -74,15 +74,18 @@ export default function Nav({ initialUser = null }: { initialUser?: UserWithProf
     };
   }, []);
 
-  // Fetch user on pathname change (handles server action redirects)
-  // Skip initial mount since we have the server-provided initialUser
+  // Fetch user on mount when server user is missing, then on pathname changes
+  // (handles server action redirects and public-route initial loads)
   useEffect(() => {
     if (!hasMounted.current) {
       hasMounted.current = true;
+      if (!initialUser) {
+        void fetchUser();
+      }
       return;
     }
-    fetchUser();
-  }, [pathname]);
+    void fetchUser();
+  }, [initialUser, pathname]);
 
   const handleFriendRequestAction = async (
     requestId: string,
