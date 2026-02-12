@@ -26,12 +26,12 @@ const GameControls = memo(function GameControls({
 }: GameControlsProps) {
   return (
     <motion.div
-      className="inline-flex items-center gap-2 px-3 py-2 rounded-2xl bg-muted/40 border border-border/50"
+      className="inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-2 rounded-2xl bg-muted/40 border border-border/50"
       animate={{ opacity: isActive ? 0 : 1 }}
       transition={{ duration: 0.25 }}
     >
       {/* Time Selection */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-0.5 sm:gap-1">
         {TIME_OPTIONS.map((time) => {
           const isSelected = selectedTime === time;
 
@@ -41,7 +41,7 @@ const GameControls = memo(function GameControls({
               onClick={() => onTimeSelect(time)}
               disabled={isActive}
               className={`
-                px-4 py-1.5 rounded-lg text-sm font-medium transition-colors duration-150 border
+                px-2.5 sm:px-4 py-1.5 rounded-lg text-sm font-medium transition-colors duration-150 border
                 disabled:cursor-not-allowed
                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
                 ${isSelected
@@ -61,10 +61,10 @@ const GameControls = memo(function GameControls({
       </div>
 
       {/* Separator */}
-      <div className="w-px h-6 bg-border/60 mx-1" />
+      <div className="hidden sm:block w-px h-6 bg-border/60 mx-1" />
 
-      {/* Toggle Icons */}
-      <div className="flex items-center gap-1">
+      {/* Toggle Icons - hidden on mobile */}
+      <div className="hidden sm:flex items-center gap-1">
         <ToggleButton
           active={showTimer}
           onClick={onToggleTimer}
@@ -82,14 +82,14 @@ const GameControls = memo(function GameControls({
       </div>
 
       {/* Separator */}
-      <div className="w-px h-6 bg-border/60 mx-1" />
+      <div className="w-px h-6 bg-border/60 mx-0.5 sm:mx-1" />
 
       {/* Reset */}
       <motion.button
         onClick={onReset}
         disabled={isActive}
         title="Reset"
-        className="p-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-background/60 transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50"
+        className="p-2 sm:p-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-background/60 transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50"
         whileHover={{ rotate: -45 }}
         whileTap={{ scale: 0.9 }}
       >
