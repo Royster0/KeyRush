@@ -13,7 +13,7 @@ export const metadata: Metadata = buildMetadata({
 
 export default function Home() {
   return (
-    <div className="min-h-[calc(75vh)] flex items-center justify-center p-4">
+    <div className="min-h-[calc(50vh)] sm:min-h-[calc(75vh)] flex items-center justify-center p-2 sm:p-4">
       <Suspense fallback={<GameSkeleton />}>
         <GameWrapper />
       </Suspense>

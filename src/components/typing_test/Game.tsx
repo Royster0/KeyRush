@@ -61,6 +61,7 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
 
   const textRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const hiddenInputRef = useRef<HTMLInputElement>(null);
 
   const {
     typed,
@@ -124,9 +125,7 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
 
     // Refocus on test
     setTimeout(() => {
-      if (textRef.current) {
-        textRef.current.focus();
-      }
+      hiddenInputRef.current?.focus();
     }, 0);
   }, [selectedTime, setIsGameActive, resetTyping, resetActiveTime]);
 
@@ -147,17 +146,58 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
     restartTest();
   }, [restartTest]);
 
-  // Keyboard event handler
+  // Focus the hidden input to enable typing (triggers mobile keyboard on tap)
+  const focusInput = useCallback(() => {
+    hiddenInputRef.current?.focus();
+  }, []);
+
+  // Keyboard handler on hidden input (works for physical keyboards + mobile backspace/tab)
+  const handleInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Tab") {
+      e.preventDefault();
+      restartTest();
+      return;
+    }
+
+    if (e.key === "Backspace" || e.key === " ") {
+      e.preventDefault();
+      handleTypingKeyDown(e.nativeEvent);
+      return;
+    }
+
+    // Physical keyboard: identifiable single character
+    if (e.key.length === 1) {
+      e.preventDefault();
+      handleTypingKeyDown(e.nativeEvent);
+      return;
+    }
+
+    // Mobile keyboards with "Unidentified" key: let onInput handle it
+  }, [restartTest, handleTypingKeyDown]);
+
+  // Fallback for mobile keyboards that fire key:"Unidentified" in keyDown
+  const handleMobileInput = useCallback(() => {
+    const input = hiddenInputRef.current;
+    if (!input || input.value.length === 0) return;
+
+    for (const char of input.value) {
+      handleTypingKeyDown(new KeyboardEvent("keydown", { key: char }));
+    }
+    input.value = "";
+  }, [handleTypingKeyDown]);
+
+  // Global keydown for Tab restart when hidden input isn't focused (e.g. after clicking elsewhere)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Restart on Tab
+      // If the hidden input is focused, its own onKeyDown handles everything
+      if (document.activeElement === hiddenInputRef.current) return;
+
       if (e.key === "Tab") {
         e.preventDefault();
         restartTest();
         return;
       }
 
-      // Delegate to typing input hook
       handleTypingKeyDown(e);
     };
 
@@ -447,13 +487,26 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
         <CardContent>
           <div
             ref={containerRef}
-            className="p-6 rounded-lg mb-4 font-mono leading-relaxed overflow-hidden"
+            className="relative p-3 sm:p-6 rounded-lg mb-4 font-mono leading-relaxed overflow-hidden"
           >
+            {/* Hidden input captures focus and triggers mobile keyboard */}
+            <input
+              ref={hiddenInputRef}
+              className="absolute opacity-0 w-0 h-0 pointer-events-none"
+              autoCapitalize="off"
+              autoCorrect="off"
+              autoComplete="off"
+              spellCheck={false}
+              inputMode="text"
+              onKeyDown={handleInputKeyDown}
+              onInput={handleMobileInput}
+              aria-label="Type here"
+            />
             <div
               ref={textRef}
-              tabIndex={0}
+              onClick={focusInput}
               className={cn(
-                "focus:outline-none transition-all duration-300",
+                "focus:outline-none transition-all duration-300 cursor-text",
                 isFinished ? "h-auto" : "h-[9em]",
               )}
             >
@@ -524,7 +577,7 @@ const Game = ({ initialBestScores = [], user }: GameProps) => {
             </div>
           </div>
         </CardContent>
-        <div className="fixed bottom-50 left-1/2 -translate-x-1/2 pointer-events-none">
+        <div className="fixed bottom-32 sm:bottom-50 left-1/2 -translate-x-1/2 pointer-events-none">
           <GameStats
             timeLeft={timeLeft}
             wpm={wpm}

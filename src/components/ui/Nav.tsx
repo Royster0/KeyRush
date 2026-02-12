@@ -374,7 +374,7 @@ export default function Nav({ initialUser = null }: { initialUser?: UserWithProf
     },
   ];
 
-  const NavLinks = () => {
+  const NavLinks = ({ mobile = false }: { mobile?: boolean }) => {
     return (
       <>
         {navItems.map((item) => {
@@ -383,12 +383,17 @@ export default function Nav({ initialUser = null }: { initialUser?: UserWithProf
             <Link
               key={item.href}
               href={item.href}
-              className={`hover:text-primary transition-all`}
+              className={`hover:text-primary transition-all ${mobile ? "flex items-center gap-2 px-4 py-2 rounded-md hover:bg-muted" : ""}`}
               aria-label={item.name}
               title={item.name}
+              onClick={mobile ? () => setIsOpen(false) : undefined}
             >
-              <Icon className="size-5 mx-5" />
-              <p className="lg:hidden">{item.name}</p>
+              <Icon className={mobile ? "size-4" : "size-5 mx-5"} />
+              {mobile ? (
+                <span>{item.name}</span>
+              ) : (
+                <p className="lg:hidden">{item.name}</p>
+              )}
             </Link>
           );
         })}
@@ -431,7 +436,7 @@ export default function Nav({ initialUser = null }: { initialUser?: UserWithProf
                 <NavLinks />
               </div>
 
-              {/* User - fades during typing test */}
+              {/* User - fades during typing test (desktop) */}
               {user ? (
                 <div
                   className="hidden md:flex items-center space-x-8 transition-opacity duration-300"
@@ -524,7 +529,7 @@ export default function Nav({ initialUser = null }: { initialUser?: UserWithProf
               ) : (
                 <Link
                   href="/auth/login"
-                  className="hover:text-primary transition-opacity duration-300"
+                  className="hidden md:block hover:text-primary transition-opacity duration-300"
                   style={{ opacity: isGameActive ? 0 : 1 }}
                   aria-label="Login"
                   title="Login"
@@ -532,21 +537,20 @@ export default function Nav({ initialUser = null }: { initialUser?: UserWithProf
                   <LogIn className="size-5" />
                 </Link>
               )}
-            </div>
 
-            {/* Mobile Menu */}
-            <div className="md:hidden">
-              <Sheet open={isOpen} onOpenChange={setIsOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" aria-label="Open menu">
-                    <Menu className="size-6" />
-                  </Button>
-                </SheetTrigger>
-                <SheetTitle aria-describedby="Navigation Menu" />
-                <SheetContent side="right" className="w-64 z-[100]">
-                  <div className="flex flex-col space-y-4 mt-8">
-                    <NavLinks />
-                    <div className="border-t pt-4">
+              {/* Mobile Menu Trigger */}
+              <div className="md:hidden">
+                <Sheet open={isOpen} onOpenChange={setIsOpen}>
+                  <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon" aria-label="Open menu">
+                      <Menu className="size-6" />
+                    </Button>
+                  </SheetTrigger>
+                  <SheetTitle aria-describedby="Navigation Menu" />
+                  <SheetContent side="right" className="w-64 z-[100]">
+                  <div className="flex flex-col space-y-1 mt-8">
+                    <NavLinks mobile />
+                    <div className="border-t border-border/60 pt-3 mt-2">
                       {user ? (
                         <>
                           <Link
@@ -678,7 +682,8 @@ export default function Nav({ initialUser = null }: { initialUser?: UserWithProf
                     </div>
                   </div>
                 </SheetContent>
-              </Sheet>
+                </Sheet>
+              </div>
             </div>
           </div>
         </nav>
