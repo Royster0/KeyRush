@@ -8,6 +8,7 @@ import { useFormStatus } from "react-dom";
 import { login, signup, signInWithGoogle } from "./actions";
 import { useActionState, useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { useSearchParams } from "next/navigation";
 
 function SubmitButton({ children }: { children: React.ReactNode }) {
   const { pending } = useFormStatus();
@@ -26,9 +27,19 @@ function SubmitButton({ children }: { children: React.ReactNode }) {
 }
 
 export default function AuthPageClient() {
-  const [isLogin, setIsLogin] = useState(true);
+  const searchParams = useSearchParams();
+  const mode = searchParams.get("mode");
+  const [isLogin, setIsLogin] = useState(() => mode !== "signup");
   const [loginState, loginAction] = useActionState(login, null);
   const [signupState, signupAction] = useActionState(signup, null);
+
+  useEffect(() => {
+    if (mode === "signup") {
+      setIsLogin(false);
+    } else if (mode === "login") {
+      setIsLogin(true);
+    }
+  }, [mode]);
 
   useEffect(() => {
     if (loginState?.error) {

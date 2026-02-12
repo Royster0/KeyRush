@@ -23,6 +23,6 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // redirect the user to an error page with some instructions
-  redirect("/error");
+  // redirect the user to auth error page with some instructions
+  redirect("/auth/auth-code-error");
 }
