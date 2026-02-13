@@ -2,7 +2,7 @@
 
 KeyRush is a competitive typing game, its foundations inspired by [monkeytype](https://monkeytype.com/). The core loop is real-time 1v1 multiplayer: queue up, race the same text, and climb ranks with Elo that’s calculated server-side. It’s fast, tense, and genuinely fun to grind.
 
-<img src="/public/KeyRush_Logo.svg" alt="KeyRush Logo" width="200" />
+<img src="/public/og-image.png" alt="KeyRush - Real-time Competitive Typing" width="100%" />
 
 ## What it is
 

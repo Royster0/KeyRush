@@ -35,6 +35,7 @@ export function buildMetadata({
 }: BuildMetadataInput): Metadata {
   const siteUrl = getSiteUrl();
   const url = new URL(path, siteUrl);
+  const ogImageUrl = new URL("/og-image.png", siteUrl).toString();
 
   return {
     title,
@@ -48,11 +49,20 @@ export function buildMetadata({
       url,
       type,
       siteName: SITE_NAME,
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: "KeyRush - Competitive Typing",
+        },
+      ],
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title,
       description,
+      images: [ogImageUrl],
     },
     robots: noIndex ? { index: false, follow: false } : undefined,
   };
